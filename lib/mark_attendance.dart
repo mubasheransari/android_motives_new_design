@@ -12,12 +12,23 @@ import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/homescreenn.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 
+
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+
+
+
 class MarkAttendanceView extends StatefulWidget {
+
+
   const MarkAttendanceView({super.key});
 
   @override
   State<MarkAttendanceView> createState() => _MarkAttendanceViewState();
 }
+
+
 
 class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   final loc.Location location = loc.Location();
@@ -31,6 +42,8 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isMapReady = false;
+
+  
 
   @override
   void initState() {
@@ -101,11 +114,116 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   final ImagePicker _picker = ImagePicker();
   File? _capturedImage;
 
+    static const Color orange = Color(0xFFEA7A3B);
+  static const Color text = Color(0xFF1E1E1E);
+  static const Color muted = Color(0xFF707883);
+  static const Color field = Color(0xFFF2F3F5);
+  static const Color card = Colors.white;
+  static const accent = Color(0xFFE97C42);
+  static const Color _shadow = Color(0x14000000);
+
   @override
   Widget build(BuildContext context) {
+     final t = Theme.of(context).textTheme;
     return Scaffold(
       body: Stack(
         children: [
+                    Container(
+height: 300,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: _shadow,
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                
+
+                  Text("Location",
+                     style: t.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: text,
+                    ),),
+                  const SizedBox(height: 6),
+
+                  // Location field
+                  Container(
+                    decoration: BoxDecoration(
+                      color: field,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: orange.withOpacity(0.3)),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Karachi, Karachi City, Sindh, Pakistan",
+                            style: t.bodyMedium?.copyWith(color: muted),
+                          ),
+                        ),
+                        const Icon(Icons.my_location, color: orange),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Punch in/out row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _PunchCard(title: "Punch In", time: "--:--"),
+                      _PunchCard(title: "Punch Out", time: "--:--"),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Attendance Button
+                  Center(
+                    child: SizedBox(
+                       width: MediaQuery.of(context).size.width * 0.55,
+                              height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: orange,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {},
+                        child: Text(
+                          "ATTENDANCE IN",
+                          style: t.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+
+                  // Date & Time
+                  Center(
+                    child: Text(
+                      "Thursday, 21-Nov-2024 08:10:20",
+                      style: t.bodySmall?.copyWith(color: muted),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (_initialCameraPosition != null)
             GoogleMap(
               padding: const EdgeInsets.only(bottom: 60),
@@ -138,12 +256,111 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
               ),
             ),
 
-          if (_isMapReady)
+ 
+         
+
+         if (_isMapReady)
             Positioned(
               bottom: 60,
               left: 16,
               right: 16,
-              child: BlocBuilder<GlobalBloc, GlobalState>(
+              child:          Container(
+height: 280,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: _shadow,
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                
+
+                  Text("Location",
+                     style: t.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: text,
+                    ),),
+                  const SizedBox(height: 6),
+
+                  // Location field
+                  Container(
+                    decoration: BoxDecoration(
+                      color: field,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: orange.withOpacity(0.3)),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Karachi, Karachi City, Sindh, Pakistan",
+                            style: t.bodyMedium?.copyWith(color: muted),
+                          ),
+                        ),
+                        const Icon(Icons.my_location, color: orange),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Punch in/out row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _PunchCard(title: "Punch In", time: "--:--"),
+                      _PunchCard(title: "Punch Out", time: "--:--"),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Attendance Button
+                  Center(
+                    child: SizedBox(
+                       width: MediaQuery.of(context).size.width * 0.55,
+                              height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: orange,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {},
+                        child: Text(
+                          "ATTENDANCE IN",
+                          style: t.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+              //    const Spacer(),
+
+                  // Date & Time
+                  Center(
+                    child: Text(
+                      "Thursday, 21-Nov-2024 08:10:20",
+                      style: t.bodySmall?.copyWith(color: muted),
+                    ),
+                  ),
+                ],
+              ),
+            ), /*BlocBuilder<GlobalBloc, GlobalState>(
                 builder: (context, state) {
                   return ElevatedButton(
                     onPressed: () async {
@@ -222,10 +439,39 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                     ),
                   );
                 },
-              ),
+              ),*/
             ),
         ],
       ),
+    );
+  }
+
+  
+}
+
+class _PunchCard extends StatelessWidget {
+  final String title;
+  final String time;
+  const _PunchCard({required this.title, required this.time});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        Text(title,
+            style: t.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1E1E1E),
+            )),
+        const SizedBox(height: 6),
+        Text(time,
+            style: t.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFEA7A3B),
+            )),
+      ],
     );
   }
 }
