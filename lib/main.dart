@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/homescreenn.dart';
 import 'package:motives_new_ui_conversion/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
@@ -56,7 +57,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Motives-T',
       debugShowCheckedModeBanner: false,
-      home:  SplashScreen(),
+      home:email != null ?HomeUpdated() :  SplashScreen(),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
 import 'listviewui.dart';
 
@@ -66,8 +67,17 @@ class HomeUpdated extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
               sliver: SliverGrid(
                 delegate: SliverChildListDelegate.fixed([
-                  const _CategoryCard(
-                      icon: Icons.access_time, title: 'Attendance'),
+                   InkWell(
+                    onTap: (){
+                         Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MarkAttendanceView()),
+                      ); 
+                    },
+                     child: _CategoryCard(
+                        icon: Icons.access_time, title: 'Attendance'),
+                   ),
                   const _CategoryCard(icon: Icons.alt_route, title: 'Routes'),
 
                   InkWell(
