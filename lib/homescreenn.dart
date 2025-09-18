@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
 import 'listviewui.dart';
@@ -41,7 +43,7 @@ class HomeUpdated extends StatelessWidget {
                                 color: text,
                                 fontWeight: FontWeight.w600,
                               )),
-                          Text('Testuser',
+                          Text(context.read<GlobalBloc>().state.loginModel!.userinfo!.userName.toString(),
                               style: t.headlineSmall?.copyWith(
                                 height: 1.1,
                                 color: orange,

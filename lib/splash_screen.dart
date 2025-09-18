@@ -1,6 +1,7 @@
 // splash_screen.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/intro_screens.dart';
 
 import 'homescreenn.dart';
@@ -71,7 +72,16 @@ class _SplashScreenState extends State<SplashScreen>
   void _goHome() {
     if (!mounted) return;
     _pillCtrl.stop();
-    Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
+    final box = GetStorage();
+var email = box.read("email");
+if(email != null){
+      Navigator.of(context).pushReplacement(_fadeRoute(const HomeUpdated()));
+}
+else{
+  Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
+}
+   // email != null ?HomeUpdated() :  SplashScreen(),
+    // Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
   }
 
   @override

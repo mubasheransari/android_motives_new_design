@@ -57,7 +57,8 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Motives-T',
       debugShowCheckedModeBanner: false,
-      home:email != null ?HomeUpdated() :  SplashScreen(),
+     // home:email != null ?HomeUpdated() :  SplashScreen(),
+      home:  SplashScreen(),
     );
   }
 }
