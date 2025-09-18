@@ -1,0 +1,330 @@
+// splash_screen.dart
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/intro_screens.dart';
+
+import 'homescreenn.dart';
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+// Theme tokens (kept identical to your HomeUpdated)
+const _orange = Color(0xFFEA7A3B);
+const _text = Color(0xFF1E1E1E);
+const _muted = Color(0xFF707883);
+const _card = Colors.white;
+
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _logoCtrl; // logo pop-in
+  late final AnimationController _pillCtrl; // rotating/sweeping pills
+  late final AnimationController _fadeCtrl; // tagline + content fade/slide
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoOpacity;
+  late final Animation<double> _taglineOpacity;
+  late final Animation<Offset> _taglineOffset;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _logoCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _pillCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    );
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _logoScale = Tween(begin: 0.85, end: 1.0).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOutBack),
+    );
+    _logoOpacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut),
+    );
+
+    _taglineOpacity = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut),
+    );
+    _taglineOffset =
+        Tween(begin: const Offset(0, .15), end: Offset.zero).animate(
+      CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic),
+    );
+
+    // Sequence: start logo, then pills, then tagline, then navigate.
+    _logoCtrl.forward().whenComplete(() {
+      _pillCtrl.repeat(); // continuous sweep while splash shows
+      _fadeCtrl.forward();
+     Future.delayed(const Duration(seconds: 5), _goHome);
+    });
+  }
+
+  void _goHome() {
+    if (!mounted) return;
+    _pillCtrl.stop();
+    Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
+  }
+
+  @override
+  void dispose() {
+    _logoCtrl.dispose();
+    _pillCtrl.dispose();
+    _fadeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Background gradient sweep (very subtle)
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _pillCtrl,
+              builder: (_, __) {
+                final a = _pillCtrl.value * 2 * math.pi;
+                return CustomPaint(
+                  painter: _SoftSweepPainter(angle: a),
+                );
+              },
+            ),
+          ),
+
+          // Center content
+          SafeArea(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Decorative angled pills (your login motif)
+                  // const SizedBox(height: 10),
+                  // Transform.rotate(
+                  //   angle: -12 * math.pi / 180,
+                  //   child: _OrangePills(anim: _pillCtrl),
+                  // ),
+                  // const SizedBox(height: 24),
+
+                  // Logo pop-in
+                  ScaleTransition(
+                    scale: _logoScale,
+                    child: FadeTransition(
+                      opacity: _logoOpacity,
+                      child: SizedBox(
+                        width: 225,
+                        child: _LogoCard(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: Container(
+                              color: Colors.white,
+                              padding: const EdgeInsets.all(18),
+                              child: Row(
+                                children: [
+                                  Transform.rotate(
+                                    angle: -22 *
+                                        3.1415926 /
+                                        180, // same tilt as your pills
+                                    child: Text(
+                                      "motives".toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.2,
+                                        foreground: Paint()
+                                          ..shader = const LinearGradient(
+                                            colors: [
+                                              HomeUpdated.orange,
+                                              Color(0xFFFFB07A)
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ).createShader(
+                                              const Rect.fromLTWH(0, 0, 150, 40)),
+                                      ),
+                                    ),
+                                  ),
+                                     Transform.rotate(
+                                            angle: -22 * math.pi / 200,
+                                            child: _OrangePills(anim: _pillCtrl),
+                                          ),
+                                ],
+                              ),
+                              // Image.asset(
+                              //   'assets/logo.png', // <-- swap to your asset
+                              //   width: 90,
+                              //   height: 90,
+                              //   fit: BoxFit.contain,
+                              // ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // const SizedBox(height: 18),
+
+                  // FadeTransition(
+                  //   opacity: _logoOpacity,
+                  //   child: Text(
+                  //     "Motives",
+                  //     style: t.headlineSmall?.copyWith(
+                  //       color: _text,
+                  //       fontWeight: FontWeight.w800,
+                  //       letterSpacing: .6,
+                  //     ),
+                  //   ),
+                  // ),
+
+                  const SizedBox(height: 6),
+
+               
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _LogoCard extends StatelessWidget {
+  const _LogoCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [_orange, Color(0xFFFFB07A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: _card,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 14,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _OrangePills extends StatelessWidget {
+  const _OrangePills({required this.anim});
+  final AnimationController anim;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: anim,
+      builder: (_, __) {
+        final shift = (anim.value - .5) * 10; // small breathing
+        return Column(
+          children: [
+            _Pill(color: _orange.withOpacity(.18), width: 52 + shift),
+            const SizedBox(height: 6),
+            _Pill(color: _orange.withOpacity(.34), width: 64 - shift),
+            const SizedBox(height: 6),
+            const _Pill(color: _orange, width: 86),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.color, required this.width});
+  final Color color;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 14,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+  }
+}
+
+// Soft rotating radial sweep in the background (very light)
+class _SoftSweepPainter extends CustomPainter {
+  _SoftSweepPainter({required this.angle});
+  final double angle;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.longestSide * .7;
+
+    final sweep = Paint()
+      ..shader = SweepGradient(
+        startAngle: angle,
+        endAngle: angle + math.pi * 2,
+        colors: [
+          _orange.withOpacity(.08),
+          Colors.transparent,
+          _orange.withOpacity(.06),
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+
+    canvas.drawCircle(center, radius, sweep);
+
+    // faint vignette
+    final vignette = Paint()
+      ..shader = RadialGradient(
+        colors: [Colors.transparent, Colors.black.withOpacity(.03)],
+      ).createShader(Rect.fromCircle(center: center, radius: size.longestSide));
+    canvas.drawRect(Offset.zero & size, vignette);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SoftSweepPainter oldDelegate) =>
+      oldDelegate.angle != angle;
+}
+
+// --------------------- Page transition ---------------------
+PageRouteBuilder _fadeRoute(Widget child) {
+  return PageRouteBuilder(
+    transitionDuration: const Duration(milliseconds: 450),
+    pageBuilder: (_, __, ___) => child,
+    transitionsBuilder: (_, anim, __, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+        child: child,
+      );
+    },
+  );
+}
