@@ -9,21 +9,17 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
-  import 'package:geocoding/geocoding.dart' as geo;
+import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 
 class MarkAttendanceView extends StatefulWidget {
-
-
   const MarkAttendanceView({super.key});
 
   @override
   State<MarkAttendanceView> createState() => _MarkAttendanceViewState();
 }
-
-
 
 class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   final loc.Location location = loc.Location();
@@ -37,7 +33,7 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isMapReady = false;
-String _dateTime = "";
+  String _dateTime = "";
   void _updateTime() {
     final now = DateTime.now();
     final formatted = DateFormat("EEEE, dd-MMM-yyyy HH:mm:ss").format(now);
@@ -45,13 +41,12 @@ String _dateTime = "";
       _dateTime = formatted;
     });
   }
-  
 
   @override
   void initState() {
     super.initState();
     _initMap();
-       _updateTime();
+    _updateTime();
     // update every second
     Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateTime();
@@ -73,104 +68,96 @@ String _dateTime = "";
     );
   }
 
+  // Inside your State class
+  String _currentAddress = "Fetching location...";
 
-// Inside your State class
-String _currentAddress = "Fetching location...";
+  Future<void> _getAddressFromLatLng(LatLng position) async {
+    try {
+      List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
 
-Future<void> _getAddressFromLatLng(LatLng position) async {
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
 
-  try {
-    List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
-      position.latitude,
-      position.longitude,
-    );
-
-    if (placemarks.isNotEmpty) {
-      final place = placemarks.first;
-
+        setState(() {
+          _currentAddress =
+              "${place.thoroughfare}, ${place.subLocality}, ${place.locality},";
+        });
+        print("STREET ${place.street}");
+      }
+    } catch (e) {
       setState(() {
-        _currentAddress =
-           "${place.thoroughfare}, ${place.subLocality}, ${place.locality},";
+        _currentAddress = "Unable to fetch address";
       });
-      print("STREET ${place.street}");
     }
-  } catch (e) {
-    setState(() {
-      _currentAddress = "Unable to fetch address";
-    });
-  }
-  // try {
-  //   List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
-  //     position.latitude,
-  //     position.longitude,
-  //   );
+    // try {
+    //   List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+    //     position.latitude,
+    //     position.longitude,
+    //   );
 
-  //   if (placemarks.isNotEmpty) {
-  //     final place = placemarks.first;
-  //     setState(() {
-  //       // 🔥 Build full detailed address
-  //       _currentAddress =
-  //           "${place.street}, ${place.subLocality}, ${place.locality}, "
-  //           "${place.administrativeArea}, ${place.postalCode}, ${place.country}";
-  //     });
-  //   }
-  // } catch (e) {
-  //   setState(() {
-  //     _currentAddress = "Unable to fetch address";
-  //   });
-  // }
-}
-
-
-
-
-
-
-Future<void> _requestPermissionAndFetchLocation() async {
-  bool serviceEnabled = await location.serviceEnabled();
-  if (!serviceEnabled) {
-    serviceEnabled = await location.requestService();
-    if (!serviceEnabled) return;
+    //   if (placemarks.isNotEmpty) {
+    //     final place = placemarks.first;
+    //     setState(() {
+    //       // 🔥 Build full detailed address
+    //       _currentAddress =
+    //           "${place.street}, ${place.subLocality}, ${place.locality}, "
+    //           "${place.administrativeArea}, ${place.postalCode}, ${place.country}";
+    //     });
+    //   }
+    // } catch (e) {
+    //   setState(() {
+    //     _currentAddress = "Unable to fetch address";
+    //   });
+    // }
   }
 
-  var permissionGranted = await location.hasPermission();
-  if (permissionGranted == loc.PermissionStatus.denied) {
-    permissionGranted = await location.requestPermission();
-    if (permissionGranted != loc.PermissionStatus.granted) return;
-  }
+  Future<void> _requestPermissionAndFetchLocation() async {
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) return;
+    }
 
-  final currentLocation = await location.getLocation();
-  _currentLatLng = LatLng(
-    currentLocation.latitude ?? 24.8607,
-    currentLocation.longitude ?? 67.0011,
-  );
+    var permissionGranted = await location.hasPermission();
+    if (permissionGranted == loc.PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != loc.PermissionStatus.granted) return;
+    }
 
-  _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
-
-  if (_currentMarkerIcon != null) {
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('current_location'),
-        position: _currentLatLng!,
-        icon: _currentMarkerIcon!,
-        infoWindow: const InfoWindow(title: 'Your Location'),
-      ),
+    final currentLocation = await location.getLocation();
+    _currentLatLng = LatLng(
+      currentLocation.latitude ?? 24.8607,
+      currentLocation.longitude ?? 67.0011,
     );
+
+    _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
+
+    if (_currentMarkerIcon != null) {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('current_location'),
+          position: _currentLatLng!,
+          icon: _currentMarkerIcon!,
+          infoWindow: const InfoWindow(title: 'Your Location'),
+        ),
+      );
+    }
+
+    // 🔥 Fetch address
+    await _getAddressFromLatLng(_currentLatLng!);
   }
 
-  // 🔥 Fetch address
-  await _getAddressFromLatLng(_currentLatLng!);
-}
-
-// Recenter button function
-void _recenterToCurrentLocation() {
-  if (_currentLatLng != null) {
-    _mapController.animateCamera(
-      CameraUpdate.newLatLngZoom(_currentLatLng!, 16),
-    );
+  // Recenter button function
+  void _recenterToCurrentLocation() {
+    if (_currentLatLng != null) {
+      _mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(_currentLatLng!, 16),
+      );
+    }
   }
-}
-
 
   // Future<void> _requestPermissionAndFetchLocation() async {
   //   bool serviceEnabled = await location.serviceEnabled();
@@ -205,8 +192,6 @@ void _recenterToCurrentLocation() {
   //   }
   // }
 
-  
-
   void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
     LatLngBounds? visibleRegion;
@@ -222,7 +207,7 @@ void _recenterToCurrentLocation() {
   final ImagePicker _picker = ImagePicker();
   File? _capturedImage;
 
-    static const Color orange = Color(0xFFEA7A3B);
+  static const Color orange = Color(0xFFEA7A3B);
   static const Color text = Color(0xFF1E1E1E);
   static const Color muted = Color(0xFF707883);
   static const Color field = Color(0xFFF2F3F5);
@@ -232,107 +217,106 @@ void _recenterToCurrentLocation() {
 
   @override
   Widget build(BuildContext context) {
-     final t = Theme.of(context).textTheme;
+    final t = Theme.of(context).textTheme;
     return Scaffold(
       body: Stack(
         children: [
-                    Container(
-height: 300,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: card,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: _shadow,
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
+          Container(
+            height: 300,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: card,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              boxShadow: [
+                BoxShadow(
+                  color: _shadow,
+                  blurRadius: 10,
+                  offset: Offset(0, -2),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Location",
+                  style: t.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: text,
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                
+                ),
+                const SizedBox(height: 6),
 
-                  Text("Location",
-                     style: t.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: text,
-                    ),),
-                  const SizedBox(height: 6),
-
-                  // Location field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: field,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: orange.withOpacity(0.3)),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                           _currentAddress,
-                            style: t.bodyMedium?.copyWith(color: muted),
-                          ),
-                        ),
-                        const Icon(Icons.my_location, color: orange),
-                      ],
-                    ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: field,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: orange.withOpacity(0.3)),
                   ),
-                  const SizedBox(height: 20),
-
-                  // Punch in/out row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                  child: Row(
                     children: [
-                      _PunchCard(title: "Punch In", time: "--:--"),
-                      _PunchCard(title: "Punch Out", time: "--:--"),
+                      Expanded(
+                        child: Text(
+                          _currentAddress,
+                          style: t.bodyMedium?.copyWith(color: muted),
+                        ),
+                      ),
+                      const Icon(Icons.my_location, color: orange),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                ),
+                const SizedBox(height: 20),
 
-                  // Attendance Button
-                  Center(
-                    child: SizedBox(
-                       width: MediaQuery.of(context).size.width * 0.55,
-                              height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: orange,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _PunchCard(title: "Punch In", time: "--:--"),
+                    _PunchCard(title: "Punch Out", time: "--:--"),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Attendance Button
+                Center(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.55,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: orange,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        onPressed: () {},
-                        child: Text(
-                          "ATTENDANCE IN",
-                          style: t.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                      ),
+                      onPressed: () {},
+                      child: Text(
+                        "ATTENDANCE IN",
+                        style: t.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
-                  const Spacer(),
+                ),
+                const Spacer(),
 
-                  // Date & Time
-                  Center(
-                    child: Text(
-                          _dateTime, //"Thursday, 21-Nov-2024 08:10:20",
+                Center(
+                  child: Text(
+                    _dateTime,
 
-                      style: t.bodySmall?.copyWith(color: muted),
-                    ),
+                    style: t.bodySmall?.copyWith(color: muted),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
           if (_initialCameraPosition != null)
             GoogleMap(
               padding: const EdgeInsets.only(bottom: 60),
@@ -365,206 +349,175 @@ height: 300,
               ),
             ),
 
- 
-         
-
-         if (_isMapReady)
+          // if (_isMapReady == true)
             Positioned(
               bottom: 60,
               left: 16,
               right: 16,
-              child:          Container(
-height: 310,
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: card,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [
-                  BoxShadow(
-                    color: _shadow,
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                
-
-                  Text("Location",
-                     style: t.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: text,
-                    ),),
-                  const SizedBox(height: 6),
-
-                  // Location field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: field,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: orange.withOpacity(0.3)),
+              child: Container(
+                height: 310,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: card,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _shadow,
+                      blurRadius: 10,
+                      offset: Offset(0, -2),
                     ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                           _currentAddress,
-                            style: t.bodyMedium?.copyWith(color: muted),
+                  ],
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Location",
+                      style: t.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: text,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+
+                    // Location field
+                    Container(
+                      decoration: BoxDecoration(
+                        color: field,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: orange.withOpacity(0.3)),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _currentAddress,
+                              style: t.bodyMedium?.copyWith(color: muted),
+                            ),
                           ),
+                          IconButton(
+                            onPressed: () {
+                              _recenterToCurrentLocation();
+                            },
+                            icon: Icon(Icons.my_location, color: orange),
+                          ),
+                          // const Icon(Icons.my_location, color: orange),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Punch in/out row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _PunchCard(
+                          title: "Punch In",
+                          time: context
+                              .read<GlobalBloc>()
+                              .state
+                              .loginModel!
+                              .log!
+                              .tim
+                              .toString(),
                         ),
-                        IconButton(onPressed: (){
-                          _recenterToCurrentLocation();
-                        }, icon: Icon(Icons.my_location, color: orange))
-                       // const Icon(Icons.my_location, color: orange),
+                        _PunchCard(title: "Punch Out", time: "--:--"),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 10),
 
-                  // Punch in/out row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _PunchCard(title: "Punch In", time: context.read<GlobalBloc>().state.loginModel!.log!.tim.toString()),
-                      _PunchCard(title: "Punch Out", time: "--:--"),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Attendance Button
-                  Center(
-                    child: SizedBox(
-                       width: MediaQuery.of(context).size.width * 0.55,
-                              height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: orange,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                    Center(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.50,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: orange,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                            Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SelfieCaptureScreen()),
-                      );
-                        },
-                        child: Text(
-                          "ATTENDANCE IN",
-                          style: t.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          onPressed: () {
+                            if (context
+                                    .read<GlobalBloc>()
+                                    .state
+                                    .loginModel!
+                                    .log!
+                                    .tim !=
+                                null) {
+                              if (context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .reasons!
+                                      .length !=
+                                  context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .journeyPlan!
+                                      .length) {
+                                toastWidget(
+                                  'Complete your journey plan first',
+                                  Colors.red,
+                                );
+                              }
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SelfieCaptureScreen(),
+                                ),
+                              );
+                            }
+
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => SelfieCaptureScreen(),
+                            //   ),
+                            // );
+                          },
+                          child: Text(
+                            context
+                                        .read<GlobalBloc>()
+                                        .state
+                                        .loginModel!
+                                        .log!
+                                        .tim !=
+                                    null
+                                ? "ATTENDANCE OUT"
+                                : "ATTENDANCE IN",
+                            style: t.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-              //    const Spacer(),
+                    const SizedBox(height: 10),
 
-                  // Date & Time
-                  Center(
-                    child: Text(
-                      _dateTime,
-                      style: t.bodySmall?.copyWith(color: muted),
+                    Center(
+                      child: Text(
+                        _dateTime,
+                        style: t.bodySmall?.copyWith(color: muted),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ), /*BlocBuilder<GlobalBloc, GlobalState>(
-                builder: (context, state) {
-                  return ElevatedButton(
-                    onPressed: () async {
-                      final XFile? photo = await _picker.pickImage(
-                        source: ImageSource.camera,
-                      );
-                      final now = DateTime.now();
-
-                      String formattedDay = DateFormat('EEEE').format(now);
-                      String formattedDate = DateFormat(
-                        'MMM dd, yyyy',
-                      ).format(now);
-                      String formattedTime = DateFormat('hh:mm a').format(now);
-
-                      final storage = GetStorage();
-                      storage.write("checkin_day", formattedDay);
-                      storage.write("checkin_date", formattedDate);
-                      storage.write("checkin_time", formattedTime);
-
-                      if (photo != null) {
-                        setState(() {
-                          _capturedImage = File(photo.path);
-                        });
-                        final currentLocation = await location.getLocation();
-
-                        context.read<GlobalBloc>().add(
-                          MarkAttendanceEvent(
-                            lat: currentLocation.latitude.toString(),
-                            lng: currentLocation.longitude.toString(),
-                            type: '1',
-                            userId: state.loginModel!.userinfo!.userId
-                                .toString(),
-                          ),
-                        );
-
-                        final box = GetStorage();
-                        var email = box.read("email");
-                        var password = box.read("password");
-
-                        context.read<GlobalBloc>().add(
-                          LoginEvent(email: email!, password: password),
-                        );
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomeUpdated(),
-                          ),
-                        );
-
-                        toastWidget(
-                          "Your Attendence is marked successfully at $formattedTime on $formattedDate.",
-                          Colors.green,
-                        );
-                      } else {
-                        toastWidget(
-                          "Failed! Camera cancelled or failed.",
-                          Colors.red,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Mark Attendance',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  );
-                },
-              ),*/
             ),
         ],
       ),
     );
   }
-
-  
 }
 
 class _PunchCard extends StatelessWidget {
@@ -578,19 +531,22 @@ class _PunchCard extends StatelessWidget {
 
     return Column(
       children: [
-        Text(title,
-            style: t.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF1E1E1E),
-            )),
+        Text(
+          title,
+          style: t.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1E1E1E),
+          ),
+        ),
         const SizedBox(height: 6),
-        Text(time,
-            style: t.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFEA7A3B),
-            )),
+        Text(
+          time,
+          style: t.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFEA7A3B),
+          ),
+        ),
       ],
     );
   }
 }
-
