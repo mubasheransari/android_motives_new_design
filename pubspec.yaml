@@ -51,6 +51,9 @@ dependencies:
   geocoding: 
   geolocator:
   image_picker: ^1.1.1
+  google_mlkit_face_detection:
+  image:
+  camera:
 
 
 dev_dependencies:

@@ -1,20 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
-import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
-import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
-import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
-import 'package:motives_new_ui_conversion/homescreenn.dart';
-import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
-
-
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
 
 
@@ -337,7 +326,13 @@ height: 280,
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                            Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SelfieCaptureScreen()),
+                      );
+                        },
                         child: Text(
                           "ATTENDANCE IN",
                           style: t.titleMedium?.copyWith(
