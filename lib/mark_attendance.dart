@@ -364,7 +364,7 @@ height: 280,
                   // Date & Time
                   Center(
                     child: Text(
-                      "Thursday, 21-Nov-2024 08:10:20",
+                      _dateTime,
                       style: t.bodySmall?.copyWith(color: muted),
                     ),
                   ),
