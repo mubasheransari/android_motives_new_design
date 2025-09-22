@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
-
+  import 'package:geocoding/geocoding.dart' as geo;
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 
 
 class MarkAttendanceView extends StatefulWidget {
@@ -69,38 +71,139 @@ String _dateTime = "";
     );
   }
 
-  Future<void> _requestPermissionAndFetchLocation() async {
-    bool serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) return;
-    }
 
-    var permissionGranted = await location.hasPermission();
-    if (permissionGranted == loc.PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != loc.PermissionStatus.granted) return;
-    }
+// Inside your State class
+String _currentAddress = "Fetching location...";
 
-    final currentLocation = await location.getLocation();
-    _currentLatLng = LatLng(
-      currentLocation.latitude ?? 24.8607,
-      currentLocation.longitude ?? 67.0011,
+Future<void> _getAddressFromLatLng(LatLng position) async {
+
+  try {
+    List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+      position.latitude,
+      position.longitude,
     );
 
-    _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
 
-    if (_currentMarkerIcon != null) {
-      _markers.add(
-        Marker(
-          markerId: const MarkerId('current_location'),
-          position: _currentLatLng!,
-          icon: _currentMarkerIcon!,
-          infoWindow: const InfoWindow(title: 'Your Location'),
-        ),
-      );
+      setState(() {
+        _currentAddress =
+           "${place.thoroughfare}, ${place.subLocality}, ${place.locality},";
+      });
+      print("STREET ${place.street}");
     }
+  } catch (e) {
+    setState(() {
+      _currentAddress = "Unable to fetch address";
+    });
   }
+  // try {
+  //   List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
+  //     position.latitude,
+  //     position.longitude,
+  //   );
+
+  //   if (placemarks.isNotEmpty) {
+  //     final place = placemarks.first;
+  //     setState(() {
+  //       // 🔥 Build full detailed address
+  //       _currentAddress =
+  //           "${place.street}, ${place.subLocality}, ${place.locality}, "
+  //           "${place.administrativeArea}, ${place.postalCode}, ${place.country}";
+  //     });
+  //   }
+  // } catch (e) {
+  //   setState(() {
+  //     _currentAddress = "Unable to fetch address";
+  //   });
+  // }
+}
+
+
+
+
+
+
+Future<void> _requestPermissionAndFetchLocation() async {
+  bool serviceEnabled = await location.serviceEnabled();
+  if (!serviceEnabled) {
+    serviceEnabled = await location.requestService();
+    if (!serviceEnabled) return;
+  }
+
+  var permissionGranted = await location.hasPermission();
+  if (permissionGranted == loc.PermissionStatus.denied) {
+    permissionGranted = await location.requestPermission();
+    if (permissionGranted != loc.PermissionStatus.granted) return;
+  }
+
+  final currentLocation = await location.getLocation();
+  _currentLatLng = LatLng(
+    currentLocation.latitude ?? 24.8607,
+    currentLocation.longitude ?? 67.0011,
+  );
+
+  _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
+
+  if (_currentMarkerIcon != null) {
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('current_location'),
+        position: _currentLatLng!,
+        icon: _currentMarkerIcon!,
+        infoWindow: const InfoWindow(title: 'Your Location'),
+      ),
+    );
+  }
+
+  // 🔥 Fetch address
+  await _getAddressFromLatLng(_currentLatLng!);
+}
+
+// Recenter button function
+void _recenterToCurrentLocation() {
+  if (_currentLatLng != null) {
+    _mapController.animateCamera(
+      CameraUpdate.newLatLngZoom(_currentLatLng!, 16),
+    );
+  }
+}
+
+
+  // Future<void> _requestPermissionAndFetchLocation() async {
+  //   bool serviceEnabled = await location.serviceEnabled();
+  //   if (!serviceEnabled) {
+  //     serviceEnabled = await location.requestService();
+  //     if (!serviceEnabled) return;
+  //   }
+
+  //   var permissionGranted = await location.hasPermission();
+  //   if (permissionGranted == loc.PermissionStatus.denied) {
+  //     permissionGranted = await location.requestPermission();
+  //     if (permissionGranted != loc.PermissionStatus.granted) return;
+  //   }
+
+  //   final currentLocation = await location.getLocation();
+  //   _currentLatLng = LatLng(
+  //     currentLocation.latitude ?? 24.8607,
+  //     currentLocation.longitude ?? 67.0011,
+  //   );
+
+  //   _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
+
+  //   if (_currentMarkerIcon != null) {
+  //     _markers.add(
+  //       Marker(
+  //         markerId: const MarkerId('current_location'),
+  //         position: _currentLatLng!,
+  //         icon: _currentMarkerIcon!,
+  //         infoWindow: const InfoWindow(title: 'Your Location'),
+  //       ),
+  //     );
+  //   }
+  // }
+
+  
 
   void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
@@ -171,7 +274,7 @@ height: 300,
                       children: [
                         Expanded(
                           child: Text(
-                            "Karachi, Karachi City, Sindh, ",
+                           _currentAddress,
                             style: t.bodyMedium?.copyWith(color: muted),
                           ),
                         ),
@@ -269,7 +372,7 @@ height: 300,
               left: 16,
               right: 16,
               child:          Container(
-height: 280,
+height: 310,
               width: double.infinity,
               decoration: const BoxDecoration(
                 color: card,
@@ -308,11 +411,14 @@ height: 280,
                       children: [
                         Expanded(
                           child: Text(
-                            "Karachi, Karachi City, Sindh, Pakistan",
+                           _currentAddress,
                             style: t.bodyMedium?.copyWith(color: muted),
                           ),
                         ),
-                        const Icon(Icons.my_location, color: orange),
+                        IconButton(onPressed: (){
+                          _recenterToCurrentLocation();
+                        }, icon: Icon(Icons.my_location, color: orange))
+                       // const Icon(Icons.my_location, color: orange),
                       ],
                     ),
                   ),

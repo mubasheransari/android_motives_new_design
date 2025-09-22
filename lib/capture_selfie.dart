@@ -424,7 +424,7 @@ class _CircleMaskPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2
       ..shader = LinearGradient(
-        colors: [_primaryAlt, _primary],
+        colors: [Colors.orange],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ).createShader(Rect.fromCircle(center: center, radius: radius));

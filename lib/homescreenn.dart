@@ -106,7 +106,6 @@ class HomeUpdated extends StatelessWidget {
               ),
             ),
 
-            // ---------- Features title ----------
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
