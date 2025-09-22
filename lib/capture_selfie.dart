@@ -4,8 +4,13 @@ import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
+import 'package:location/location.dart' as loc;
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 
 const _primary = Color(0xFF7841BA);
 const _primaryAlt = Color(0xFF8B59C6);
@@ -219,7 +224,7 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
     return varSum / (laps.length - 1);
   }
 
-  // ---- UI ----
+  final loc.Location location = loc.Location();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -240,11 +245,30 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
                 _lastShot = null;
                 _report = null;
               }),
-              onUse: () {
+              onUse: ()async {
                 if (_report?.pass == true) {
                   print("process completed successfully");
                   print("process completed successfully");
                   print("process completed successfully");
+                         final currentLocation = await location.getLocation();
+
+                        context.read<GlobalBloc>().add(
+                          MarkAttendanceEvent(
+                            lat: currentLocation.latitude.toString(),
+                            lng: currentLocation.longitude.toString(),
+                            type: '1',
+                            userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId
+                                .toString(),
+                          ),
+                        );
+
+                        final box = GetStorage();
+                        var email = box.read("email");
+                        var password = box.read("password");
+
+                        context.read<GlobalBloc>().add(
+                          LoginEvent(email: email!, password: password),
+                        );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

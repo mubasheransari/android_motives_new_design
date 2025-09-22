@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
   import 'package:geocoding/geocoding.dart' as geo;
@@ -428,7 +430,7 @@ height: 310,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _PunchCard(title: "Punch In", time: "--:--"),
+                      _PunchCard(title: "Punch In", time: context.read<GlobalBloc>().state.loginModel!.log!.tim.toString()),
                       _PunchCard(title: "Punch Out", time: "--:--"),
                     ],
                   ),

@@ -148,6 +148,9 @@ class _NewLoginScreenState extends State<NewLoginScreen> {
                     );
                     toastWidget("✅ Authenticated Successfully!", Colors.green);
 
+                    box.write("email", emailController.text.trim());
+                    box.write("password", passwordController.text.trim());
+
                     box.write('isLoggedIn', true);
                   } else if (state.status == LoginStatus.failure) {
                     toastWidget("Incorrect Email or Password", Colors.red);
