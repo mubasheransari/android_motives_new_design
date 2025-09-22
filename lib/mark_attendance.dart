@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
@@ -31,13 +33,25 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isMapReady = false;
-
+String _dateTime = "";
+  void _updateTime() {
+    final now = DateTime.now();
+    final formatted = DateFormat("EEEE, dd-MMM-yyyy HH:mm:ss").format(now);
+    setState(() {
+      _dateTime = formatted;
+    });
+  }
   
 
   @override
   void initState() {
     super.initState();
     _initMap();
+       _updateTime();
+    // update every second
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateTime();
+    });
   }
 
   Future<void> _initMap() async {
@@ -157,7 +171,7 @@ height: 300,
                       children: [
                         Expanded(
                           child: Text(
-                            "Karachi, Karachi City, Sindh, Pakistan",
+                            "Karachi, Karachi City, Sindh, ",
                             style: t.bodyMedium?.copyWith(color: muted),
                           ),
                         ),
@@ -206,7 +220,8 @@ height: 300,
                   // Date & Time
                   Center(
                     child: Text(
-                      "Thursday, 21-Nov-2024 08:10:20",
+                          _dateTime, //"Thursday, 21-Nov-2024 08:10:20",
+
                       style: t.bodySmall?.copyWith(color: muted),
                     ),
                   ),

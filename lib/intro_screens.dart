@@ -70,7 +70,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               controller: controller,
               itemCount: pages.length,
               onPageChanged: (i) => setState(() => index = i),
-              itemBuilder: (_, i) => _OnboardPage(data: pages[i]),
+              itemBuilder: (_, i) => Padding(
+                padding: const EdgeInsets.only(top:40.0),
+                child: _OnboardPage(data: pages[i]),
+              ),
             ),
 
             Positioned(
@@ -233,14 +236,14 @@ class _OnboardPage extends StatelessWidget {
                         angle: -0.18),
                   ),
 
-                  // Model image (transparent PNG)
+                  // Model image (transparent PNG) 0309 6282575
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom:186),
+                      padding: const EdgeInsets.only(bottom:249),
                       child: Image.asset(
                         data.asset,
-                        width: c.maxWidth * .46,
+                        width: c.maxWidth * .35,
                         fit: BoxFit.contain,
                       ),
                     ),
