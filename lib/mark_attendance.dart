@@ -430,7 +430,7 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                       _PunchCard(title: "Punch Out", time: "--:--"),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
 
                   Center(
                     child: SizedBox(
@@ -449,9 +449,8 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                                   .read<GlobalBloc>()
                                   .state
                                   .loginModel!
-                                  .log!
-                                  .tim !=
-                              null) {
+                                  .journeyPlan!.length!=
+                              0) {
                             if (context
                                     .read<GlobalBloc>()
                                     .state
