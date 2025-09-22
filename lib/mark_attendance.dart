@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
 import 'package:geocoding/geocoding.dart' as geo;
@@ -350,170 +351,203 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
             ),
 
           // if (_isMapReady == true)
-            Positioned(
-              bottom: 60,
-              left: 16,
-              right: 16,
-              child: Container(
-                height: 310,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: card,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _shadow,
-                      blurRadius: 10,
-                      offset: Offset(0, -2),
+          Positioned(
+            bottom: 60,
+            left: 16,
+            right: 16,
+            child: Container(
+              height: 310,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: _shadow,
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Location",
+                    style: t.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: text,
                     ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Location",
-                      style: t.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: text,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
+                  ),
+                  const SizedBox(height: 6),
 
-                    // Location field
-                    Container(
-                      decoration: BoxDecoration(
-                        color: field,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: orange.withOpacity(0.3)),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 14,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _currentAddress,
-                              style: t.bodyMedium?.copyWith(color: muted),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              _recenterToCurrentLocation();
-                            },
-                            icon: Icon(Icons.my_location, color: orange),
-                          ),
-                          // const Icon(Icons.my_location, color: orange),
-                        ],
-                      ),
+                  // Location field
+                  Container(
+                    decoration: BoxDecoration(
+                      color: field,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: orange.withOpacity(0.3)),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Punch in/out row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
+                    child: Row(
                       children: [
-                        _PunchCard(
-                          title: "Punch In",
-                          time: context
-                              .read<GlobalBloc>()
-                              .state
-                              .loginModel!
-                              .log!
-                              .tim
-                              .toString(),
+                        Expanded(
+                          child: Text(
+                            _currentAddress,
+                            style: t.bodyMedium?.copyWith(color: muted),
+                          ),
                         ),
-                        _PunchCard(title: "Punch Out", time: "--:--"),
+                        IconButton(
+                          onPressed: () {
+                            _recenterToCurrentLocation();
+                          },
+                          icon: Icon(Icons.my_location, color: orange),
+                        ),
+                        // const Icon(Icons.my_location, color: orange),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                  ),
+                  const SizedBox(height: 20),
 
-                    Center(
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.50,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: orange,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                  // Punch in/out row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _PunchCard(
+                        title: "Punch In",
+                        time: context
+                            .read<GlobalBloc>()
+                            .state
+                            .loginModel!
+                            .log!
+                            .tim
+                            .toString(),
+                      ),
+                      _PunchCard(title: "Punch Out", time: "--:--"),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.50,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: orange,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          onPressed: () {
+                        ),
+                        onPressed: () async {
+                          if (context
+                                  .read<GlobalBloc>()
+                                  .state
+                                  .loginModel!
+                                  .log!
+                                  .tim !=
+                              null) {
                             if (context
                                     .read<GlobalBloc>()
                                     .state
                                     .loginModel!
-                                    .log!
-                                    .tim !=
-                                null) {
-                              if (context
+                                    .reasons!
+                                    .length !=
+                                context
+                                    .read<GlobalBloc>()
+                                    .state
+                                    .loginModel!
+                                    .journeyPlan!
+                                    .length) {
+                              toastWidget(
+                                'Complete your journey plan first',
+                                Colors.red,
+                              );
+                            } else if (context
+                                    .read<GlobalBloc>()
+                                    .state
+                                    .loginModel!
+                                    .reasons!
+                                    .length ==
+                                context
+                                    .read<GlobalBloc>()
+                                    .state
+                                    .loginModel!
+                                    .journeyPlan!
+                                    .length) {
+                              final currentLocation = await location
+                                  .getLocation();
+
+                              context.read<GlobalBloc>().add(
+                                MarkAttendanceEvent(
+                                  lat: currentLocation.latitude.toString(),
+                                  lng: currentLocation.longitude.toString(),
+                                  type: '0',
+                                  userId: context
                                       .read<GlobalBloc>()
                                       .state
                                       .loginModel!
-                                      .reasons!
-                                      .length !=
-                                  context
-                                      .read<GlobalBloc>()
-                                      .state
-                                      .loginModel!
-                                      .journeyPlan!
-                                      .length) {
-                                toastWidget(
-                                  'Complete your journey plan first',
-                                  Colors.red,
-                                );
-                              }
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SelfieCaptureScreen(),
+                                      .userinfo!
+                                      .userId
+                                      .toString(),
                                 ),
                               );
+                              // toastWidget(
+                              //   'Complete your journey plan first',
+                              //   Colors.red,
+                              // );
                             }
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SelfieCaptureScreen(),
+                              ),
+                            );
+                          }
 
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(
-                            //     builder: (context) => SelfieCaptureScreen(),
-                            //   ),
-                            // );
-                          },
-                          child: Text(
-                            context
-                                        .read<GlobalBloc>()
-                                        .state
-                                        .loginModel!
-                                        .log!
-                                        .tim !=
-                                    null
-                                ? "ATTENDANCE OUT"
-                                : "ATTENDANCE IN",
-                            style: t.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => SelfieCaptureScreen(),
+                          //   ),
+                          // );
+                        },
+                        child: Text(
+                          context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .log!
+                                      .tim !=
+                                  null
+                              ? "ATTENDANCE OUT"
+                              : "ATTENDANCE IN",
+                          style: t.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                  ),
+                  const SizedBox(height: 10),
 
-                    Center(
-                      child: Text(
-                        _dateTime,
-                        style: t.bodySmall?.copyWith(color: muted),
-                      ),
+                  Center(
+                    child: Text(
+                      _dateTime,
+                      style: t.bodySmall?.copyWith(color: muted),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );
