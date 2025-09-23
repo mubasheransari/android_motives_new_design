@@ -92,7 +92,6 @@ class HomeUpdated extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (context) => JourneyPlanScreen()),
                       );
-
                      }
                      else{
                       toastWidget('Mark your attendence first', Colors.red);

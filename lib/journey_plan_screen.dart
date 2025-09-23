@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
 const kOrange = Color(0xFFEA7A3B);
 const kText   = Color(0xFF1E1E1E);
@@ -17,117 +19,7 @@ class JourneyPlanScreen extends StatefulWidget {
 class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   final _search = TextEditingController();
 
-  // Product lines (chips)
-  static const List<String> _lines = [
-    'All', 'Supreme', 'Gold', 'Danedar', 'Dust', 'Green Tea', 'Kahwa'
-  ];
-  String _selectedLine = 'All';
 
-  // --- Static data (Meezan only) ---
-  // Tip: swap prices/sizes with your real SKUs later.
-  final List<TeaProduct> _all = const [
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Supreme',
-      name: 'Meezan Supreme Tea',
-      size: '95 g box',
-      priceRs: 180,
-      rating: 4.6,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Supreme',
-      name: 'Meezan Supreme Tea',
-      size: '190 g box',
-      priceRs: 340,
-      rating: 4.6,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Supreme',
-      name: 'Meezan Supreme Tea',
-      size: '475 g pack',
-      priceRs: 780,
-      rating: 4.6,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Gold',
-      name: 'Meezan Gold Danedar',
-      size: '95 g box',
-      priceRs: 220,
-      rating: 4.7,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Gold',
-      name: 'Meezan Gold Danedar',
-      size: '475 g pack',
-      priceRs: 990,
-      rating: 4.7,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Danedar',
-      name: 'Meezan Original Danedar',
-      size: '190 g box',
-      priceRs: 360,
-      rating: 4.5,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Danedar',
-      name: 'Meezan Original Danedar',
-      size: '950 g pack',
-      priceRs: 1890,
-      rating: 4.5,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Dust',
-      name: 'Meezan Supreme Dust',
-      size: '475 g pack',
-      priceRs: 760,
-      rating: 4.4,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Green Tea',
-      name: 'Meezan Green Tea Bags',
-      size: '25 bags',
-      priceRs: 260,
-      rating: 4.3,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Green Tea',
-      name: 'Meezan Green Tea Lemon',
-      size: '25 bags',
-      priceRs: 280,
-      rating: 4.2,
-    ),
-    TeaProduct(
-      brand: 'Meezan',
-      line: 'Kahwa',
-      name: 'Meezan Kahwa (Suleimani)',
-      size: '25 bags',
-      priceRs: 300,
-      rating: 4.1,
-    ),
-  ];
-
-  List<TeaProduct> get _filtered {
-    final q = _search.text.trim().toLowerCase();
-    return _all.where((p) {
-      final lineOk = _selectedLine == 'All' || p.line == _selectedLine;
-      if (!lineOk) return false;
-      if (q.isEmpty) return true;
-      // Accept both "Meezan" and "Mezan" in search
-      final txt = '${p.brand} ${p.line} ${p.name} ${p.size}'.toLowerCase();
-      return txt.contains(q.replaceAll('mezan', 'meezan')) ||
-             txt.contains(q.replaceAll('meezan', 'mezan'));
-    }).toList();
-  }
 
   @override
   void dispose() {
@@ -139,17 +31,29 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
+    String formatTitleCase(String text) {
+  if (text.isEmpty) return text;
+
+  return text
+      .toLowerCase()
+      .split(' ') 
+      .map((word) => word.isNotEmpty
+          ? '${word[0].toUpperCase()}${word.substring(1)}'
+          : '')
+      .join(' ');
+}
+
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
         centerTitle: false,
-        title: Text('Meezan Tea', style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
+        title: Text('Customers', style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
       ),
       body: Column(
         children: [
-          // ---- Search ----
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
             child: Container(
@@ -169,7 +73,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                       controller: _search,
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
-                        hintText: 'Search Meezan (e.g. Gold, Green Tea, 475g)',
+                        hintText: 'Search Customer Shops',
                         hintStyle: TextStyle(color: kMuted),
                         border: InputBorder.none,
                       ),
@@ -188,95 +92,27 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
             ),
           ),
 
-          // ---- Chips (Meezan product lines) ----
-          SizedBox(
-            height: 44,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              scrollDirection: Axis.horizontal,
-              itemCount: _lines.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) {
-                final label = _lines[i];
-                final selected = _selectedLine == label;
-                return ChoiceChip(
-                  label: Text(label),
-                  selected: selected,
-                  onSelected: (_) => setState(() => _selectedLine = label),
-                  selectedColor: kOrange,
-                  labelStyle: TextStyle(
-                    color: selected ? Colors.white : kText,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  backgroundColor: Colors.white,
-                  shape: StadiumBorder(
-                    side: BorderSide(color: selected ? Colors.transparent : const Color(0xFFEDEFF2)),
-                  ),
-                  elevation: selected ? 2 : 0,
-                );
-              },
-            ),
-          ),
-
-          // ---- Result count ----
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Row(
               children: [
-                Text('${_filtered.length} products', style: t.bodySmall?.copyWith(color: kMuted)),
+                Text('${context.read<GlobalBloc>().state.loginModel
+                !.journeyPlan.length} Customers', style: t.bodySmall?.copyWith(color: kMuted)),
               ],
             ),
           ),
 
-          // ---- Product list ----
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-              itemBuilder: (_, i) => TeaCard(product: _filtered[i]),
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemCount: _filtered.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+              padding:  EdgeInsets.fromLTRB(16, 6, 16, 16),
+              itemBuilder: (_, i) =>
+      
 
-/// ===== Model =====
-class TeaProduct {
-  const TeaProduct({
-    required this.brand,
-    required this.line,
-    required this.name,
-    required this.size,
-    required this.priceRs,
-    required this.rating,
-  });
-
-  final String brand;   // 'Meezan'
-  final String line;    // 'Supreme', 'Gold', 'Danedar', 'Dust', 'Green Tea', 'Kahwa'
-  final String name;    // full display name
-  final String size;    // e.g., '475 g pack', '25 bags'
-  final int priceRs;    // PKR
-  final double rating;  // 0..5
-}
-
-/// ===== Card UI =====
-class TeaCard extends StatelessWidget {
-  const TeaCard({super.key, required this.product});
-  final TeaProduct product;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    return InkWell(
+              
+              InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Selected: ${product.name} • ${product.size}')),
-        );
+       
       },
       child: Container(
         decoration: BoxDecoration(
@@ -297,61 +133,57 @@ class TeaCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // Icon tile (you can swap with real asset later)
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(color: kField, borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.local_cafe_rounded, color: kOrange),
-              ),
-              const SizedBox(width: 12),
-
-              // Details
+       
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Brand + Line pill
-                    Row(
+                   
+             Row(
+               children: [
+               Image.asset('assets/shop_orderscreen.png',height: 30,width: 30,),
+                SizedBox(width: 4,),
+                  Text(
+                    formatTitleCase(context.read<GlobalBloc>().state.loginModel
+                                          !.journeyPlan[i].partyName),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: t.titleMedium?.copyWith(
+                                      color: kText, fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+               ],
+             ),
+             SizedBox(height: 5,),
+
+                 Row(
+               children: [
+               Image.asset('assets/location.png',height: 30,width: 30,),
+                SizedBox(width: 4,),
+                         Text(
+                    formatTitleCase(context.read<GlobalBloc>().state.loginModel
+                                          !.journeyPlan[i].custAddress),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: t.bodyMedium?.copyWith(
+                                      color: kText, fontWeight: FontWeight.w300,
+                                    ),
+                                  ),
+               ],
+             ),
+             SizedBox(height: 5,),
+                  
+                                  Row(
                       children: [
-                        _TagPill(text: product.brand),
+                        _TagPill(text: "Credit Limit ${context.read<GlobalBloc>().state.loginModel
+                                        !.journeyPlan[i].crLimit}"),
                         const SizedBox(width: 6),
-                        _TagPill(text: product.line),
+                        _TagPill(text:"Credit Days ${context.read<GlobalBloc>().state.loginModel
+                                        !.journeyPlan[i].crDays}"),
                       ],
                     ),
-                    const SizedBox(height: 6),
-
-                    // Name + Price
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: t.titleMedium?.copyWith(
-                              color: kText, fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          'Rs ${product.priceRs}',
-                          style: t.titleMedium?.copyWith(
-                            color: kOrange, fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-
-                    // Size + rating
-                    Row(
-                      children: [
-                        Text(product.size, style: t.bodySmall?.copyWith(color: kMuted)),
-                        const Spacer(),
-                        _Stars(rating: product.rating),
-                      ],
-                    ),
+                  
+                  
                   ],
                 ),
               ),
@@ -359,9 +191,22 @@ class TeaCard extends StatelessWidget {
           ),
         ),
       ),
+    ),
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemCount: context.read<GlobalBloc>().state.loginModel
+                !.journeyPlan.length,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+
+
+
+
 
 class _TagPill extends StatelessWidget {
   const _TagPill({required this.text});
@@ -384,20 +229,4 @@ class _TagPill extends StatelessWidget {
   }
 }
 
-class _Stars extends StatelessWidget {
-  const _Stars({required this.rating});
-  final double rating;
 
-  @override
-  Widget build(BuildContext context) {
-    final full = rating.floor();
-    final half = (rating - full) >= 0.5;
-    return Row(
-      children: List.generate(5, (i) {
-        if (i < full)   return const Icon(Icons.star_rounded,       color: kOrange, size: 18);
-        if (i == full && half) return const Icon(Icons.star_half_rounded, color: kOrange, size: 18);
-        return const Icon(Icons.star_border_rounded, color: kOrange, size: 18);
-      }),
-    );
-  }
-}
