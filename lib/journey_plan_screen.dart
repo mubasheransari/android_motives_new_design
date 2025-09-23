@@ -235,6 +235,12 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                                 const SizedBox(height: 5),
                                 Row(
                                   children: [
+                                            Image.asset(
+                                      'assets/money.png',
+                                      height: 30,
+                                      width: 30,
+                                    ),
+                                    SizedBox(width: 5,),
                                     _TagPill(text: "Credit Limit ${plan.crLimit}"),
                                     const SizedBox(width: 6),
                                     _TagPill(text: "Credit Days ${plan.crDays}"),
@@ -265,6 +271,7 @@ class _TagPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+        final t = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -274,8 +281,10 @@ class _TagPill extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(
-            color: kText, fontWeight: FontWeight.w600, fontSize: 12),
+             style: t.bodySmall?.copyWith(
+                                        color: kText,
+                                        fontWeight: FontWeight.w300,
+                                      ),
       ),
     );
   }
