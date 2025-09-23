@@ -208,19 +208,19 @@ class _StatusPill extends StatelessWidget {
       width: 600,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: HomeUpdated.orange.withOpacity(.10),
+        color: Colors.grey.withOpacity(.10),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: HomeUpdated.orange.withOpacity(.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: HomeUpdated.orange),
+          Icon(icon, size: 18, color: Colors.green),
           const SizedBox(width: 8),
           Text(
             label,
             style: t.bodySmall?.copyWith(
-              color: HomeUpdated.orange,
+              color:Colors.black, //HomeUpdated.orange,
               fontWeight: FontWeight.w600,
             ),
           ),
