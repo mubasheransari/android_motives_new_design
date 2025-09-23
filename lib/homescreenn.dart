@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
+import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 import 'listviewui.dart';
 
 
@@ -80,15 +82,27 @@ class HomeUpdated extends StatelessWidget {
                      child: _CategoryCard(
                         icon: Icons.access_time, title: 'Attendance'),
                    ),
-                  const _CategoryCard(icon: Icons.alt_route, title: 'Routes'),
+                   _CategoryCard(icon: Icons.alt_route, title: 'Routes'),
 
                   InkWell(
                     onTap: () {
-                      Navigator.push(
-                        context,
+                     if(context.read<GlobalBloc>().state.loginModel!.statusAttendance == "1"){
+     Navigator.push(
+                     context,
                         MaterialPageRoute(
-                            builder: (context) => MeezanTeaCatalog()),
+                            builder: (context) => JourneyPlanScreen()),
                       );
+
+                     }
+                     else{
+                      toastWidget('Mark your attendence first', Colors.red);
+                     }
+                    
+                    //      Navigator.push(
+                    //  context,
+                    //     MaterialPageRoute(
+                    //         builder: (context) => MeezanTeaCatalog()),
+                    //   );
                     },
                     borderRadius: BorderRadius.circular(16),
                     child: const _CategoryCard(

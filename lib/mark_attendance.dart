@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
 
 import 'package:geocoding/geocoding.dart' as geo;
@@ -48,7 +49,6 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
     super.initState();
     _initMap();
     _updateTime();
-    // update every second
     Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateTime();
     });
@@ -219,6 +219,11 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+
+    final loginModel = context.read<GlobalBloc>().state.loginModel;
+final hasAttendanceOut = loginModel?.log?.tim != null;
+
+final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
     return Scaffold(
       body: Stack(
         children: [
@@ -297,7 +302,7 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                       ),
                       onPressed: () {},
                       child: Text(
-                        "ATTENDANCE IN",
+                       attendanceStatus, //"ATTENDANCE IN",
                         style: t.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -414,21 +419,37 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                   const SizedBox(height: 20),
 
                   // Punch in/out row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _PunchCard(
-                        title: "Punch In",
-                        time: context
-                            .read<GlobalBloc>()
-                            .state
-                            .loginModel!
-                            .log!
-                            .tim
-                            .toString(),
-                      ),
-                      _PunchCard(title: "Punch Out", time: "--:--"),
-                    ],
+                  BlocBuilder<GlobalBloc, GlobalState>(
+                    builder: (context, state) {
+                      return state.loginModel!.statusAttendance == "1"? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _PunchCard(
+                            title: "Punch In",
+                            time: 
+
+                            context
+                                .read<GlobalBloc>()
+                                .state
+                                .loginModel!
+                                .log!
+                                .tim
+                                .toString() ?? "--:--",
+                          ),
+                          _PunchCard(title: "Punch Out", time: "--:--"),
+                        ],
+                      ):Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _PunchCard(
+                            title: "Punch In",
+                            time: "--:--",
+
+                          ),
+                          _PunchCard(title: "Punch Out", time: "--:--"),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 5),
 
@@ -449,7 +470,8 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                                   .read<GlobalBloc>()
                                   .state
                                   .loginModel!
-                                  .journeyPlan!.length!=
+                                  .journeyPlan!
+                                  .length !=
                               0) {
                             if (context
                                     .read<GlobalBloc>()
@@ -518,15 +540,15 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                           // );
                         },
                         child: Text(
-                          context
-                                      .read<GlobalBloc>()
-                                      .state
-                                      .loginModel!
-                                      .log!
-                                      .tim !=
-                                  null
-                              ? "ATTENDANCE OUT"
-                              : "ATTENDANCE IN",
+                        attendanceStatus,  // context
+                          //             .read<GlobalBloc>()
+                          //             .state
+                          //             .loginModel!
+                          //             .log!
+                          //             .tim !=
+                          //         null
+                          //     ? "ATTENDANCE OUT"
+                          //     : "ATTENDANCE IN",
                           style: t.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
