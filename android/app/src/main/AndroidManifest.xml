@@ -15,7 +15,8 @@
     <application
         android:label="Motives-T"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:enableOnBackInvokedCallback="true">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD64TeJchgwVToC1U2IbrCBtjWKeVzuy-U" />

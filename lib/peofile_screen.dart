@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
 // ---- Theme tokens (same as Home) ----
 const kOrange = Color(0xFFEA7A3B);
@@ -37,16 +39,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEDEFF2)),
+           borderSide: const BorderSide(color: Colors.orange, width: 1.6),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFEDEFF2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: kOrange, width: 1.6),
-        ),
+        // enabledBorder: OutlineInputBorder(
+        //   borderRadius: BorderRadius.circular(16),
+        //   borderSide: const BorderSide(color: Color(0xFFEDEFF2)),
+        // ),
+        // focusedBorder: OutlineInputBorder(
+        //   borderRadius: BorderRadius.circular(16),
+        //   borderSide: const BorderSide(color: kOrange, width: 1.6),
+        // ),
       );
 
   @override
@@ -82,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Your Profile',
-                            style: t.headlineMedium?.copyWith(
+                            style: t.headlineSmall?.copyWith(
                               height: 1.1,
                               color: kText,
                               fontWeight: FontWeight.w700,
@@ -114,8 +116,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
-                        controller: _name,
-                        decoration: _dec('Abc Test'),
+                      
+                        readOnly: true,
+                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.userName.toString(),
+                     //  controller: _name,
+                       decoration: _dec('Abc Test'),
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'Please enter your name'
                             : null,
@@ -130,16 +135,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
-                        controller: _email,
+                        readOnly: true,
+                                                initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.email.toString(),
+
+                     //   controller: _email,
                         keyboardType: TextInputType.emailAddress,
                         decoration: _dec('abctest@example.com'),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'Please enter your email';
-                          final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+$')
-                              .hasMatch(v.trim());
-                          return ok ? null : 'Enter a valid email';
-                        },
+                        // validator: (v) {
+                        //   if (v == null || v.trim().isEmpty)
+                        //     return 'Please enter your email';
+                        //   final ok = RegExp(r'^[^@]+@[^@]+\.[^@]+$')
+                        //       .hasMatch(v.trim());
+                        //   return ok ? null : 'Enter a valid email';
+                        // },
                       ),
                       const SizedBox(height: 14),
 
@@ -151,9 +159,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                       const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _name,
-                        decoration: _dec('Distributor'),
+                            TextFormField(
+                        readOnly: true,
+                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.distributionName.toString(),
+                     //  controller: _name,
+                       decoration: _dec('Abc Test'),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Please enter your name'
+                            : null,
+                      ),
+
+                                const SizedBox(height: 14),
+
+                      // Distributor
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Phone Number',
+                            style: t.titleMedium?.copyWith(color: kText)),
+                      ),
+
+                      const SizedBox(height: 8),
+                            TextFormField(
+                        readOnly: true,
+                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.phone.toString(),
+                     //  controller: _name,
+                       decoration: _dec('Abc Test'),
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'Please enter your name'
                             : null,
