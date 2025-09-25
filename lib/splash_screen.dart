@@ -1,9 +1,7 @@
-// splash_screen.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/intro_screens.dart';
-
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,7 +11,6 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-// Theme tokens (kept identical to your HomeUpdated)
 const _orange = Color(0xFFEA7A3B);
 const _text = Color(0xFF1E1E1E);
 const _muted = Color(0xFF707883);
@@ -46,26 +43,29 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 700),
     );
 
-    _logoScale = Tween(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOutBack),
-    );
-    _logoOpacity = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut),
-    );
+    _logoScale = Tween(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOutBack));
+    _logoOpacity = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut));
 
-    _taglineOpacity = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut),
-    );
-    _taglineOffset =
-        Tween(begin: const Offset(0, .15), end: Offset.zero).animate(
-      CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic),
-    );
+    _taglineOpacity = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut));
+    _taglineOffset = Tween(
+      begin: const Offset(0, .15),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOutCubic));
 
     // Sequence: start logo, then pills, then tagline, then navigate.
     _logoCtrl.forward().whenComplete(() {
       _pillCtrl.repeat(); // continuous sweep while splash shows
       _fadeCtrl.forward();
-     Future.delayed(const Duration(seconds: 5), _goHome);
+      Future.delayed(const Duration(seconds: 5), _goHome);
     });
   }
 
@@ -73,14 +73,15 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     _pillCtrl.stop();
     final box = GetStorage();
-var email = box.read("email");
-if(email != null){
+    var email = box.read("email");
+    if (email != null) {
       Navigator.of(context).pushReplacement(_fadeRoute(const HomeUpdated()));
-}
-else{
-  Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
-}
-   // email != null ?HomeUpdated() :  SplashScreen(),
+    } else {
+      Navigator.of(
+        context,
+      ).pushReplacement(_fadeRoute(const OnboardingScreen()));
+    }
+    // email != null ?HomeUpdated() :  SplashScreen(),
     // Navigator.of(context).pushReplacement(_fadeRoute(const OnboardingScreen()));
   }
 
@@ -106,9 +107,7 @@ else{
               animation: _pillCtrl,
               builder: (_, __) {
                 final a = _pillCtrl.value * 2 * math.pi;
-                return CustomPaint(
-                  painter: _SoftSweepPainter(angle: a),
-                );
+                return CustomPaint(painter: _SoftSweepPainter(angle: a));
               },
             ),
           ),
@@ -133,18 +132,24 @@ else{
                     child: FadeTransition(
                       opacity: _logoOpacity,
                       child: SizedBox(
-                        width: MediaQuery.of(context).size.width *0.90,
+                        width: MediaQuery.of(context).size.width * 0.90,
                         child: _LogoCard(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18),
                             child: Container(
                               color: Colors.white,
                               padding: const EdgeInsets.all(18),
-                              child:   Transform.rotate(
-                                    angle: -6 *
-                                        3.1415926 /
-                                        150, // same tilt as your pills
-                                    child: Image.asset('assets/logo-bg.png',height: 100,width: 200,)),
+                              child: Transform.rotate(
+                                angle:
+                                    -6 *
+                                    3.1415926 /
+                                    150, // same tilt as your pills
+                                child: Image.asset(
+                                  'assets/logo-bg.png',
+                                  height: 100,
+                                  width: 200,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -165,10 +170,7 @@ else{
                   //     ),
                   //   ),
                   // ),
-
                   const SizedBox(height: 6),
-
-               
                 ],
               ),
             ),
@@ -178,7 +180,6 @@ else{
     );
   }
 }
-
 
 class _LogoCard extends StatelessWidget {
   const _LogoCard({required this.child});

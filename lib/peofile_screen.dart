@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
-// ---- Theme tokens (same as Home) ----
+
+
+
 const kOrange = Color(0xFFEA7A3B);
 const kText = Color(0xFF1E1E1E);
 const kMuted = Color(0xFF707883);
 const kField = Color(0xFFF2F3F5);
 const kCard = Colors.white;
-const kShadow = Color(0x14000000); // soft shadow
+const kShadow = Color(0x14000000); 
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

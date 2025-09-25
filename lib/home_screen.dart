@@ -36,6 +36,7 @@ class HomeUpdated extends StatelessWidget {
         statusBarIconBrightness: Brightness.dark, // Icons contrast
       ),
       child: Scaffold(
+        backgroundColor: Colors.white,
         body: SafeArea(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -67,8 +68,8 @@ class HomeUpdated extends StatelessWidget {
                               children: [
                                 // avatar-ish badge
                                 Container(
-                                  width: 54,
-                                  height: 54,
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(.20),
                                     shape: BoxShape.circle,
@@ -80,7 +81,7 @@ class HomeUpdated extends StatelessWidget {
                                   child: const Icon(
                                     Icons.person,
                                     color: Colors.white,
-                                    size: 28,
+                                    size: 20,
                                   ),
                                 ),
                                 const SizedBox(width: 14),
