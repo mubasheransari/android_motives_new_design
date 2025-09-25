@@ -31,45 +31,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: kMuted),
-        filled: true,
-        fillColor: kCard,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-           borderSide: const BorderSide(color: Colors.orange, width: 1.6),
-        ),
-        // enabledBorder: OutlineInputBorder(
-        //   borderRadius: BorderRadius.circular(16),
-        //   borderSide: const BorderSide(color: Color(0xFFEDEFF2)),
-        // ),
-        // focusedBorder: OutlineInputBorder(
-        //   borderRadius: BorderRadius.circular(16),
-        //   borderSide: const BorderSide(color: kOrange, width: 1.6),
-        // ),
-      );
+    hintText: hint,
+    hintStyle: const TextStyle(color: kMuted),
+    filled: true,
+    fillColor: kCard,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: const BorderSide(color: Colors.orange, width: 1.6),
+    ),
+    // enabledBorder: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(16),
+    //   borderSide: const BorderSide(color: Color(0xFFEDEFF2)),
+    // ),
+    // focusedBorder: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(16),
+    //   borderSide: const BorderSide(color: kOrange, width: 1.6),
+    // ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+
+    String formatTitleCase(String text) {
+      if (text.isEmpty) return text;
+
+      return text
+          .toLowerCase()
+          .split(' ')
+          .map(
+            (word) => word.isNotEmpty
+                ? '${word[0].toUpperCase()}${word.substring(1)}'
+                : '',
+          )
+          .join(' ');
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // ---- Header ----
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('PROFILE',
-                        style: t.labelLarge
-                            ?.copyWith(letterSpacing: 1.4, color: kText)),
+                    Text(
+                      'PROFILE',
+                      style: t.labelLarge?.copyWith(
+                        letterSpacing: 1.4,
+                        color: kText,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Container(
                       width: 64,
@@ -83,12 +99,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Your Profile',
-                            style: t.headlineSmall?.copyWith(
-                              height: 1.1,
-                              color: kText,
-                              fontWeight: FontWeight.w700,
-                            )),
+                        Text(
+                          'Your Profile',
+                          style: t.headlineSmall?.copyWith(
+                            height: 1.1,
+                            color: kText,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                         _OrangePills(),
                       ],
                     ),
@@ -103,7 +121,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    20, 4, 20, 140), // leave space for sticky button
+                  20,
+                  4,
+                  20,
+                  140,
+                ), // leave space for sticky button
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -111,16 +133,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Name
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Name',
-                            style: t.titleMedium?.copyWith(color: kText)),
+                        child: Text(
+                          'Name',
+                          style: t.titleMedium?.copyWith(color: kText),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
-                      
                         readOnly: true,
-                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.userName.toString(),
-                     //  controller: _name,
-                       decoration: _dec('Abc Test'),
+                        initialValue: context
+                            .read<GlobalBloc>()
+                            .state
+                            .loginModel!
+                            .userinfo!
+                            .userName
+                            .toString(),
+                        //  controller: _name,
+                        decoration: _dec('Abc Test'),
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'Please enter your name'
                             : null,
@@ -130,15 +159,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Email
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Email',
-                            style: t.titleMedium?.copyWith(color: kText)),
+                        child: Text(
+                          'Email',
+                          style: t.titleMedium?.copyWith(color: kText),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         readOnly: true,
-                                                initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.email.toString(),
+                        initialValue: context
+                            .read<GlobalBloc>()
+                            .state
+                            .loginModel!
+                            .userinfo!
+                            .email
+                            .toString(),
 
-                     //   controller: _email,
+                        //   controller: _email,
                         keyboardType: TextInputType.emailAddress,
                         decoration: _dec('abctest@example.com'),
                         // validator: (v) {
@@ -154,36 +191,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // Distributor
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Distributor',
-                            style: t.titleMedium?.copyWith(color: kText)),
+                        child: Text(
+                          'Distributor',
+                          style: t.titleMedium?.copyWith(color: kText),
+                        ),
                       ),
 
                       const SizedBox(height: 8),
-                            TextFormField(
+                      TextFormField(
                         readOnly: true,
-                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.distributionName.toString(),
-                     //  controller: _name,
-                       decoration: _dec('Abc Test'),
+                        initialValue: formatTitleCase(
+                          context
+                              .read<GlobalBloc>()
+                              .state
+                              .loginModel!
+                              .userinfo!
+                              .distributionName
+                              .toString(),
+                        ), // context.read<GlobalBloc>().state.loginModel!.userinfo!.email.toString(),
+                        //  controller: _name,
+                        decoration: _dec('Abc Test'),
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'Please enter your name'
                             : null,
                       ),
 
-                                const SizedBox(height: 14),
+                      const SizedBox(height: 14),
 
                       // Distributor
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: Text('Phone Number',
-                            style: t.titleMedium?.copyWith(color: kText)),
+                        child: Text(
+                          'Phone Number',
+                          style: t.titleMedium?.copyWith(color: kText),
+                        ),
                       ),
 
                       const SizedBox(height: 8),
-                            TextFormField(
+                      TextFormField(
                         readOnly: true,
-                        initialValue: context.read<GlobalBloc>().state.loginModel!.userinfo!.phone.toString(),
-                     //  controller: _name,
-                       decoration: _dec('Abc Test'),
+                        initialValue: context
+                            .read<GlobalBloc>()
+                            .state
+                            .loginModel!
+                            .userinfo!
+                            .phone
+                            .toString(),
+                        //  controller: _name,
+                        decoration: _dec('Abc Test'),
                         validator: (v) => (v == null || v.trim().isEmpty)
                             ? 'Please enter your name'
                             : null,
