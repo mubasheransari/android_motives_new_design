@@ -41,6 +41,25 @@ class HomeUpdated extends StatelessWidget {
     //     statusBarBrightness: Brightness.dark, // for iOS
     //   ),
     // );
+
+// GREY status bar (light bg → dark icons)
+    // SystemChrome.setSystemUIOverlayStyle(
+    //   const SystemUiOverlayStyle(
+    //     statusBarColor: Colors.grey,
+    //     statusBarIconBrightness: Brightness.dark, // Android icons
+    //     statusBarBrightness: Brightness.light, // iOS text/icons
+    //   ),
+    // );
+
+// PEACH status bar #FFB07A (also light → dark icons)
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFFFFB07A),
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    );
+
     final t = Theme.of(context).textTheme;
     final loginModel = context.read<GlobalBloc>().state.loginModel;
 
@@ -50,328 +69,338 @@ class HomeUpdated extends StatelessWidget {
             ? loginModel!.userinfo!.userName.toString()
             : (loginModel?.userinfo!.userName ?? 'User');
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ===== HEADER =====
-            SliverToBoxAdapter(
-              child: Stack(
-                children: [
-                  // soft gradient backdrop
-                  Container(
-                    height: 160,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.grey, Color(0xFFFFB07A)],
-                        //  colors: [orange, Color(0xFFFFB07A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  // decorative pills (angled)
-                  //  const Positioned(top: 8, right: 16, child: _OrangePills()),
-                  // glass panel with greeting
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: _GlassHeader(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // avatar-ish badge
-                              Container(
-                                width: 54,
-                                height: 54,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(.20),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white, width: 1.2),
-                                ),
-                                child: const Icon(Icons.person,
-                                    color: Colors.white, size: 28),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Welcome back,',
-                                        style: t.titleMedium?.copyWith(
-                                          color: Colors.white.withOpacity(.95),
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.1,
-                                        )),
-                                    Text(
-                                      userName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: t.headlineSmall?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.05,
-                                      ),
-                                    ),
-
-                                    // const _StatusPill(
-                                    //   icon: Icons.assignment_turned_in_rounded,
-                                    //   label: 'Last Action Performed : LOGIN',
-                                    // ),
-                                    // const SizedBox(height: 12),
-                                    // const _StatusPill(
-                                    //   icon: Icons.assignment_turned_in_rounded,
-                                    //   label: 'Last Action Performed : LOGIN',
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                              _OrangePills()
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          const _StatusPill(
-                            icon: Icons.assignment_turned_in_rounded,
-                            label: 'Last Action Performed : LOGIN',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 1.10,
-                ),
-                delegate: SliverChildListDelegate.fixed([
-                  _TapScale(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MarkAttendanceView(),
-                        ),
-                      );
-                    },
-                    child: const _CategoryCard(
-                      icon: Icons.access_time,
-                      title: 'Attendance',
-                      subtitle: 'Mark / Review',
-                    ),
-                  ),
-                  const _CategoryCard(
-                    icon: Icons.alt_route,
-                    title: 'Routes',
-                    subtitle: 'Daily route plan',
-                  ),
-                  _TapScale(
-                    onTap: () {
-                      if (context
-                              .read<GlobalBloc>()
-                              .state
-                              .loginModel!
-                              .statusAttendance ==
-                          "1") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => JourneyPlanScreen(),
-                          ),
-                        );
-                      } else {
-                        toastWidget('Mark your attendence first', Colors.red);
-                      }
-                    },
-                    child: const _CategoryCard(
-                      icon: Icons.shopping_cart,
-                      title: 'Punch Order',
-                      subtitle: 'Place new order',
-                    ),
-                  ),
-                  const _CategoryCard(
-                    icon: Icons.insert_drive_file,
-                    title: 'Records',
-                    subtitle: 'History & logs',
-                  ),
-                ]),
-              ),
-            ),
-
-            SliverToBoxAdapter(
-              child: Stack(
-                children: [
-                  // soft gradient backdrop
-                  Container(
-                    height: 90,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.grey, Color(0xFFFFB07A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                  ),
-                  // decorative pills (angled)
-                  //  const Positioned(top: 8, right: 16, child: _OrangePills()),
-                  // glass panel with greeting
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 3, 20, 0),
-                    child: _GlassHeader(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // avatar-ish badge
-                              // Container(
-                              //   width: 54,
-                              //   height: 54,
-                              //   decoration: BoxDecoration(
-                              //     color: Colors.white.withOpacity(.20),
-                              //     shape: BoxShape.circle,
-                              //     border: Border.all(
-                              //         color: Colors.white, width: 1.2),
-                              //   ),
-                              //   // child: const Icon(Icons.,
-                              //   //     color: Colors.white, size: 28),
-                              // ),
-                              //  const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Text(
-                                      'Features',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: t.headlineSmall?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        height: 1.05,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              _OrangePills()
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            /** */ /*  SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
-                child: Row(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Color(0xFFFFB07A), // or Colors.grey
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // ===== HEADER =====
+              SliverToBoxAdapter(
+                child: Stack(
                   children: [
-                    Text('Features',
-                        style: t.titleMedium?.copyWith(
-                          color: orange,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: .2,
-                        )),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        height: 2,
-                        decoration: BoxDecoration(
-                          color: orange.withOpacity(.25),
-                          borderRadius: BorderRadius.circular(999),
+                    // soft gradient backdrop
+                    Container(
+                      height: 160,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.grey, Color(0xFFFFB07A)],
+                          //  colors: [orange, Color(0xFFFFB07A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                    // decorative pills (angled)
+                    //  const Positioned(top: 8, right: 16, child: _OrangePills()),
+                    // glass panel with greeting
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: _GlassHeader(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // avatar-ish badge
+                                Container(
+                                  width: 54,
+                                  height: 54,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(.20),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white, width: 1.2),
+                                  ),
+                                  child: const Icon(Icons.person,
+                                      color: Colors.white, size: 28),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Welcome back,',
+                                          style: t.titleMedium?.copyWith(
+                                            color:
+                                                Colors.white.withOpacity(.95),
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.1,
+                                          )),
+                                      Text(
+                                        userName,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: t.headlineSmall?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.05,
+                                        ),
+                                      ),
+
+                                      // const _StatusPill(
+                                      //   icon: Icons.assignment_turned_in_rounded,
+                                      //   label: 'Last Action Performed : LOGIN',
+                                      // ),
+                                      // const SizedBox(height: 12),
+                                      // const _StatusPill(
+                                      //   icon: Icons.assignment_turned_in_rounded,
+                                      //   label: 'Last Action Performed : LOGIN',
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+                                _OrangePills()
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            const _StatusPill(
+                              icon: Icons.assignment_turned_in_rounded,
+                              label: 'Last Action Performed : LOGIN',
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),*/
 
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 118,
-                child: _CenteredHScroll(
-                  paddingLR: 18,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _TapScale(
-                        onTap: () {
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 1.10,
+                  ),
+                  delegate: SliverChildListDelegate.fixed([
+                    _TapScale(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MarkAttendanceView(),
+                          ),
+                        );
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.access_time,
+                        title: 'Attendance',
+                        subtitle: 'Mark / Review',
+                      ),
+                    ),
+                    const _CategoryCard(
+                      icon: Icons.alt_route,
+                      title: 'Routes',
+                      subtitle: 'Daily route plan',
+                    ),
+                    _TapScale(
+                      onTap: () {
+                        if (context
+                                .read<GlobalBloc>()
+                                .state
+                                .loginModel!
+                                .statusAttendance ==
+                            "1") {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ProfileScreen(),
+                              builder: (context) => JourneyPlanScreen(),
                             ),
                           );
-                        },
-                        child: const _FeatureCard(
-                          title: 'Profile',
-                          icon: Icons.person,
-                          caption: 'View & edit',
+                        } else {
+                          toastWidget('Mark your attendence first', Colors.red);
+                        }
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.shopping_cart,
+                        title: 'Punch Order',
+                        subtitle: 'Place new order',
+                      ),
+                    ),
+                    const _CategoryCard(
+                      icon: Icons.insert_drive_file,
+                      title: 'Records',
+                      subtitle: 'History & logs',
+                    ),
+                  ]),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    // soft gradient backdrop
+                    Container(
+                      height: 90,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.grey, Color(0xFFFFB07A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      const _FeatureCard(
-                        title: 'Sync Out',
-                        icon: Icons.upload,
-                        caption: 'Push updates',
+                    ),
+                    // decorative pills (angled)
+                    //  const Positioned(top: 8, right: 16, child: _OrangePills()),
+                    // glass panel with greeting
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 3, 20, 0),
+                      child: _GlassHeader(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // avatar-ish badge
+                                // Container(
+                                //   width: 54,
+                                //   height: 54,
+                                //   decoration: BoxDecoration(
+                                //     color: Colors.white.withOpacity(.20),
+                                //     shape: BoxShape.circle,
+                                //     border: Border.all(
+                                //         color: Colors.white, width: 1.2),
+                                //   ),
+                                //   // child: const Icon(Icons.,
+                                //   //     color: Colors.white, size: 28),
+                                // ),
+                                //  const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Text(
+                                        'Features',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: t.headlineSmall?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          height: 1.05,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                _OrangePills()
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
 
-            // ===== HORIZONTAL FEATURES LANE 2 =====
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 80,
-                child: _CenteredHScroll(
-                  paddingLR: 12,
+              /** */ /*  SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      _FeatureCard(
-                        title: 'Sync In',
-                        icon: Icons.download,
-                        caption: 'Pull latest',
-                      ),
-                      SizedBox(width: 12),
-                      _FeatureCard(
-                        title: 'Add Shops',
-                        icon: Icons.add_business_rounded,
-                        caption: 'Create outlet',
+                    children: [
+                      Text('Features',
+                          style: t.titleMedium?.copyWith(
+                            color: orange,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: .2,
+                          )),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          height: 2,
+                          decoration: BoxDecoration(
+                            color: orange.withOpacity(.25),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
+              ),*/
+
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 118,
+                  child: _CenteredHScroll(
+                    paddingLR: 18,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _TapScale(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ProfileScreen(),
+                              ),
+                            );
+                          },
+                          child: const _FeatureCard(
+                            title: 'Profile',
+                            icon: Icons.person,
+                            caption: 'View & edit',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const _FeatureCard(
+                          title: 'Sync Out',
+                          icon: Icons.upload,
+                          caption: 'Push updates',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          ],
+
+              // ===== HORIZONTAL FEATURES LANE 2 =====
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 80,
+                  child: _CenteredHScroll(
+                    paddingLR: 12,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        _FeatureCard(
+                          title: 'Sync In',
+                          icon: Icons.download,
+                          caption: 'Pull latest',
+                        ),
+                        SizedBox(width: 12),
+                        _FeatureCard(
+                          title: 'Add Shops',
+                          icon: Icons.add_business_rounded,
+                          caption: 'Create outlet',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            ],
+          ),
         ),
       ),
     );
