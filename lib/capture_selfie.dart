@@ -11,6 +11,7 @@ import 'package:image/image.dart' as img;
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/home_screen.dart';
 
 const _primary = Color(0xFF7841BA);
 const _primaryAlt = Color(0xFF8B59C6);
@@ -233,7 +234,7 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
         future: _ready,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.orange));
           }
 
           if (_lastShot != null) {
@@ -245,30 +246,36 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
                 _lastShot = null;
                 _report = null;
               }),
-              onUse: ()async {
+              onUse: () async {
                 if (_report?.pass == true) {
-                  print("process completed successfully");
-                  print("process completed successfully");
-                  print("process completed successfully");
-                         final currentLocation = await location.getLocation();
+                  final currentLocation = await location.getLocation();
 
-                        context.read<GlobalBloc>().add(
-                          MarkAttendanceEvent(
-                            lat: currentLocation.latitude.toString(),
-                            lng: currentLocation.longitude.toString(),
-                            type: '1',
-                            userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId
-                                .toString(),
-                          ),
-                        );
+                  context.read<GlobalBloc>().add(
+                    MarkAttendanceEvent(
+                      lat: currentLocation.latitude.toString(),
+                      lng: currentLocation.longitude.toString(),
+                      type: '1',
+                      userId: context
+                          .read<GlobalBloc>()
+                          .state
+                          .loginModel!
+                          .userinfo!
+                          .userId
+                          .toString(),
+                    ),
+                  );
 
-                        final box = GetStorage();
-                        var email = box.read("email");
-                        var password = box.read("password");
+                  final box = GetStorage();
+                  var email = box.read("email");
+                  var password = box.read("password");
 
-                        context.read<GlobalBloc>().add(
-                          LoginEvent(email: email!, password: password),
-                        );
+                  context.read<GlobalBloc>().add(
+                    LoginEvent(email: email!, password: password),
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomeUpdated()),
+                  );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

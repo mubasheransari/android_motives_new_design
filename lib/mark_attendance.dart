@@ -227,7 +227,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
     return Scaffold(
       body: Stack(
         children: [
-          Container(
+       /*   Container(
             height: 300,
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -322,7 +322,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                 ),
               ],
             ),
-          ),
+          ),*/
           if (_initialCameraPosition != null)
             GoogleMap(
               padding: const EdgeInsets.only(bottom: 60),
@@ -466,7 +466,9 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                           ),
                         ),
                         onPressed: () async {
-                          if (context
+
+                      
+                        if (context
                                   .read<GlobalBloc>()
                                   .state
                                   .loginModel!
@@ -518,10 +520,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                                       .toString(),
                                 ),
                               );
-                              // toastWidget(
-                              //   'Complete your journey plan first',
-                              //   Colors.red,
-                              // );
+                            
                             }
                           } else {
                             Navigator.push(
@@ -531,24 +530,9 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                               ),
                             );
                           }
-
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => SelfieCaptureScreen(),
-                          //   ),
-                          // );
                         },
                         child: Text(
-                        attendanceStatus,  // context
-                          //             .read<GlobalBloc>()
-                          //             .state
-                          //             .loginModel!
-                          //             .log!
-                          //             .tim !=
-                          //         null
-                          //     ? "ATTENDANCE OUT"
-                          //     : "ATTENDANCE IN",
+                        attendanceStatus,  
                           style: t.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

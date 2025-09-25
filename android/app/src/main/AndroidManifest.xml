@@ -13,9 +13,9 @@
     <uses-feature android:name="android.hardware.biometrics" android:required="false" />
 
     <application
-        android:label="motives_new_ui_conversion"
+        android:label="Motives-T"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD64TeJchgwVToC1U2IbrCBtjWKeVzuy-U" />

@@ -5,7 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
-import 'package:motives_new_ui_conversion/homescreenn.dart';
+import 'package:motives_new_ui_conversion/home_screen.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 
 class NewLoginScreen extends StatefulWidget {

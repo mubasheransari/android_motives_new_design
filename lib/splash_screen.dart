@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/intro_screens.dart';
 
-import 'homescreenn.dart';
+import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -133,50 +133,18 @@ else{
                     child: FadeTransition(
                       opacity: _logoOpacity,
                       child: SizedBox(
-                        width: 225,
+                        width: MediaQuery.of(context).size.width *0.90,
                         child: _LogoCard(
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(18),
                             child: Container(
                               color: Colors.white,
                               padding: const EdgeInsets.all(18),
-                              child: Row(
-                                children: [
-                                  Transform.rotate(
-                                    angle: -22 *
+                              child:   Transform.rotate(
+                                    angle: -6 *
                                         3.1415926 /
-                                        180, // same tilt as your pills
-                                    child: Text(
-                                      "motives".toUpperCase(),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 1.2,
-                                        foreground: Paint()
-                                          ..shader = const LinearGradient(
-                                            colors: [
-                                              HomeUpdated.orange,
-                                              Color(0xFFFFB07A)
-                                            ],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ).createShader(
-                                              const Rect.fromLTWH(0, 0, 150, 40)),
-                                      ),
-                                    ),
-                                  ),
-                                     Transform.rotate(
-                                            angle: -22 * math.pi / 200,
-                                            child: _OrangePills(anim: _pillCtrl),
-                                          ),
-                                ],
-                              ),
-                              // Image.asset(
-                              //   'assets/logo.png', // <-- swap to your asset
-                              //   width: 90,
-                              //   height: 90,
-                              //   fit: BoxFit.contain,
-                              // ),
+                                        150, // same tilt as your pills
+                                    child: Image.asset('assets/logo-bg.png',height: 100,width: 200,)),
                             ),
                           ),
                         ),

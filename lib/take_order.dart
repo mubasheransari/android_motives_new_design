@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:motives_new_ui_conversion/addItems.dart';
 
 /// THEME TOKENS (same as picker)
 const kBrand = Color(0xFFFFB07A);
@@ -10,6 +13,8 @@ const kText = Color(0xFF1E1E1E);
 const kMuted = Color(0xFF707883);
 const kChipBg = Color(0xFFF5F6F8);
 final _money = NumberFormat('#,##0.##');
+   const Color orange = Color(0xFFEA7A3B);
+
 
 class TakeOrderPage extends StatefulWidget {
   const TakeOrderPage({super.key});
@@ -89,24 +94,121 @@ class _TakeOrderPageState extends State<TakeOrderPage> {
       });
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: kHeader,
-        foregroundColor: Colors.white,
-        title: const Text('Take Order'),
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-        ),
-      ),
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   backgroundColor: kHeader,
+      //   foregroundColor: Colors.white,
+      //   title: const Text('Take Order'),
+      //   centerTitle: true,
+      //   shape: const RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      //   ),
+      // ),
       body: Column(
         children: [
-          const SizedBox(height: 12),
+        /*  SizedBox(height: 10,),
+             SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    // soft gradient backdrop
+                    Container(
+                      height: 160,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.grey, Color(0xFFFFB07A)],
+                          //  colors: [orange, Color(0xFFFFB07A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                    ),
+                    // decorative pills (angled)
+                    //  const Positioned(top: 8, right: 16, child: _OrangePills()),
+                    // glass panel with greeting
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                      child: _GlassHeader(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // avatar-ish badge
+                                Container(
+                                  width: 54,
+                                  height: 54,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(.20),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: Colors.white, width: 1.2),
+                                  ),
+                                  child: const Icon(Icons.person,
+                                      color: Colors.white, size: 28),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Welcome back,',
+                                          style: t.titleMedium?.copyWith(
+                                            color:
+                                                Colors.white.withOpacity(.95),
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.1,
+                                          )),
+                                      // Text(
+                                      //   userName,
+                                      //   maxLines: 1,
+                                      //   overflow: TextOverflow.ellipsis,
+                                      //   style: t.headlineSmall?.copyWith(
+                                      //     color: Colors.white,
+                                      //     fontWeight: FontWeight.w800,
+                                      //     height: 1.05,
+                                      //   ),
+                                      // ),
+
+                                      // const _StatusPill(
+                                      //   icon: Icons.assignment_turned_in_rounded,
+                                      //   label: 'Last Action Performed : LOGIN',
+                                      // ),
+                                      // const SizedBox(height: 12),
+                                      // const _StatusPill(
+                                      //   icon: Icons.assignment_turned_in_rounded,
+                                      //   label: 'Last Action Performed : LOGIN',
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+                                _OrangePills()
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            const _StatusPill(
+                              icon: Icons.assignment_turned_in_rounded,
+                              label: 'Last Action Performed : LOGIN',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),*/
+
+          const SizedBox(height: 52),
 
           // Shop card
           Padding(
@@ -250,6 +352,8 @@ class _HeaderRow extends StatelessWidget {
     );
   }
 }
+
+
 
 class _HeaderCell extends StatelessWidget {
   final String label;
@@ -437,6 +541,108 @@ class _SecondaryButton extends StatelessWidget {
         onPressed: onTap,
         child: Text(label,
             style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+      ),
+    );
+  }
+}
+
+
+class _GlassHeader extends StatelessWidget {
+  const _GlassHeader({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.18),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withOpacity(.45), width: 1),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+class _Pill extends StatelessWidget {
+  const _Pill({required this.color, required this.width});
+  final Color color;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+              color: color.withOpacity(.24), blurRadius: 10, spreadRadius: 1),
+        ],
+      ),
+    );
+  }
+}
+class _OrangePills extends StatelessWidget {
+  const _OrangePills();
+
+  @override
+  Widget build(BuildContext context) {
+    const orange = Color(0xFFEA7A3B);
+    return Transform.rotate(
+      angle: -12 * 3.1415926 / 180,
+      child: Column(
+        children: [
+          _Pill(color: Colors.white.withOpacity(.28), width: 64),
+          const SizedBox(height: 6),
+          _Pill(color: orange.withOpacity(.34), width: 78),
+          const SizedBox(height: 6),
+          _Pill(color: orange, width: 86),
+        ],
+      ),
+    );
+  }
+}
+
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(.16),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withOpacity(.45), width: .8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.assignment_turned_in_rounded,
+              size: 16, color: Colors.white),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: t.bodySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              letterSpacing: .2,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -111,31 +111,31 @@ class _AddItemsPageState extends State<AddItemsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kSurface,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: kHeader,
-        foregroundColor: Colors.white,
-        title: const Text('Add Items'),
-        centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () async {
-              final q = await showSearch<String?>(
-                context: context,
-                delegate: _ProductSearchDelegate(initialQuery: _query),
-              );
-              if (q != null) setState(() => _query = q);
-            },
-            icon: const Icon(Icons.search),
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   backgroundColor: kHeader,
+      //   foregroundColor: Colors.white,
+      //   title: const Text('Add Items'),
+      //   centerTitle: true,
+      //   shape: const RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
+      //   ),
+      //   actions: [
+      //     IconButton(
+      //       onPressed: () async {
+      //         final q = await showSearch<String?>(
+      //           context: context,
+      //           delegate: _ProductSearchDelegate(initialQuery: _query),
+      //         );
+      //         if (q != null) setState(() => _query = q);
+      //       },
+      //       icon: const Icon(Icons.search),
+      //     ),
+      //   ],
+      // ),
       body: Column(
         children: [
-          // Sort / Filter row
+          SizedBox(height: 30,),
           Container(
             height: 54,
             margin: const EdgeInsets.fromLTRB(16, 10, 16, 6),

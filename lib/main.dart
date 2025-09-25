@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motives_new_ui_conversion/homescreenn.dart';
+import 'package:motives_new_ui_conversion/home_screen.dart';
 import 'package:motives_new_ui_conversion/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
