@@ -13,6 +13,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     on<MarkAttendanceEvent>(markAttendance);
     on<StartRouteEvent>(startRoute);
     on<CheckinCheckoutEvent>(checkincheckoutShopEvent);
+    on<Activity>(activity);
   }
 
   Repository repo = Repository();
@@ -193,5 +194,10 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
         state.copyWith(checkinCheckoutStatus: CheckinCheckoutStatus.failure),
       );
     }
+  }
+
+   activity(Activity event, Emitter<GlobalState> emit) async {
+    emit(state.copyWith(activity: event.activity));
+
   }
 }

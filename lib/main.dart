@@ -20,7 +20,8 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()),
+        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()..add(Activity(activity: 'APP OPENS'))
+        ),
       ],
       child: const MyApp(),
     ),
@@ -38,7 +39,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
+//context.read<GlobalBloc>().add(Activity(activity: 'App Open'));
     if (email != null) {
       print("if condition");
       print("if condition");

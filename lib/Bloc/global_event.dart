@@ -87,3 +87,13 @@ class CheckinCheckoutEvent extends GlobalEvent {
     dist_id,
   ];
 }
+
+// ignore: must_be_immutable
+class Activity extends GlobalEvent {
+  String activity;
+
+  Activity({required this.activity});
+
+  @override
+  List<Object> get props => [activity];
+}

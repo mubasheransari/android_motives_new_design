@@ -18,6 +18,7 @@ class GlobalState extends Equatable {
   final CheckinCheckoutStatus checkinCheckoutStatus;
   LoginModel? loginModel;
   MarkAttendenceModel ? markAttendenceModel;
+ String? activity;
 
   GlobalState({
     this.status = LoginStatus.initial,
@@ -25,7 +26,8 @@ class GlobalState extends Equatable {
     this.startRouteStatus = StartRouteStatus.initial,
     this.checkinCheckoutStatus = CheckinCheckoutStatus.initial,
     this.loginModel,
-    this.markAttendenceModel
+    this.markAttendenceModel,
+    this.activity
   });
 
   GlobalState copyWith({
@@ -35,6 +37,7 @@ class GlobalState extends Equatable {
     CheckinCheckoutStatus ? checkinCheckoutStatus,
     LoginModel? loginModel,
     MarkAttendenceModel ? markAttendenceModel,
+    String? activity
   }) {
     return GlobalState(
       status: status ?? this.status,
@@ -42,10 +45,11 @@ class GlobalState extends Equatable {
       startRouteStatus: startRouteStatus ?? this.startRouteStatus,
       checkinCheckoutStatus:  checkinCheckoutStatus ?? this.checkinCheckoutStatus,
       loginModel: loginModel ?? this.loginModel,
-      markAttendenceModel:  markAttendenceModel ?? this.markAttendenceModel
+      markAttendenceModel:  markAttendenceModel ?? this.markAttendenceModel,
+      activity: activity ?? this.activity
     );
   }
 
   @override
-  List<Object?> get props => [status, markAttendanceStatus,startRouteStatus,checkinCheckoutStatus ,loginModel,markAttendenceModel];
+  List<Object?> get props => [status, markAttendanceStatus,startRouteStatus,checkinCheckoutStatus ,loginModel,markAttendenceModel,activity];
 }

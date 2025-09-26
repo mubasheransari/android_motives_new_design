@@ -32,8 +32,8 @@ class HomeUpdated extends StatelessWidget {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFFCCB6), // Peach
-        statusBarIconBrightness: Brightness.dark, // Icons contrast
+        statusBarColor: Color(0xFFFFCCB6),
+        statusBarIconBrightness: Brightness.dark, 
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -66,7 +66,6 @@ class HomeUpdated extends StatelessWidget {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // avatar-ish badge
                                 Container(
                                   width: 40,
                                   height: 40,
@@ -108,16 +107,6 @@ class HomeUpdated extends StatelessWidget {
                                           height: 1.05,
                                         ),
                                       ),
-
-                                      // const _StatusPill(
-                                      //   icon: Icons.assignment_turned_in_rounded,
-                                      //   label: 'Last Action Performed : LOGIN',
-                                      // ),
-                                      // const SizedBox(height: 12),
-                                      // const _StatusPill(
-                                      //   icon: Icons.assignment_turned_in_rounded,
-                                      //   label: 'Last Action Performed : LOGIN',
-                                      // ),
                                     ],
                                   ),
                                 ),
@@ -125,17 +114,33 @@ class HomeUpdated extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 5),
-                            const _StatusPill(
-                              icon: Icons.assignment_turned_in_rounded,
-                              label: 'Last Action Performed : LOGIN',
-                            ),
+                            //  _StatusPill(
+                            //   icon: Icons.assignment_turned_in_rounded,
+                            //   label: 'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
+                            // ),
                           ],
                         ),
                       ),
                     ),
+                          Positioned(
+                            top: 115,
+                            left: 20,
+                            child: _StatusPill(
+                                icon: Icons.assignment_turned_in_rounded,
+                                label: 'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
+                              ),
+                          ),
                   ],
                 ),
               ),
+
+              //  SliverToBoxAdapter(
+     
+              //   child: _StatusPill(
+              //                 icon: Icons.assignment_turned_in_rounded,
+              //                 label: 'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
+              //               ),
+              // ),
 
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
