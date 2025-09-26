@@ -7,6 +7,7 @@ import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
 import 'package:motives_new_ui_conversion/routes_screen.dart';
 import 'package:motives_new_ui_conversion/take_order.dart';
+import 'package:motives_new_ui_conversion/widgets/orange_pills_designs.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 import 'dart:ui';
 
@@ -33,8 +34,8 @@ class HomeUpdated extends StatelessWidget {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFFCCB6),
-        statusBarIconBrightness: Brightness.dark, 
+        statusBarColor: Colors.grey,
+        statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -49,6 +50,7 @@ class HomeUpdated extends StatelessWidget {
                       height: 160,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
+                        //  colors: [Colors.grey,Colors.grey],
                           colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
                           //  colors: [orange, Color(0xFFFFB07A)],
                           begin: Alignment.topLeft,
@@ -111,7 +113,7 @@ class HomeUpdated extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                _OrangePills(),
+                                OrangePills(),
                               ],
                             ),
                             const SizedBox(height: 5),
@@ -123,14 +125,15 @@ class HomeUpdated extends StatelessWidget {
                         ),
                       ),
                     ),
-                          Positioned(
-                            top: 115,
-                            left: 20,
-                            child: _StatusPill(
-                                icon: Icons.assignment_turned_in_rounded,
-                                label: 'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
-                              ),
-                          ),
+                    Positioned(
+                      top: 115,
+                      left: 20,
+                      child: _StatusPill(
+                        icon: Icons.assignment_turned_in_rounded,
+                        label:
+                            'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -161,7 +164,7 @@ class HomeUpdated extends StatelessWidget {
                       ),
                     ),
                     _TapScale(
-                         onTap: () {
+                      onTap: () {
                         if (context
                                 .read<GlobalBloc>()
                                 .state
@@ -333,51 +336,6 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
-class _OrangePills extends StatelessWidget {
-  const _OrangePills();
-
-  @override
-  Widget build(BuildContext context) {
-    const orange = HomeUpdated.orange;
-    return Transform.rotate(
-      angle: -12 * 3.1415926 / 180,
-      child: Column(
-        children: [
-          _Pill(color: Colors.white.withOpacity(.28), width: 64),
-          const SizedBox(height: 6),
-          _Pill(color: orange.withOpacity(.34), width: 78),
-          const SizedBox(height: 6),
-          _Pill(color: orange, width: 86),
-        ],
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.color, required this.width});
-  final Color color;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 12,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(.24),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _GlassHeader extends StatelessWidget {
   const _GlassHeader({required this.child});
@@ -533,7 +491,6 @@ class _FeatureCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    //    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: t.titleSmall?.copyWith(
                       color: HomeUpdated.text,

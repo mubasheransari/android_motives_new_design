@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/widgets/orange_pills_designs.dart';
 
 
 
@@ -87,6 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+
+
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
@@ -121,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        _OrangePills(),
+                        OrangePills(),
                       ],
                     ),
                     // const SizedBox(height: 6),
@@ -269,42 +274,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _OrangePills extends StatelessWidget {
-  const _OrangePills();
+class _GlassHeader extends StatelessWidget {
+  const _GlassHeader({required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Transform.rotate(
-        angle: -12 * 3.1415926 / 180,
-        child: Column(
-          children: [
-            _Pill(color: Color(0xFFEA7A3B).withOpacity(.20), width: 54),
-            const SizedBox(height: 6),
-            _Pill(color: Color(0xFFEA7A3B).withOpacity(.35), width: 64),
-            const SizedBox(height: 6),
-            _Pill(color: Color(0xFFEA7A3B), width: 84),
-          ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.18),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withOpacity(.45), width: 1),
+          ),
+          child: child,
         ),
-      ),
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.color, required this.width});
-  final Color color;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: 16,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
