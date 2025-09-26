@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 
 
 
@@ -20,10 +21,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+        context.read<GlobalBloc>().add(Activity(activity: 'PROFILE DETAILS'));
+
+  }
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController(text: '');
   final _email = TextEditingController(text: '');
   String? _distributor;
+
+  
 
   @override
   void dispose() {
@@ -54,6 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+
     final t = Theme.of(context).textTheme;
 
     String formatTitleCase(String text) {
