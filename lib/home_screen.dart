@@ -235,7 +235,7 @@ class HomeUpdated extends StatelessWidget {
                           child: const _FeatureCard(
                             title: 'Profile',
                             icon: Icons.person,
-                            caption: 'View Profile',
+                            caption: 'View profile',
                           ),
                         ),
                         const SizedBox(width: 12),
