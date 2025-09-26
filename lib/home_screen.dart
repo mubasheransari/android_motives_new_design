@@ -48,7 +48,7 @@ class HomeUpdated extends StatelessWidget {
                       height: 160,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.grey, Color(0xFFFFB07A)],
+                          colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
                           //  colors: [orange, Color(0xFFFFB07A)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -230,7 +230,7 @@ class HomeUpdated extends StatelessWidget {
                           child: const _FeatureCard(
                             title: 'Profile',
                             icon: Icons.person,
-                            caption: 'View & edit',
+                            caption: 'View Profile',
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -499,7 +499,7 @@ class _FeatureCard extends StatelessWidget {
           children: [
             // Left: Icon
             Container(
-              width: 33,
+              width: 30,
               height: 43,
               decoration: BoxDecoration(
                 color: HomeUpdated.field,
