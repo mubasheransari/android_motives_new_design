@@ -5,6 +5,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
+import 'package:motives_new_ui_conversion/routes_screen.dart';
 import 'package:motives_new_ui_conversion/take_order.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 import 'dart:ui';
@@ -134,14 +135,6 @@ class HomeUpdated extends StatelessWidget {
                 ),
               ),
 
-              //  SliverToBoxAdapter(
-     
-              //   child: _StatusPill(
-              //                 icon: Icons.assignment_turned_in_rounded,
-              //                 label: 'Last Action Performed : ${context.read<GlobalBloc>().state.activity}',
-              //               ),
-              // ),
-
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
                 sliver: SliverGrid(
@@ -167,10 +160,29 @@ class HomeUpdated extends StatelessWidget {
                         subtitle: 'Mark / Review',
                       ),
                     ),
-                    const _CategoryCard(
-                      icon: Icons.alt_route,
-                      title: 'Routes',
-                      subtitle: 'Daily route plan',
+                    _TapScale(
+                         onTap: () {
+                        if (context
+                                .read<GlobalBloc>()
+                                .state
+                                .loginModel!
+                                .statusAttendance ==
+                            "1") {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RoutesScreen(),
+                            ),
+                          );
+                        } else {
+                          toastWidget('Mark your attendence first', Colors.red);
+                        }
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.alt_route,
+                        title: 'Routes',
+                        subtitle: 'Daily route plan',
+                      ),
                     ),
                     _TapScale(
                       onTap: () {
