@@ -311,8 +311,8 @@ class _StatusPill extends StatelessWidget {
             label,
             style: t.bodySmall?.copyWith(
               color: Colors.white,
-              fontWeight: FontWeight.w600,
-              letterSpacing: .2,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .3,
             ),
           ),
         ],

@@ -13,8 +13,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/home_screen.dart';
 
-const _primary = Color(0xFF7841BA);
-const _primaryAlt = Color(0xFF8B59C6);
+
 
 class SelfieCaptureScreen extends StatefulWidget {
   const SelfieCaptureScreen({super.key});
