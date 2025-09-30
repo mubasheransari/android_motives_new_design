@@ -4,7 +4,6 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 
-
 class OrderMenuScreen extends StatefulWidget {
   String shopname, miscid;
   OrderMenuScreen({super.key, required this.shopname, required this.miscid});
@@ -17,8 +16,6 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   String checkInText = "Check In";
   String iconAsset = "assets/checkin_order.png";
   final loc.Location location = loc.Location();
-
-  
 
   void _toggleCheckIn() {
     setState(() {
@@ -35,130 +32,153 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   String? selectedOption; // will hold selected value
 
   Future<void> showCustomRadioDialog(BuildContext context) async {
-  int selectedValue = 0;
+    int selectedValue = 0;
 
-  List<String> holdText= ["Purchaser Not Available","Tea Time","Lunch Time"];
+    List<String> holdText = [
+      "Purchaser Not Available",
+      "Tea Time",
+      "Lunch Time",
+    ];
 
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.white, // White only
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero, // No rounded corners
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), // Reduced padding
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Center(child: Text("Select Hold Reason!")),
-                  // const Text(
-                  //   "Choose an Option",
-                  //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  // ),
-                  const SizedBox(height: 8),
-                  ...List.generate(holdText.length, (index) {
-                    return RadioListTile<int>(
-                      dense: true, // Compact style
-                      contentPadding: EdgeInsets.zero, // No extra padding
-                      visualDensity: VisualDensity.compact, // Reduce spacing
-                      title: Text(
-                       holdText[index],
-                        style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w300),
-                      ),
-                      value: index,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value!;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }),
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: TextButton(
-                  //     onPressed: () => Navigator.pop(context, selectedValue),
-                  //     child: const Text("OK"),
-                  //   ),
-                  // ),
-                ],
-              );
-            },
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white, // White only
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero, // No rounded corners
           ),
-        ),
-      );
-    },
-  );
-}
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 12,
+            ), // Reduced padding
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(child: Text("Select Hold Reason!")),
+                    // const Text(
+                    //   "Choose an Option",
+                    //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    // ),
+                    const SizedBox(height: 8),
+                    ...List.generate(holdText.length, (index) {
+                      return RadioListTile<int>(
+                        dense: true, // Compact style
+                        contentPadding: EdgeInsets.zero, // No extra padding
+                        visualDensity: VisualDensity.compact, // Reduce spacing
+                        title: Text(
+                          holdText[index],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        value: index,
+                        groupValue: selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedValue = value!;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    }),
+                    // Align(
+                    //   alignment: Alignment.centerRight,
+                    //   child: TextButton(
+                    //     onPressed: () => Navigator.pop(context, selectedValue),
+                    //     child: const Text("OK"),
+                    //   ),
+                    // ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> noOrderReason(BuildContext context) async {
-  int selectedValue = 0;
+    int selectedValue = 0;
 
-  List<String> noOrder= ["No Order","Credit Not Alowed","Shop Closed","Stock Available","No Order With Collection","Visit For Collection"];
+    List<String> noOrder = [
+      "No Order",
+      "Credit Not Alowed",
+      "Shop Closed",
+      "Stock Available",
+      "No Order With Collection",
+      "Visit For Collection",
+    ];
 
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.white, // White only
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero, // No rounded corners
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12), // Reduced padding
-          child: StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                   Center(child: Text("Select No Order Reason!")),
-                  // const Text(
-                  //   "Choose an Option",
-                  //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  // ),
-                  const SizedBox(height: 8),
-                  ...List.generate(noOrder.length, (index) {
-                    return RadioListTile<int>(
-                      dense: true, // Compact style
-                      contentPadding: EdgeInsets.zero, // No extra padding
-                      visualDensity: VisualDensity.compact, // Reduce spacing
-                      title: Text(
-                       noOrder[index],
-                        style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w300),
-                      ),
-                      value: index,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedValue = value!;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }),
-                  // Align(
-                  //   alignment: Alignment.centerRight,
-                  //   child: TextButton(
-                  //     onPressed: () => Navigator.pop(context, selectedValue),
-                  //     child: const Text("OK"),
-                  //   ),
-                  // ),
-                ],
-              );
-            },
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white, // White only
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero, // No rounded corners
           ),
-        ),
-      );
-    },
-  );
-}
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 12,
+            ), // Reduced padding
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(child: Text("Select No Order Reason!")),
+                    // const Text(
+                    //   "Choose an Option",
+                    //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    // ),
+                    const SizedBox(height: 8),
+                    ...List.generate(noOrder.length, (index) {
+                      return RadioListTile<int>(
+                        dense: true, // Compact style
+                        contentPadding: EdgeInsets.zero, // No extra padding
+                        visualDensity: VisualDensity.compact, // Reduce spacing
+                        title: Text(
+                          noOrder[index],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        value: index,
+                        groupValue: selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedValue = value!;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                      );
+                    }),
+                    // Align(
+                    //   alignment: Alignment.centerRight,
+                    //   child: TextButton(
+                    //     onPressed: () => Navigator.pop(context, selectedValue),
+                    //     child: const Text("OK"),
+                    //   ),
+                    // ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   // void _showRadioDialog() {
   //   showDialog(
@@ -242,20 +262,12 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   //   );
   // }
 
-
   @override
   Widget build(BuildContext context) {
     const kText = Color(0xFF1E1E1E);
-      final t = Theme.of(context).textTheme;
+    final t = Theme.of(context).textTheme;
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Order Menu"),
-      //   centerTitle: true,
-      //   backgroundColor: Colors.white,
-      //   elevation: 0,
-      // ),
-
-          backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
