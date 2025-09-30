@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/order_menu_screen.dart';
 
 const kOrange = Color(0xFFEA7A3B);
 const kText = Color(0xFF1E1E1E);
@@ -188,7 +189,14 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                 final plan = filteredPlans[i];
                 return InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () {},
+                  onTap: () {
+                  Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderMenuScreen(miscid: '',shopname: plan.partyName,),
+                          ),
+                        );
+                  },
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
