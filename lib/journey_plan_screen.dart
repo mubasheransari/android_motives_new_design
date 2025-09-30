@@ -131,34 +131,73 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
             ),
           ),
 
-          // 🔹 Chips Row for Address Filtering
-          if (addressCounts.isNotEmpty)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: addressCounts.entries.map((entry) {
-                  final addr = entry.key;
-                  final count = entry.value;
-                  final selected = _selectedAddress == addr;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text("$addr ($count)"),
-                      selected: selected,
-                      selectedColor: kOrange.withOpacity(0.2),
-                      onSelected: (val) {
-                        setState(() {
-                          _selectedAddress = val ? addr : null;
-                        });
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
+          if (addressCounts.isNotEmpty) ...[
+  Padding(
+    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        "Filter Routes by Area",
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: kText,
             ),
+      ),
+    ),
+  ),
+  SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Row(
+      children: addressCounts.entries.map((entry) {
+        final addr = entry.key;
+        final count = entry.value;
+        final selected = _selectedAddress == addr;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            label: Text("$addr ($count)"),
+            selected: selected,
+            selectedColor: kOrange.withOpacity(0.2),
+            onSelected: (val) {
+              setState(() {
+                _selectedAddress = val ? addr : null;
+              });
+            },
+          ),
+        );
+      }).toList(),
+    ),
+  ),
+],
 
-          // 📊 Count of filtered customers
+
+          // if (addressCounts.isNotEmpty)
+          //   SingleChildScrollView(
+          //     scrollDirection: Axis.horizontal,
+          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          //     child: Row(
+          //       children: addressCounts.entries.map((entry) {
+          //         final addr = entry.key;
+          //         final count = entry.value;
+          //         final selected = _selectedAddress == addr;
+          //         return Padding(
+          //           padding: const EdgeInsets.only(right: 8),
+          //           child: ChoiceChip(
+          //             label: Text("$addr ($count)"),
+          //             selected: selected,
+          //             selectedColor: kOrange.withOpacity(0.2),
+          //             onSelected: (val) {
+          //               setState(() {
+          //                 _selectedAddress = val ? addr : null;
+          //               });
+          //             },
+          //           ),
+          //         );
+          //       }).toList(),
+          //     ),
+          //   ),
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
             child: Row(

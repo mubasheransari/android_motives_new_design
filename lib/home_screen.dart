@@ -50,7 +50,7 @@ class HomeUpdated extends StatelessWidget {
                       height: 160,
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
-                        //  colors: [Colors.grey,Colors.grey],
+                        // colors: [Colors.grey,Colors.grey],
                           colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
                           //  colors: [orange, Color(0xFFFFB07A)],
                           begin: Alignment.topLeft,
