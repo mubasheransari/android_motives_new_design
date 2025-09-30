@@ -3,7 +3,300 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
 
+// 🔹 Theme constants
 const kOrange = Color(0xFFEA7A3B);
+const kText   = Color(0xFF1E1E1E);
+const kMuted  = Color(0xFF707883);
+const kField  = Color(0xFFF2F3F5);
+const kCard   = Colors.white;
+const kShadow = Color(0x14000000);
+
+class MeezanTeaCatalog extends StatefulWidget {
+  const MeezanTeaCatalog({super.key});
+
+  @override
+  State<MeezanTeaCatalog> createState() => _MeezanTeaCatalogState();
+}
+
+class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
+  final _search = TextEditingController();
+  String _selectedLine = "All";
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    // 🔹 Get items from bloc
+    final items = context.read<GlobalBloc>().state.loginModel?.items ?? [];
+
+    // 🔹 Build unique product lines dynamically
+    final List<String> lines = [
+      "All",
+      ...{for (var i in items) i.brand?.trim() ?? ""}
+          .where((line) => line.isNotEmpty),
+    ];
+
+    // 🔍 Filter items based on line & search
+    final filteredItems = items.where((e) {
+      final lineOk = _selectedLine == "All" || e.brand == _selectedLine;
+      final query = _search.text.trim().toLowerCase();
+      final searchOk = query.isEmpty ||
+          (e.itemName?.toLowerCase().contains(query) ?? false) ||
+          (e.itemDesc?.toLowerCase().contains(query) ?? false);
+      return lineOk && searchOk;
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        title: Text(
+          "Products",
+          style: t.titleLarge?.copyWith(
+            color: kText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Column(
+        children: [
+          // 🔍 Search box
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: kCard,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: kShadow,
+                    blurRadius: 12,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+                border: Border.all(color: Color(0xFFEDEFF2)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.search_rounded, color: kMuted.withOpacity(.9)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _search,
+                      onChanged: (_) => setState(() {}),
+                      decoration: const InputDecoration(
+                        hintText: 'Search products (e.g. Gold, Green Tea, 475g)',
+                        hintStyle: TextStyle(color: kMuted),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  if (_search.text.isNotEmpty)
+                    IconButton(
+                      onPressed: () {
+                        _search.clear();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.close_rounded, color: kMuted),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // 🔹 Line filter chips
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: lines.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                final label = lines[i];
+                final selected = _selectedLine == label;
+                return ChoiceChip(
+                  label: Text(label),
+                  selected: selected,
+                  onSelected: (_) => setState(() => _selectedLine = label),
+                  selectedColor: kOrange,
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : kText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  backgroundColor: Colors.white,
+                  shape: StadiumBorder(
+                    side: BorderSide(
+                      color: selected
+                          ? Colors.transparent
+                          : const Color(0xFFEDEFF2),
+                    ),
+                  ),
+                  elevation: selected ? 2 : 0,
+                );
+              },
+            ),
+          ),
+
+          // 📊 Count of products
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+            child: Row(
+              children: [
+                Text(
+                  '${filteredItems.length} products',
+                  style: t.bodySmall?.copyWith(color: kMuted),
+                ),
+              ],
+            ),
+          ),
+
+          // 📋 Product list
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+              itemCount: filteredItems.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (_, i) {
+                final item = filteredItems[i];
+                return _ProductCard(
+                  name: item.itemName ?? "Unknown Product",
+                  desc: item.itemDesc ?? "No description",
+                  brand: item.brand ?? "Meezan",
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 🔹 Product card (UI same as your catalog design)
+class _ProductCard extends StatelessWidget {
+  final String name;
+  final String desc;
+  final String brand;
+
+  const _ProductCard({
+    required this.name,
+    required this.desc,
+    required this.brand,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {},
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [kOrange, Color(0xFFFFB07A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Container(
+          margin: const EdgeInsets.all(1.6),
+          decoration: BoxDecoration(
+            color: kCard,
+            borderRadius: BorderRadius.circular(14.4),
+            boxShadow: const [
+              BoxShadow(
+                color: kShadow,
+                blurRadius: 14,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: kField,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.local_cafe_rounded, color: kOrange),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _TagPill(text: brand),
+                    const SizedBox(height: 6),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.titleMedium?.copyWith(
+                        color: kText,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      desc,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(color: kMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 🔹 Pill widget for brand tag
+class _TagPill extends StatelessWidget {
+  final String text;
+  const _TagPill({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: kOrange.withOpacity(.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: kOrange.withOpacity(.25)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: kText,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+}
+
+
+
+/*const kOrange = Color(0xFFEA7A3B);
 const kText   = Color(0xFF1E1E1E);
 const kMuted  = Color(0xFF707883);
 const kField  = Color(0xFFF2F3F5);
@@ -139,7 +432,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
       ),
     );
   }
-}
+}*/
 
 
 
