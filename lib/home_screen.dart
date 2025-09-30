@@ -43,6 +43,8 @@ class HomeUpdated extends StatelessWidget {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
+
+              
               SliverToBoxAdapter(
                 child: Stack(
                   children: [

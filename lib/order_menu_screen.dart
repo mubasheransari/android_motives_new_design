@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:location/location.dart' as loc;
@@ -5,8 +7,8 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 
 class OrderMenuScreen extends StatefulWidget {
-  String shopname, miscid;
-  OrderMenuScreen({super.key, required this.shopname, required this.miscid});
+  String shopname, miscid,address;
+  OrderMenuScreen({super.key, required this.shopname, required this.miscid,required this.address});
 
   @override
   State<OrderMenuScreen> createState() => _OrderMenuScreenState();
@@ -29,9 +31,9 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
     });
   }
 
-  String? selectedOption; // will hold selected value
+  String? selectedOption; 
 
-  Future<void> showCustomRadioDialog(BuildContext context) async {
+  Future<void> showHoldDialog(BuildContext context) async {
     int selectedValue = 0;
 
     List<String> holdText = [
@@ -44,15 +46,15 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       context: context,
       builder: (context) {
         return Dialog(
-          backgroundColor: Colors.white, // White only
+          backgroundColor: Colors.white, 
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero, // No rounded corners
+            borderRadius: BorderRadius.zero,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 8,
               vertical: 12,
-            ), // Reduced padding
+            ), 
             child: StatefulBuilder(
               builder: (context, setState) {
                 return Column(
@@ -60,16 +62,13 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(child: Text("Select Hold Reason!")),
-                    // const Text(
-                    //   "Choose an Option",
-                    //   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    // ),
+            
                     const SizedBox(height: 8),
                     ...List.generate(holdText.length, (index) {
                       return RadioListTile<int>(
-                        dense: true, // Compact style
-                        contentPadding: EdgeInsets.zero, // No extra padding
-                        visualDensity: VisualDensity.compact, // Reduce spacing
+                        dense: true, 
+                        contentPadding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact, 
                         title: Text(
                           holdText[index],
                           style: const TextStyle(
@@ -87,13 +86,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                         },
                       );
                     }),
-                    // Align(
-                    //   alignment: Alignment.centerRight,
-                    //   child: TextButton(
-                    //     onPressed: () => Navigator.pop(context, selectedValue),
-                    //     child: const Text("OK"),
-                    //   ),
-                    // ),
+                  
                   ],
                 );
               },
@@ -180,87 +173,8 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
     );
   }
 
-  // void _showRadioDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       String? tempSelected = selectedOption; // temp value inside dialog
+  
 
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //                   backgroundColor: Colors.white, // force white background
-  //         shape: const RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.zero, // no round corners
-  //         ),
-
-  //             title:  Center(child:  GradientText("HOLD!", fontSize: 18),),
-  //             content: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 RadioListTile<String>(
-  //                   title: const Text("Option 1"),
-  //                   value: "Option 1",
-  //                   groupValue: tempSelected,
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       tempSelected = value;
-  //                     });
-  //                   },
-  //                 ),
-  //                 RadioListTile<String>(
-  //                   title: const Text("Option 2"),
-  //                   value: "Option 2",
-  //                   groupValue: tempSelected,
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       tempSelected = value;
-  //                     });
-  //                   },
-  //                 ),
-  //                 RadioListTile<String>(
-  //                   title: const Text("Option 3"),
-  //                   value: "Option 3",
-  //                   groupValue: tempSelected,
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       tempSelected = value;
-  //                     });
-  //                   },
-  //                 ),
-  //                 RadioListTile<String>(
-  //                   title: const Text("Option 4"),
-  //                   value: "Option 4",
-  //                   groupValue: tempSelected,
-  //                   onChanged: (value) {
-  //                     setState(() {
-  //                       tempSelected = value;
-  //                     });
-  //                   },
-  //                 ),
-  //               ],
-  //             ),
-  //             actions: [
-  //               TextButton(
-  //                 child: const Text("Cancel"),
-  //                 onPressed: () => Navigator.of(context).pop(),
-  //               ),
-  //               ElevatedButton(
-  //                 child: const Text("OK"),
-  //                 onPressed: () {
-  //                   setState(() {
-  //                     selectedOption = tempSelected;
-  //                   });
-  //                   Navigator.of(context).pop();
-  //                 },
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -281,51 +195,105 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(5),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.78,
-          child: Card(
-            color: Colors.grey[200],
-            elevation: 8,
-            shadowColor: Colors.grey.withOpacity(0.2),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 6,
+      body: CustomScrollView(
+    physics: const BouncingScrollPhysics(),
+        slivers:[ 
+          SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 90,
+                     // width: MediaQuery.of(context).size.width*0.99,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                        // colors: [Colors.grey,Colors.grey],
+                          colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
+                          //  colors: [orange, Color(0xFFFFB07A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
 
-                      children: [
-                        Row(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                      child: _GlassHeader(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Image.asset(
-                              'assets/shop_orderscreen.png',
-                              height: 40,
-                              width: 40,
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(.20),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.shop_sharp,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        widget.shopname,
+                                        style: t.titleMedium?.copyWith(
+                                          color: Colors.white.withOpacity(.95),
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                            Text(
+                                        widget.address,
+                                        style: t.titleMedium?.copyWith(
+                                          color: Colors.white.withOpacity(.95),
+                                          fontWeight: FontWeight.w600,
+                                          height: 1.1,
+                                        ),
+                                      ),
+                            
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 5),
-                            Text(widget.shopname),
+                          
                           ],
                         ),
-                        SizedBox(height: 15),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () async {
+                      ),
+                    ),
+              
+                  ],
+                ),
+              ),
+
+          SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 1.10,
+                  ),
+                  delegate: SliverChildListDelegate.fixed([
+
+                      
+                    _TapScale(
+                                  onTap: () async {
                                 final currentLocation = await location
                                     .getLocation();
                                 _toggleCheckIn();
@@ -354,142 +322,74 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                                   ),
                                 );
                               },
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 50,
-                                  width: 50,
-                                  title: checkInText,
-                                  iconName: "assets/checkin_order.png",
-                                  color1: Colors.purple,
-                                  color2: Colors.blue,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 12),
-                            InkWell(
-                              onTap: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => TakeOrderScreen(),
-                                //   ),
-                                // );
-                              },
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 55,
-                                  width: 80,
-                                  title: "Take Order",
-                                  iconName: "assets/take_order.png",
-                                  color1: Colors.green,
-                                  color2: Colors.teal,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                showCustomRadioDialog(context);
-                              },
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 50,
-                                  width: 50,
-                                  title: "Hold",
-                                  iconName: "assets/hold.png",
-                                  color1: Colors.orange,
-                                  color2: Colors.deepOrange,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            InkWell(
-                              onTap: () {
-                                noOrderReason(context);
-                              },
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 50,
-                                  width: 50,
-                                  title: "No Order Reason",
-                                  iconName: "assets/no_order_reason.png",
-                                  color1: Colors.cyan,
-                                  color2: Colors.blueAccent,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () {},
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 50,
-                                  width: 50,
-                                  title: "Collect Payment",
-                                  iconName: "assets/collect_payment.png",
-                                  color1: Color(0xff708993),
-                                  color2: Color(0xffA1C2BD),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            InkWell(
-                              onTap: () {},
-                              child: SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.20,
-                                width: MediaQuery.of(context).size.width * 0.40,
-                                child: _buildStatCard(
-                                  height: 50,
-                                  width: 50,
-                                  title: "Sale History",
-                                  iconName: "assets/sale_history.png",
-                                  color1: Color(0xffA27B5C),
-                                  color2: Color(0xffE8BCB9),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      child: const _CategoryCard(
+                        icon: Icons.access_time,
+                        title: 'Checkin',
+                        subtitle: 'Shop Checkin',
+                      ),
                     ),
-                  ),
-                ],
+                    _TapScale(
+                      onTap: () {
+               
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.alt_route,
+                        title: 'Take Order',
+                        subtitle: 'Orders',
+                      ),
+                    ),
+                    _TapScale(
+                      onTap: () {
+                        showHoldDialog(context);
+                  
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.shopping_cart,
+                        title: 'Hold',
+                        subtitle: 'Hold Reason',
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                   noOrderReason(context);
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.insert_drive_file,
+                        title: 'No Order Reason',
+                        subtitle: 'Select Reason',
+                      ),
+                    ),
+
+                      _TapScale(
+                      onTap: () {
+                   
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.shopping_cart,
+                        title: 'Collect Payment',
+                        subtitle: 'Place new order',
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                  
+                      },
+                      child: const _CategoryCard(
+                        icon: Icons.insert_drive_file,
+                        title: 'Sale History',
+                        subtitle: 'History',
+                      ),
+                    ),
+                  ]),
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
+
+
+         ])
     );
   }
+
+  
 
   Widget _buildStatCard({
     required String title,
@@ -526,6 +426,144 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
           const SizedBox(height: 4),
           Text(title, style: TextStyle(fontSize: 14, color: Colors.white)),
         ],
+      ),
+    );
+  }
+}
+
+class _GlassHeader extends StatelessWidget {
+  const _GlassHeader({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.18),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white.withOpacity(.45), width: 1),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({required this.icon, required this.title, this.subtitle});
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+   const Color orange = Color(0xFFEA7A3B);
+   const Color text = Color(0xFF1E1E1E);
+   const Color muted = Color(0xFF707883);
+   const Color field = Color(0xFFF5F5F7);
+   const Color card = Colors.white;
+   const Color accent = Color(0xFFE97C42);
+   const Color _shadow = Color(0x14000000);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [orange, Color(0xFFFFB07A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        margin: const EdgeInsets.all(1.8),
+        decoration: BoxDecoration(
+          color: card,
+          borderRadius: BorderRadius.circular(14.2),
+          boxShadow: const [
+            BoxShadow(
+              color: _shadow,
+              blurRadius: 16,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Material(
+              color: field,
+              shape: const CircleBorder(),
+              child: SizedBox(
+                width: 46,
+                height: 46,
+                child: Icon(icon, color: orange),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              title,
+              style: t.titleSmall?.copyWith(
+                color: text,
+                fontWeight: FontWeight.w600,
+                letterSpacing: .2,
+              ),
+            ),
+            // if (subtitle != null) ...[
+            //   const SizedBox(height: 2),
+            //   Text(
+            //     subtitle!,
+            //     maxLines: 1,
+            //     overflow: TextOverflow.ellipsis,
+            //     style: t.bodySmall?.copyWith(color:muted),
+            //   ),
+            // ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class _TapScale extends StatefulWidget {
+  const _TapScale({super.key, required this.child, required this.onTap});
+  final Widget child;
+  final VoidCallback onTap;
+
+  @override
+  State<_TapScale> createState() => _TapScaleState();
+}
+
+class _TapScaleState extends State<_TapScale>
+    with SingleTickerProviderStateMixin {
+  double _scale = 1.0;
+
+  void _down(TapDownDetails _) => setState(() => _scale = .98);
+  void _up([_]) => setState(() => _scale = 1.0);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _down,
+      onTapCancel: _up,
+      onTapUp: _up,
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 100),
+        scale: _scale,
+        child: widget.child,
       ),
     );
   }

@@ -193,7 +193,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                   Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => OrderMenuScreen(miscid: '',shopname: plan.partyName,),
+                            builder: (context) => OrderMenuScreen(miscid: '',shopname: plan.partyName,address:plan.custAddress.toString()),
                           ),
                         );
                   },
