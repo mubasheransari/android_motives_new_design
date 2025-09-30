@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
-/// ===== Theme tokens (same as your Home) =====
+
 const kOrange = Color(0xFFEA7A3B);
 const kText   = Color(0xFF1E1E1E);
 const kMuted  = Color(0xFF707883);
 const kField  = Color(0xFFF2F3F5);
 const kCard   = Colors.white;
 const kShadow = Color(0x14000000);
+
+
 
 class MeezanTeaCatalog extends StatefulWidget {
   const MeezanTeaCatalog({super.key});
@@ -16,16 +20,147 @@ class MeezanTeaCatalog extends StatefulWidget {
 }
 
 class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
+  String _selectedLine = "All";
+
+  @override
+  Widget build(BuildContext context) {
+    final items = context.read<GlobalBloc>().state.loginModel?.items ?? [];
+
+    // build unique lines dynamically from items
+    final List<String> lines = [
+      "All",
+      ...{for (var i in items) i.brand?.trim() ?? ""}
+        .where((line) => line.isNotEmpty)
+    ];
+
+    final filteredItems = _selectedLine == "All"
+        ? items
+        : items.where((e) => e.brand == _selectedLine).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          "Products",
+          style: TextStyle(color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          // Horizontal scroll filter chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: lines.map((line) {
+                final isSelected = _selectedLine == line;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ChoiceChip(
+                    label: Text(line),
+                    selected: isSelected,
+                    onSelected: (_) {
+                      setState(() {
+                        _selectedLine = line;
+                      });
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Grid view of products
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: filteredItems.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 3 / 4,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Expanded(
+                        //   child: Center(
+                        //     child: Icon(
+                        //       Icons.local_cafe,
+                        //       size: 64,
+                        //       color: Colors.brown[400],
+                        //     ),
+                        //   ),
+                        // ),
+                        const SizedBox(height: 8),
+                        Text(
+                          item.itemName ?? "Unknown Product",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.itemDesc ?? "No description",
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
+/*class MeezanTeaCatalog extends StatefulWidget {
+  const MeezanTeaCatalog({super.key});
+
+  @override
+  State<MeezanTeaCatalog> createState() => _MeezanTeaCatalogState();
+}
+
+class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
   final _search = TextEditingController();
 
-  // Product lines (chips)
   static const List<String> _lines = [
     'All', 'Supreme', 'Gold', 'Danedar', 'Dust', 'Green Tea', 'Kahwa'
   ];
   String _selectedLine = 'All';
 
-  // --- Static data (Meezan only) ---
-  // Tip: swap prices/sizes with your real SKUs later.
+
   final List<TeaProduct> _all = const [
     TeaProduct(
       brand: 'Meezan',
@@ -146,7 +281,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
         elevation: 0,
         backgroundColor: Colors.white,
         centerTitle: false,
-        title: Text('Meezan Tea', style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
+        title: Text('Products', style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
       ),
       body: Column(
         children: [
@@ -195,7 +330,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               scrollDirection: Axis.horizontal,
-              itemCount: _lines.length,
+              itemCount: context.read<GlobalBloc>().state.loginModel!.items.length,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (_, i) {
                 final label = _lines[i];
@@ -402,3 +537,4 @@ class _Stars extends StatelessWidget {
     );
   }
 }
+*/

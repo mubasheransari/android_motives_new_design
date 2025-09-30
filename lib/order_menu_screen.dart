@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/listviewui.dart';
+import 'package:motives_new_ui_conversion/take_order.dart';
 
 class OrderMenuScreen extends StatefulWidget {
   String shopname, miscid,address;
@@ -330,7 +332,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                     ),
                     _TapScale(
                       onTap: () {
-               
+               Navigator.push(context, MaterialPageRoute(builder: (context)=> MeezanTeaCatalog()));
                       },
                       child: const _CategoryCard(
                         icon: Icons.alt_route,
