@@ -174,7 +174,7 @@ class HomeUpdated extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => RoutesScreen(),
+                              builder: (context) => RouteScreen(),
                             ),
                           );
                         } else {

@@ -10,10 +10,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/capture_selfie.dart';
-
 import 'package:geocoding/geocoding.dart' as geo;
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 
 class MarkAttendanceView extends StatefulWidget {
@@ -94,26 +91,6 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
         _currentAddress = "Unable to fetch address";
       });
     }
-    // try {
-    //   List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
-    //     position.latitude,
-    //     position.longitude,
-    //   );
-
-    //   if (placemarks.isNotEmpty) {
-    //     final place = placemarks.first;
-    //     setState(() {
-    //       // 🔥 Build full detailed address
-    //       _currentAddress =
-    //           "${place.street}, ${place.subLocality}, ${place.locality}, "
-    //           "${place.administrativeArea}, ${place.postalCode}, ${place.country}";
-    //     });
-    //   }
-    // } catch (e) {
-    //   setState(() {
-    //     _currentAddress = "Unable to fetch address";
-    //   });
-    // }
   }
 
   Future<void> _requestPermissionAndFetchLocation() async {
@@ -148,11 +125,9 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
       );
     }
 
-    // 🔥 Fetch address
     await _getAddressFromLatLng(_currentLatLng!);
   }
 
-  // Recenter button function
   void _recenterToCurrentLocation() {
     if (_currentLatLng != null) {
       _mapController.animateCamera(
@@ -160,39 +135,6 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
       );
     }
   }
-
-  // Future<void> _requestPermissionAndFetchLocation() async {
-  //   bool serviceEnabled = await location.serviceEnabled();
-  //   if (!serviceEnabled) {
-  //     serviceEnabled = await location.requestService();
-  //     if (!serviceEnabled) return;
-  //   }
-
-  //   var permissionGranted = await location.hasPermission();
-  //   if (permissionGranted == loc.PermissionStatus.denied) {
-  //     permissionGranted = await location.requestPermission();
-  //     if (permissionGranted != loc.PermissionStatus.granted) return;
-  //   }
-
-  //   final currentLocation = await location.getLocation();
-  //   _currentLatLng = LatLng(
-  //     currentLocation.latitude ?? 24.8607,
-  //     currentLocation.longitude ?? 67.0011,
-  //   );
-
-  //   _initialCameraPosition = CameraPosition(target: _currentLatLng!, zoom: 14);
-
-  //   if (_currentMarkerIcon != null) {
-  //     _markers.add(
-  //       Marker(
-  //         markerId: const MarkerId('current_location'),
-  //         position: _currentLatLng!,
-  //         icon: _currentMarkerIcon!,
-  //         infoWindow: const InfoWindow(title: 'Your Location'),
-  //       ),
-  //     );
-  //   }
-  // }
 
   void _onMapCreated(GoogleMapController controller) async {
     _mapController = controller;
@@ -228,102 +170,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
     return Scaffold(
       body: Stack(
         children: [
-       /*   Container(
-            height: 300,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: card,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: _shadow,
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Location",
-                  style: t.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: text,
-                  ),
-                ),
-                const SizedBox(height: 6),
 
-                Container(
-                  decoration: BoxDecoration(
-                    color: field,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: orange.withOpacity(0.3)),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 14,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _currentAddress,
-                          style: t.bodyMedium?.copyWith(color: muted),
-                        ),
-                      ),
-                      const Icon(Icons.my_location, color: orange),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _PunchCard(title: "Punch In", time: "--:--"),
-                    _PunchCard(title: "Punch Out", time: "--:--"),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Attendance Button
-                Center(
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.55,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: orange,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {},
-                      child: Text(
-                       attendanceStatus, //"ATTENDANCE IN",
-                        style: t.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const Spacer(),
-
-                Center(
-                  child: Text(
-                    _dateTime,
-
-                    style: t.bodySmall?.copyWith(color: muted),
-                  ),
-                ),
-              ],
-            ),
-          ),*/
           if (_initialCameraPosition != null)
             GoogleMap(
               padding: const EdgeInsets.only(bottom: 60),
@@ -356,7 +203,6 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
               ),
             ),
 
-          // if (_isMapReady == true)
           Positioned(
             bottom: 60,
             left: 16,
@@ -388,7 +234,6 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                   ),
                   const SizedBox(height: 6),
 
-                  // Location field
                   Container(
                     decoration: BoxDecoration(
                       color: field,
@@ -413,13 +258,11 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                           },
                           icon: Icon(Icons.my_location, color: orange),
                         ),
-                        // const Icon(Icons.my_location, color: orange),
                       ],
                     ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Punch in/out row
                   BlocBuilder<GlobalBloc, GlobalState>(
                     builder: (context, state) {
                       return state.loginModel!.statusAttendance == "1"? Row(
