@@ -18,7 +18,7 @@ class JourneyPlanScreen extends StatefulWidget {
 
 class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   final _search = TextEditingController();
-  String? _selectedAddress; // 🔹 For chip filter selection
+  String? _selectedAddress; 
 
   @override
   void dispose() {
@@ -49,7 +49,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
         .loginModel!
         .journeyPlan;
 
-    // 🔹 Build address counts for chips
     final addressCounts = <String, int>{};
     for (var plan in journeyPlans) {
       final addr = plan.custAddress.trim();
@@ -58,7 +57,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       }
     }
 
-    // 🔍 Filter by search text + selected chip
     final filteredPlans = journeyPlans.where((plan) {
       final matchesSearch = plan.partyName.toLowerCase().contains(
         _search.text.toLowerCase(),
@@ -86,7 +84,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       ),
       body: Column(
         children: [
-          // 🔍 Search box (unchanged UI)
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
             child: Container(
@@ -132,71 +130,44 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
           ),
 
           if (addressCounts.isNotEmpty) ...[
-  Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        "Filter Routes by Area",
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: kText,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Filter Routes by Area",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: kText,
+                  ),
+                ),
+              ),
             ),
-      ),
-    ),
-  ),
-  SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    child: Row(
-      children: addressCounts.entries.map((entry) {
-        final addr = entry.key;
-        final count = entry.value;
-        final selected = _selectedAddress == addr;
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ChoiceChip(
-            label: Text("$addr ($count)"),
-            selected: selected,
-            selectedColor: kOrange.withOpacity(0.2),
-            onSelected: (val) {
-              setState(() {
-                _selectedAddress = val ? addr : null;
-              });
-            },
-          ),
-        );
-      }).toList(),
-    ),
-  ),
-],
-
-
-          // if (addressCounts.isNotEmpty)
-          //   SingleChildScrollView(
-          //     scrollDirection: Axis.horizontal,
-          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          //     child: Row(
-          //       children: addressCounts.entries.map((entry) {
-          //         final addr = entry.key;
-          //         final count = entry.value;
-          //         final selected = _selectedAddress == addr;
-          //         return Padding(
-          //           padding: const EdgeInsets.only(right: 8),
-          //           child: ChoiceChip(
-          //             label: Text("$addr ($count)"),
-          //             selected: selected,
-          //             selectedColor: kOrange.withOpacity(0.2),
-          //             onSelected: (val) {
-          //               setState(() {
-          //                 _selectedAddress = val ? addr : null;
-          //               });
-          //             },
-          //           ),
-          //         );
-          //       }).toList(),
-          //     ),
-          //   ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: addressCounts.entries.map((entry) {
+                  final addr = entry.key;
+                  final count = entry.value;
+                  final selected = _selectedAddress == addr;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text("$addr ($count)"),
+                      selected: selected,
+                      selectedColor: kOrange.withOpacity(0.2),
+                      onSelected: (val) {
+                        setState(() {
+                          _selectedAddress = val ? addr : null;
+                        });
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
 
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -210,7 +181,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
             ),
           ),
 
-          // 📋 Filtered ListView
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
