@@ -86,56 +86,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+          backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        centerTitle: false,
+        title: Text(
+          'Profile',
+          style: t.titleLarge?.copyWith(
+            color: Color(0xFF1E1E1E),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
 
 
-            SliverToBoxAdapter(
+          /*  SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'PROFILE',
-                      style: t.labelLarge?.copyWith(
-                        letterSpacing: 1.4,
-                        color: kText,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Container(
-                      width: 64,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: kOrange.withOpacity(.9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
+                    // Text(
+                    //   'PROFILE',
+                    //   style: t.labelLarge?.copyWith(
+                    //     letterSpacing: 1.4,
+                    //     color: kText,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 6),
+                    // Container(
+                    //   width: 64,
+                    //   height: 4,
+                    //   decoration: BoxDecoration(
+                    //     color: kOrange.withOpacity(.9),
+                    //     borderRadius: BorderRadius.circular(8),
+                    //   ),
+                    // ),
                     const SizedBox(height: 18),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                     // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        IconButton(onPressed: (){}, icon: Icon(Icons.arrow_back)),
                         Text(
                           'Your Profile',
-                          style: t.headlineSmall?.copyWith(
-                            height: 1.1,
-                            color: kText,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500)
                         ),
+                        SizedBox(width: MediaQuery.of(context).size.width *0.17),
                         OrangePills(),
                       ],
                     ),
-                    // const SizedBox(height: 6),
-                    // Text('Personal Information',
-                    //     style: t.bodyMedium?.copyWith(color: kMuted)),
                   ],
                 ),
               ),
-            ),
+            ),*/
 
             SliverToBoxAdapter(
               child: Padding(
