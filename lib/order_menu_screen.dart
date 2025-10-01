@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
-import 'package:motives_new_ui_conversion/listviewui.dart';
+import 'package:motives_new_ui_conversion/products_items_screen.dart';
 
 
 // COLORS (staying with your palette)
@@ -171,17 +171,17 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
-        centerTitle: false,
-        title: Text(
-          'Order Menu',
-          style:
-              t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700),
-        ),
-      ),
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   scrolledUnderElevation: 0,
+      //   backgroundColor: Colors.white,
+      //   centerTitle: false,
+      //   title: Text(
+      //     'Order Menu',
+      //     style:
+      //         t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700),
+      //   ),
+      // ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -189,7 +189,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
             child: Stack(
               children: [
                 Container(
-                  height: 120,
+                  height: 179,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [kOrange, kOrangeLite],
@@ -199,7 +199,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 45, 16, 0),
                   child: _GlassHeader(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

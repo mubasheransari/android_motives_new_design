@@ -229,6 +229,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
                         await Navigator.of(context).push<Map<String, dynamic>>(
                       MaterialPageRoute(
                         builder: (_) => _MyListView(
+                        
                           allItems: items,
                           cart: _cart,
                           onIncrement: inc,
@@ -775,7 +776,8 @@ class _MyListViewState extends State<_MyListView> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
-                onPressed: _rows.isEmpty ? null : _confirmAndSend,
+            //    onPressed: _rows.isEmpty ? null : _confirmAndSend,
+            onPressed: (){},
                 child: const Text('Confirm & Send',
                     style: TextStyle(fontWeight: FontWeight.w700)),
               ),

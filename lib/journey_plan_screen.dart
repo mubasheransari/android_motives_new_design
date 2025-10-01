@@ -69,22 +69,22 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
-        title: Text('Customers',
-            style: t.titleLarge
-                ?.copyWith(color: kText, fontWeight: FontWeight.w700)),
-        centerTitle: false,
-      ),
+      // appBar: AppBar(
+      //   elevation: 0,
+      //   scrolledUnderElevation: 0,
+      //   backgroundColor: Colors.white,
+      //   title: Text('Customers',
+      //       style: t.titleLarge
+      //           ?.copyWith(color: kText, fontWeight: FontWeight.w700)),
+      //   centerTitle: false,
+      // ),
       body: Column(
         children: [
           // hero header with frosted info
           Stack(
             children: [
               Container(
-                height: 122,
+                height: 166,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [kOrange, Color(0xFFFFB07A)],
@@ -94,7 +94,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16,42, 16, 0),
                 child: _GlassHeader(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,28 +433,89 @@ class _CustomerCard extends StatelessWidget {
             ],
           ),
           padding: const EdgeInsets.all(14),
-          child: Row(
+          child:Column(
+            children: [
+                                              Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/shop_orderscreen.png',
+                                      height: 30,
+                                      width: 30,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      formatTitleCase(title),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: t.titleMedium?.copyWith(
+                                        color: kText,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/location.png',
+                                      height: 30,
+                                      width: 30,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      formatTitleCase(address),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: t.bodyMedium?.copyWith(
+                                        color: kText,
+                                        fontWeight: FontWeight.w300,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Image.asset(
+                                      'assets/money.png',
+                                      height: 30,
+                                      width: 30,
+                                    ),
+                                    SizedBox(width: 5),
+                                    _TagPill(
+                                      text: "Credit Limit ${crLimit}",
+                                    ),
+                                    const SizedBox(width: 6),
+                                    _TagPill(
+                                      text: "Credit Days ${crDays}",
+                                    ),
+                                  ],
+                                ),
+            ],
+          ),
+          
+       /*    Row(
             children: [
               // avatar
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                    color: kField, borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.storefront_rounded, color: kOrange),
-              ),
-              const SizedBox(width: 12),
+              // Container(
+              //   width: 52,
+              //   height: 52,
+              //   decoration: BoxDecoration(
+              //       color: kField, borderRadius: BorderRadius.circular(14)),
+              //   child: const Icon(Icons.storefront_rounded, color: kOrange),
+              // ),
+              // const SizedBox(width: 12),
               // content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // title row
                     Text(
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.titleMedium?.copyWith(
+                      style: t.bodyLarge?.copyWith(
                         color: kText,
                         fontWeight: FontWeight.w700,
                       ),
@@ -478,7 +539,6 @@ class _CustomerCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // tags
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
@@ -495,7 +555,7 @@ class _CustomerCard extends StatelessWidget {
               const SizedBox(width: 8),
               const Icon(Icons.chevron_right_rounded, color: kMuted),
             ],
-          ),
+          ),*/
         ),
       ),
     );
@@ -549,19 +609,19 @@ class _TagPill extends StatelessWidget {
 //     super.dispose();
 //   }
 
-//   String formatTitleCase(String text) {
-//     if (text.isEmpty) return text;
+  String formatTitleCase(String text) {
+    if (text.isEmpty) return text;
 
-//     return text
-//         .toLowerCase()
-//         .split(' ')
-//         .map(
-//           (word) => word.isNotEmpty
-//               ? '${word[0].toUpperCase()}${word.substring(1)}'
-//               : '',
-//         )
-//         .join(' ');
-//   }
+    return text
+        .toLowerCase()
+        .split(' ')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1)}'
+              : '',
+        )
+        .join(' ');
+  }
 
 //   @override
 //   Widget build(BuildContext context) {
