@@ -6,12 +6,7 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/listviewui.dart';
-import 'package:motives_new_ui_conversion/take_order.dart';
 
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:location/location.dart' as loc;
 
 // COLORS (staying with your palette)
 const kOrange = Color(0xFFEA7A3B);
@@ -54,7 +49,6 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
   String? selectedOption;
 
-  // ── dialogs (kept exactly as your logic) ─────────────────────────────────
   Future<void> showHoldDialog(BuildContext context) async {
     int selectedValue = 0;
     List<String> holdText = [
@@ -191,7 +185,6 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── hero banner + glass header ───────────────────────────────────
           SliverToBoxAdapter(
             child: Stack(
               children: [
@@ -206,7 +199,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
                   child: _GlassHeader(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

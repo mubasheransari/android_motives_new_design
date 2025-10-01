@@ -17,14 +17,13 @@ class _RouteScreenState extends State<RouteScreen> {
   String? selectedBreak;
   final loc.Location location = loc.Location();
 
-
   @override
   Widget build(BuildContext context) {
-   final t = Theme.of(context).textTheme;
-      const Color orange = Color(0xFFEA7A3B);
+    final t = Theme.of(context).textTheme;
+    const Color orange = Color(0xFFEA7A3B);
 
     return Scaffold(
-       backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
@@ -49,11 +48,14 @@ class _RouteScreenState extends State<RouteScreen> {
                 Icon(Icons.person, size: 35, color: orange),
                 const SizedBox(width: 6),
                 Flexible(
-                  child: Text('PUNCH-IN TIME', style: t.titleSmall?.copyWith(
-            color: Color(0xFF1E1E1E),
-            fontWeight: FontWeight.w500,
-          ),))
-
+                  child: Text(
+                    'PUNCH-IN TIME',
+                    style: t.titleSmall?.copyWith(
+                      color: Color(0xFF1E1E1E),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -65,11 +67,14 @@ class _RouteScreenState extends State<RouteScreen> {
                 Icon(Icons.access_time, size: 35, color: orange),
                 const SizedBox(width: 6),
                 Flexible(
-                  child: Text("${context.read<GlobalBloc>().state.loginModel!.log!.tim.toString()} , ${context.read<GlobalBloc>().state.loginModel!.log!.time.toString()}", overflow: TextOverflow.ellipsis, style: t.titleSmall?.copyWith(
-            color: Color(0xFF1E1E1E),
-            fontWeight: FontWeight.w500,
-          ),),
-
+                  child: Text(
+                    "${context.read<GlobalBloc>().state.loginModel!.log!.tim.toString()} , ${context.read<GlobalBloc>().state.loginModel!.log!.time.toString()}",
+                    overflow: TextOverflow.ellipsis,
+                    style: t.titleSmall?.copyWith(
+                      color: Color(0xFF1E1E1E),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -79,11 +84,7 @@ class _RouteScreenState extends State<RouteScreen> {
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).size.height * 0.20,
             ),
-            child: Center(
-              child: Text(
-              'Route Started!'
-              ),
-            ),
+            child: Center(child: Text('Route Started!')),
           ),
         ],
       ),
@@ -93,56 +94,69 @@ class _RouteScreenState extends State<RouteScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
             const SizedBox(height: 10),
 
-                           Center(
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.80,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: orange,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                     onPressed: () async {
-                  final currentLocation = await location.getLocation();
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.80,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: orange,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final currentLocation = await location.getLocation();
 
-                  if(context.read<GlobalBloc>().state.loginModel!.journeyPlan.length.toString() == context.read<GlobalBloc>().state.loginModel!.reasons!.length.toString()){
-
-                   context.read<GlobalBloc>().add(
-                      StartRouteEvent(
-                        type: '0',
-                        userId: context
+                    if (context
                             .read<GlobalBloc>()
                             .state
                             .loginModel!
-                            .userinfo!
-                            .userId
-                            .toString(),
-                        lat: currentLocation.latitude.toString(),
-                        lng: currentLocation.longitude.toString(),
-                      ),
-                    );
-                  }
-                  else{
-                    toastWidget("Please visit all the shops of your PJP", Colors.red);
-                  }
-                },
-                        child: Text(
-                   'End Route',
-                          style: t.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                            .journeyPlan
+                            .length
+                            .toString() ==
+                        context
+                            .read<GlobalBloc>()
+                            .state
+                            .loginModel!
+                            .reasons!
+                            .length
+                            .toString()) {
+                      context.read<GlobalBloc>().add(
+                        StartRouteEvent(
+                          type: '0',
+                          userId: context
+                              .read<GlobalBloc>()
+                              .state
+                              .loginModel!
+                              .userinfo!
+                              .userId
+                              .toString(),
+                          lat: currentLocation.latitude.toString(),
+                          lng: currentLocation.longitude.toString(),
                         ),
-                      ),
+                      );
+                    } else {
+                      toastWidget(
+                        "Please complete your routes first!",
+                        Colors.red,
+                      );
+                    }
+                  },
+                  child: Text(
+                    'End Route',
+                    style: t.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-        /*    SizedBox(
+                ),
+              ),
+            ),
+            /*    SizedBox(
               width: double.infinity,
               height: 60,
               child: ElevatedButton(

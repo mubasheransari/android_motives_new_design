@@ -84,7 +84,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
           Stack(
             children: [
               Container(
-                height: 110,
+                height: 122,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [kOrange, Color(0xFFFFB07A)],
@@ -94,7 +94,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
                 child: _GlassHeader(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
