@@ -41,16 +41,18 @@ class StartRouteEvent extends GlobalEvent {
   String userId;
   String lat;
   String lng;
+  String action;
 
   StartRouteEvent({
     required this.type,
     required this.userId,
     required this.lat,
     required this.lng,
+    required this.action
   });
 
   @override
-  List<Object> get props => [type, userId, lat, lng];
+  List<Object> get props => [type, userId, lat, lng,action];
 }
 
 // ignore: must_be_immutable

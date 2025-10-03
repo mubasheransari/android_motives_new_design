@@ -115,6 +115,7 @@ class Repository {
     String userId,
     String lat,
     String lng,
+    String action
   ) async {
     DateTime now = DateTime.now();
 
@@ -130,22 +131,13 @@ class Repository {
         "latitude":lat,
         "longitude":lng,
         "device_id":"e95a9ab3bba86f821",
-        "act_type":"ATTENDANCE",
-        "action":"IN",
+        "act_type":"ROUTE",
+        "action":action,
          "att_time": currentTime,
         "att_date": currentDate,
         "misc":"0",
         "dist_id":"0",
         "app_version":"1.0.1"
-        // "type": type,
-        // "user_id": userId,
-        // "latitude": lat,
-        // "longitude": lng,
-        // "device_id": "e95a9ab3bba86f821",
-        // "activity_type": activityType,
-        // "action": action,
-        // "att_time": currentTime,
-        // "att_date": currentDate,
       };
 
       print("PAYLOAD $payload");
