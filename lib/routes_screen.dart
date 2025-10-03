@@ -122,11 +122,12 @@ class _RouteScreenState extends State<RouteScreen> {
                             .read<GlobalBloc>()
                             .state
                             .loginModel!
-                            .reasons!
+                            .reasons
                             .length
                             .toString()) {
                       context.read<GlobalBloc>().add(
                         StartRouteEvent(
+                          action: '',
                           type: '0',
                           userId: context
                               .read<GlobalBloc>()

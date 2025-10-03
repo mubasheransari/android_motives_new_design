@@ -43,8 +43,6 @@ class HomeUpdated extends StatelessWidget {
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-
-              
               SliverToBoxAdapter(
                 child: Stack(
                   children: [
@@ -104,7 +102,7 @@ class HomeUpdated extends StatelessWidget {
                                       ),
                                       Text(
                                         userName,
-                                        maxLines: 1,
+                                     //   maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: t.headlineSmall?.copyWith(
                                           color: Colors.white,
@@ -119,7 +117,7 @@ class HomeUpdated extends StatelessWidget {
                                   'assets/logo-bg.png',
                                   height: 50,
                                   width: 110,
-                                 // color: Colors.white,
+                                  color: Colors.white,
                                 ),
                               //  OrangePills(),
                               ],
