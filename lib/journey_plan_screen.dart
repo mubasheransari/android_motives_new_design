@@ -299,7 +299,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   }
 }
 
-// ───────────────────────────── components ─────────────────────────────
 
 class _GlassHeader extends StatelessWidget {
   const _GlassHeader({required this.child});
