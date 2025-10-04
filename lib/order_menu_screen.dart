@@ -6,6 +6,7 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/products_items_screen.dart';
+import 'package:motives_new_ui_conversion/take_order.dart' as HomeUpdated;
 
 
 // COLORS (staying with your palette)
@@ -31,6 +32,14 @@ class OrderMenuScreen extends StatefulWidget {
 }
 
 class _OrderMenuScreenState extends State<OrderMenuScreen> {
+
+    static const Color orange = Color(0xFFEA7A3B);
+  static const Color text = Color(0xFF1E1E1E);
+  static const Color muted = Color(0xFF707883);
+  static const Color field = Color(0xFFF5F5F7);
+  static const Color card = Colors.white;
+  static const Color accent = Color(0xFFE97C42);
+  static const Color _shadow = Color(0x14000000);
   String checkInText = "Check In";
   String iconAsset = "assets/checkin_order.png";
   final loc.Location location = loc.Location();
@@ -49,139 +58,310 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
   String? selectedOption;
 
-  Future<void> showHoldDialog(BuildContext context) async {
-    int selectedValue = 0;
-    List<String> holdText = [
-      "Purchaser Not Available",
-      "Tea Time",
-      "Lunch Time",
-    ];
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: StatefulBuilder(builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                      child: Text("Select Hold Reason!",
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700))),
-                  const SizedBox(height: 8),
-                  ...List.generate(holdText.length, (index) {
-                    return RadioListTile<int>(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      title: Text(
-                        holdText[index],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
+  Future<String?> showHoldReasonDialog(BuildContext context) async {
+  int selectedIndex = -1; // none selected initially
+  final List<String> holdReasons = const [
+    "Purchaser Not Available",
+    "Tea Time",
+    "Lunch Time",
+  ];
+
+  String? chosen;
+
+  await showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      final t = Theme.of(context).textTheme;
+      return Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        backgroundColor: Colors.transparent, // for gradient frame
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [orange, Color(0xFFFFB07A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(1.8),
+            decoration: BoxDecoration(
+              color: card,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: _shadow,
+                  blurRadius: 16,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                      decoration: const BoxDecoration(
+                        color: field,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      child: Text(
+                        "Select Hold Reason",
+                        textAlign: TextAlign.center,
+                        style: t.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: text,
                         ),
                       ),
-                      value: index,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() => selectedValue = value!);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }),
-                ],
-              );
-            }),
-          ),
-        );
-      },
-    );
-  }
+                    ),
 
-  Future<void> noOrderReason(BuildContext context) async {
-    int selectedValue = 0;
-    List<String> noOrder = [
-      "No Order",
-      "Credit Not Alowed",
-      "Shop Closed",
-      "Stock Available",
-      "No Order With Collection",
-      "Visit For Collection",
-    ];
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: StatefulBuilder(builder: (context, setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                      child: Text("Select No Order Reason!",
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700))),
-                  const SizedBox(height: 8),
-                  ...List.generate(noOrder.length, (index) {
-                    return RadioListTile<int>(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                      title: Text(
-                        noOrder[index],
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
+                    // Options
+                    Flexible(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        shrinkWrap: true,
+                        itemCount: holdReasons.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 2),
+                        itemBuilder: (_, index) {
+                          return RadioListTile<int>(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+                            visualDensity: VisualDensity.compact,
+                            activeColor: orange,
+                            title: Text(
+                              holdReasons[index],
+                              style: t.bodyMedium?.copyWith(
+                                color: text,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            value: index,
+                            groupValue: selectedIndex,
+                            onChanged: (v) => setState(() => selectedIndex = v ?? -1),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Actions
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: muted,
+                                side: BorderSide(color: muted.withOpacity(.35)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("Cancel"),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: orange,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: selectedIndex == -1
+                                  ? null
+                                  : () {
+                                      chosen = holdReasons[selectedIndex];
+                                      Navigator.of(context).pop();
+                                    },
+                              child: const Text("Select Reason"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  return chosen; 
+}
+
+
+  Future<String?> showNoOrderReasonDialog(BuildContext context) async {
+  int selectedIndex = -1; 
+  final List<String> noOrder = const [
+    "No Order",
+    "Credit Not Alowed",
+    "Shop Closed",
+    "Stock Available",
+    "No Order With Collection",
+    "Visit For Collection",
+  ];
+
+  String? chosen;
+
+  await showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      final t = Theme.of(context).textTheme;
+      return Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        backgroundColor: Colors.transparent, // gradient frame
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [orange, Color(0xFFFFB07A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(1.8),
+            decoration: BoxDecoration(
+              color: card,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(
+                  color: _shadow,
+                  blurRadius: 16,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                      decoration: const BoxDecoration(
+                        color: field,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      child: Text(
+                        "Select No Order Reason",
+                        textAlign: TextAlign.center,
+                        style: t.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: text,
                         ),
                       ),
-                      value: index,
-                      groupValue: selectedValue,
-                      onChanged: (value) {
-                        setState(() => selectedValue = value!);
-                        Navigator.of(context).pop();
-                      },
-                    );
-                  }),
-                ],
-              );
-            }),
-          ),
-        );
-      },
-    );
-  }
+                    ),
 
-  // ── UI ───────────────────────────────────────────────────────────────────
+                    // Reasons
+                    Flexible(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                        shrinkWrap: true,
+                        itemCount: noOrder.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 2),
+                        itemBuilder: (_, index) {
+                          return RadioListTile<int>(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 6),
+                            visualDensity: VisualDensity.compact,
+                            activeColor: orange,
+                            title: Text(
+                              noOrder[index],
+                              style: t.bodyMedium?.copyWith(
+                                color: text,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            value: index,
+                            groupValue: selectedIndex,
+                            onChanged: (v) => setState(() => selectedIndex = v ?? -1),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // Actions
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: muted,
+                                side: BorderSide(color: muted.withOpacity(.35)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("Cancel"),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: orange,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: selectedIndex == -1
+                                  ? null
+                                  : () {
+                                      chosen = noOrder[selectedIndex];
+                                      Navigator.of(context).pop();
+                                    },
+                              child: const Text("Select Reason"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  return chosen; 
+}
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   scrolledUnderElevation: 0,
-      //   backgroundColor: Colors.white,
-      //   centerTitle: false,
-      //   title: Text(
-      //     'Order Menu',
-      //     style:
-      //         t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700),
-      //   ),
-      // ),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -204,7 +384,6 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // shop identity
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -295,8 +474,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
             ),
           ),
 
-          // ── quick actions row (fast access) ──────────────────────────────
-          SliverToBoxAdapter(
+/*          SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
               child: Row(
@@ -305,7 +483,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                     child: _QuickAction(
                       icon: Icons.pause_circle_filled_rounded,
                       label: 'Hold',
-                      onTap: () => showHoldDialog(context),
+                      onTap: () => showHoldReasonDialog(context),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -313,17 +491,16 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                     child: _QuickAction(
                       icon: Icons.block_flipped,
                       label: 'No Order',
-                      onTap: () => noOrderReason(context),
+                      onTap: () => showNoOrderReasonDialog(context),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+          ),*/
 
-          // ── grid menu (kept your actions, improved visuals) ─────────────
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 26, 16, 16),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -388,7 +565,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
                 // HOLD
                 _TapScale(
-                  onTap: () => showHoldDialog(context),
+                  onTap: () => showHoldReasonDialog(context),
                   child: const _CategoryCard(
                     icon: Icons.pause_rounded,
                     title: 'Hold',
@@ -398,7 +575,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
                 // NO ORDER REASON
                 _TapScale(
-                  onTap: () => noOrderReason(context),
+                  onTap: () => showNoOrderReasonDialog(context),
                   child: const _CategoryCard(
                     icon: Icons.visibility_off_rounded,
                     title: 'No Order Reason',

@@ -49,7 +49,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     final journeyPlans =
         context.read<GlobalBloc>().state.loginModel?.journeyPlan ?? const [];
 
-    // address -> count (for chips)
     final addressCounts = <String, int>{};
     for (final plan in journeyPlans) {
       final addr = (plan.custAddress).trim();
@@ -58,7 +57,6 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
       }
     }
 
-    // filter
     final q = _search.text.trim().toLowerCase();
     final filteredPlans = journeyPlans.where((plan) {
       final matchesSearch = plan.partyName.toLowerCase().contains(q);
