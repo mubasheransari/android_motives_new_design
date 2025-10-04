@@ -117,7 +117,7 @@ class HomeUpdated extends StatelessWidget {
                                   'assets/logo-bg.png',
                                   height: 50,
                                   width: 110,
-                                  color: Colors.white,
+                                //  color: Colors.white,
                                 ),
                               //  OrangePills(),
                               ],

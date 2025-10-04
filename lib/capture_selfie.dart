@@ -11,6 +11,7 @@ import 'package:image/image.dart' as img;
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/home_screen.dart';
 
 
@@ -246,44 +247,47 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
                 _report = null;
               }),
               onUse: () async {
-                if (_report?.pass == true) {
-                  final currentLocation = await location.getLocation();
+  if (_report?.pass != true) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please retake a clearer selfie')),
+    );
+    return;
+  }
 
-                  context.read<GlobalBloc>().add(
-                    MarkAttendanceEvent(
-                      lat: currentLocation.latitude.toString(),
-                      lng: currentLocation.longitude.toString(),
-                      type: '1',
-                      userId: context
-                          .read<GlobalBloc>()
-                          .state
-                          .loginModel!
-                          .userinfo!
-                          .userId
-                          .toString(),
-                    ),
-                  );
+  // 1) Send attendance
+  final current = await location.getLocation();
+  context.read<GlobalBloc>().add(MarkAttendanceEvent(
+    lat: current.latitude.toString(),
+    lng: current.longitude.toString(),
+    type: '1',
+    userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
+  ));
 
-                  final box = GetStorage();
-                  var email = box.read("email");
-                  var password = box.read("password");
+  // (Optional) If your bloc exposes a distinct attendance status, await it here.
+  // await context.read<GlobalBloc>().stream.firstWhere((s) => s.attendanceStatus == AttendanceStatus.saved);
 
-                  context.read<GlobalBloc>().add(
-                    LoginEvent(email: email!, password: password),
-                  );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomeUpdated()),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please retake a clearer selfie'),
-                    ),
-                  );
-                }
-              },
-            );
+  // 2) Re-fetch login model (refresh data)
+  final box = GetStorage();
+  final email = box.read("email");
+  final password = box.read("password");
+  context.read<GlobalBloc>().add(LoginEvent(email: email!, password: password));
+
+  // 3) Wait until login finishes (success OR failure) so state is updated
+  await context.read<GlobalBloc>().stream.firstWhere(
+    (s) => s.status == LoginStatus.success || s.status == LoginStatus.failure,
+  );
+
+  if (!mounted) return;
+  // ScaffoldMessenger.of(context).showSnackBar(
+  //   SnackBar(
+  //     content: Text(
+  //       context.read<GlobalBloc>().state.status == LoginStatus.success
+  //           ? 'Data updated'
+  //           : 'Failed to refresh data',
+  //     ),
+  //   ),
+  // );
+}  );
           }
 
           if (_controller == null || !_controller!.value.isInitialized) {
