@@ -278,6 +278,8 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
   );
 
   if (!mounted) return;
+
+  Navigator.push(context, MaterialPageRoute(builder: (context)=> HomeUpdated()));
   // ScaffoldMessenger.of(context).showSnackBar(
   //   SnackBar(
   //     content: Text(
