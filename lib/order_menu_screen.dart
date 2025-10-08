@@ -6,6 +6,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/addItems.dart';
+import 'package:motives_new_ui_conversion/products_items_screen.dart';
+import 'package:motives_new_ui_conversion/take_order.dart';
 
 
 
@@ -739,7 +742,8 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                   _TapScale(
                     onTap: () => _guardRequireCheckIn(() async {
                       if (_orderStatus != "1") {
-                        await _showThemedInfo(parentCtx: context, title: 'Not Allowed', message: 'You are not allowed to take orders.');
+                        Navigator.push(context, MaterialPageRoute(builder: (_) =>  MeezanTeaCatalog(shopId: widget.miscid)));
+                     //   await _showThemedInfo(parentCtx: context, title: 'Not Allowed', message: 'You are not allowed to take orders.');
                         return;
                       }
                       _toast('Take Order tapped'); // TODO: Navigate
