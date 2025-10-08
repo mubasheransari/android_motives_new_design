@@ -350,20 +350,20 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                               final currentLocation = await location
                                   .getLocation();
 
-                              context.read<GlobalBloc>().add(
-                                MarkAttendanceEvent(
-                                  lat: currentLocation.latitude.toString(),
-                                  lng: currentLocation.longitude.toString(),
-                                  type: '0',
-                                  userId: context
-                                      .read<GlobalBloc>()
-                                      .state
-                                      .loginModel!
-                                      .userinfo!
-                                      .userId
-                                      .toString(),
-                                ),
-                              );
+                              // context.read<GlobalBloc>().add(
+                              //   MarkAttendanceEvent(
+                              //     lat: currentLocation.latitude.toString(),
+                              //     lng: currentLocation.longitude.toString(),
+                              //     type: '0',
+                              //     userId: context
+                              //         .read<GlobalBloc>()
+                              //         .state
+                              //         .loginModel!
+                              //         .userinfo!
+                              //         .userId
+                              //         .toString(),
+                              //   ),
+                              // );
                             
                             }
                           } else {
