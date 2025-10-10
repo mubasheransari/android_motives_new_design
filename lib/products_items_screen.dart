@@ -829,7 +829,7 @@ class _MyListViewState extends State<_MyListView> {
 
           // Confirm & Send -> returns payload to parent
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 52),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -838,11 +838,11 @@ class _MyListViewState extends State<_MyListView> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: _rows.isEmpty ? null : _returnPayload,
                 child: const Text('Confirm & Send',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontWeight: FontWeight.w500,fontSize:16.5)),
               ),
             ),
           ),

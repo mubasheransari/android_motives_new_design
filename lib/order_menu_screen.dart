@@ -151,7 +151,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   }
 
   // ===== Dialog styling: shared builders =====
-  Future<void> _showThemedInfo({
+  Future<void> _showThemedInfo({ 
     required BuildContext parentCtx,
     required String title,
     required String message,
