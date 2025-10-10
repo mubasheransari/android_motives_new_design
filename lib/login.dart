@@ -160,7 +160,7 @@ class _NewLoginScreenState extends State<NewLoginScreen> {
                   return Center(
                     child: state.status == LoginStatus.loading
                         ? SpinKitWave(
-                            color: HomeUpdated.orange,
+                            color: Color(0xFFEA7A3B),
                             size: 30.0,
                             duration: Duration(milliseconds: 1500),
                           )
