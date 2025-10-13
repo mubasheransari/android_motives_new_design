@@ -68,34 +68,38 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
             ],
           ),
           child: Row(
+           // mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              const Icon(Icons.access_time, color: HomeUpdated.cPrimary, size: 18),
-              const SizedBox(width: 10),
+              const Icon(Icons.access_time, color: HomeUpdated.cPrimary, size: 38),
+            //  const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _time(),
-                      textAlign: TextAlign.center,
-                      style: t.titleLarge?.copyWith(
-                        color: HomeUpdated.cText,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: .5,
-                        height: 1.0,
+                child: Padding(
+                  padding: const EdgeInsets.only(right:31.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _time(),
+                        textAlign: TextAlign.center,
+                        style: t.titleLarge?.copyWith(
+                          color: HomeUpdated.cText,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: .5,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _date(),
-                      textAlign: TextAlign.center,
-                      style: t.bodyMedium?.copyWith(
-                        color: HomeUpdated.cMuted,
-                        fontWeight: FontWeight.w600,
-                        height: 1.0,
+                      const SizedBox(height: 2),
+                      Text(
+                        _date(),
+                        textAlign: TextAlign.center,
+                        style: t.bodyMedium?.copyWith(
+                          color: HomeUpdated.cMuted,
+                          fontWeight: FontWeight.w600,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -173,14 +177,14 @@ class HomeUpdated extends StatelessWidget {
       delayMs: 0,
       child: Row(
         children: [
-          const _IconGlass(icon: Icons.menu_rounded),
-          const SizedBox(width: 12),
+      //    const _IconGlass(icon: Icons.menu_rounded),
+         // const SizedBox(width: 12),
 
           // ⏱ Live time & date (center)
           const Expanded(child: _LiveDateTimeBar()),
 
-          const SizedBox(width: 12),
-          const _IconGlass(icon: Icons.notifications_outlined),
+       //   const SizedBox(width: 12),
+        //  const _IconGlass(icon: Icons.notifications_outlined),
         ],
       ),
     ),
@@ -1151,10 +1155,10 @@ class _WideGlassTile extends StatelessWidget {
                   child: Row(
                     children: [
                       Container(
-                        width: 50,
-                        height: 60,
+                        width: 40,
+                        height: 50,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(10),
                           gradient: const LinearGradient(
                             colors: [HomeUpdated.cPrimary, HomeUpdated.cPrimarySoft],
                           ),
@@ -1162,7 +1166,7 @@ class _WideGlassTile extends StatelessWidget {
                         ),
                         child: Icon(icon, color: Colors.white, size: 26),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -1189,7 +1193,7 @@ class _WideGlassTile extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                    /*  const SizedBox(width: 3),
                       Container(
                         height: 34,
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1209,11 +1213,11 @@ class _WideGlassTile extends StatelessWidget {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(width: 6),
-                            Icon(Icons.chevron_right, color: Colors.white),
+                            // SizedBox(width: 6),
+                            // Icon(Icons.chevron_right, color: Colors.white),
                           ],
                         ),
-                      ),
+                      ),*/
                     ],
                   ),
                 ),
