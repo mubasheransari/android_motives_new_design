@@ -14,6 +14,8 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     on<StartRouteEvent>(startRoute);
     on<CheckinCheckoutEvent>(checkincheckoutShopEvent);
     on<Activity>(activity);
+    on<CoveredRoutesLength>(coveredRoutesLength);
+
   }
 
   Repository repo = Repository();
@@ -199,6 +201,11 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
 
    activity(Activity event, Emitter<GlobalState> emit) async {
     emit(state.copyWith(activity: event.activity));
+
+  }
+
+     coveredRoutesLength(CoveredRoutesLength event, Emitter<GlobalState> emit) async {
+    emit(state.copyWith(routesCovered: event.lenght));
 
   }
 }

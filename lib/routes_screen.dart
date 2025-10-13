@@ -188,7 +188,7 @@ class _RouteScreenState extends State<RouteScreen> {
                             Expanded(
                                 child: _MiniStatCard(
                                     title: 'Done',
-                                    value: '$done',
+                                    value: context.read<GlobalBloc>().state.routesCovered.toString(),//'$done',
                                     icon: Icons.check_circle_rounded)),
                           ],
                         ),

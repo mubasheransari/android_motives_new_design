@@ -48,11 +48,11 @@ class StartRouteEvent extends GlobalEvent {
     required this.userId,
     required this.lat,
     required this.lng,
-    required this.action
+    required this.action,
   });
 
   @override
-  List<Object> get props => [type, userId, lat, lng,action];
+  List<Object> get props => [type, userId, lat, lng, action];
 }
 
 // ignore: must_be_immutable
@@ -98,4 +98,13 @@ class Activity extends GlobalEvent {
 
   @override
   List<Object> get props => [activity];
+}
+
+// ignore: must_be_immutable
+class CoveredRoutesLength extends GlobalEvent {
+  String lenght;
+  CoveredRoutesLength({required this.lenght});
+
+  @override
+  List<Object> get props => [lenght];
 }
