@@ -35,6 +35,9 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     if (raw is Map) {
       raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
     }
+    print(_reasonsByMiscId.length);
+    print(_reasonsByMiscId.length);
+    print(_reasonsByMiscId.length);
   }
 
   @override
@@ -315,6 +318,7 @@ final filteredPlans = allPlans.where((plan) {
               },
             ),
           ),
+          SizedBox(height: 50,)
         ],
       ),
     );
@@ -481,6 +485,7 @@ class _CustomerCard extends StatelessWidget {
                     _TagPill(text: "Reason: ${reason!}"),
                 ],
               ),
+
             ],
           ),
         ),

@@ -101,7 +101,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
                           height: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 2),//
                       Text(
                         _date(),
                         textAlign: TextAlign.center,
@@ -111,6 +111,8 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
                           height: 1.0,
                         ),
                       ),
+
+                      
                     ],
                   ),
                 ),
