@@ -20,7 +20,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()..add(Activity(activity: 'APP OPENS'))
+        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()..add(Activity(activity: 'App Opens'))
         ),
       ],
       child: const MyApp(),

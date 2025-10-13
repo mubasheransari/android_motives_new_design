@@ -621,8 +621,8 @@ class _StatusGlass extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.assignment_turned_in_rounded,
-                  color: HomeUpdated.cPrimary, size: 18),
+               Icon(Icons.assignment_turned_in_rounded,
+                  color: Constants.themeColor, size: 18),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -630,7 +630,7 @@ class _StatusGlass extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: t.bodyMedium?.copyWith(
                     color: HomeUpdated.cText,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     letterSpacing: .2,
                   ),
                 ),
