@@ -250,7 +250,7 @@ class HomeUpdated extends StatelessWidget {
                             title: 'Routes',
                             subtitle: 'Daily route plan',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance == "1") {
+                              if (state.loginModel?.statusAttendance.toString() == "1") {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => RouteScreen()),
@@ -268,7 +268,7 @@ class HomeUpdated extends StatelessWidget {
                             title: 'Punch Order',
                             subtitle: 'Place new order',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance == "1") {
+                              if (state.loginModel?.statusAttendance.toString() == "1") {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => JourneyPlanScreen()),
@@ -285,10 +285,7 @@ class HomeUpdated extends StatelessWidget {
                             icon: Icons.insert_drive_file,
                             title: 'Records',
                             subtitle: 'History & logs',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => TakeOrderPage()),
-                            ),
+                            onTap: () {}
                           ),
                         ),
                       ]),

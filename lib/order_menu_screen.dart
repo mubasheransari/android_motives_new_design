@@ -1,14 +1,11 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
-import 'package:motives_new_ui_conversion/addItems.dart';
 import 'package:motives_new_ui_conversion/products_items_screen.dart';
-import 'package:motives_new_ui_conversion/take_order.dart';
 
 
 
@@ -473,6 +470,8 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       onYes: () async {
         await _getLocation();
 
+        print('CHOOSEN REASON $chosen');
+
         // ORDER reason (type 7)
         context.read<GlobalBloc>().add(CheckinCheckoutEvent(
               type: '7',
@@ -682,6 +681,12 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                           title: 'Shop Check-In',
                           message: 'Do you want to Check-In?',
                           onYes: () async {
+                            print("user id${context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString()}");
+                                                        print("LAT${lat}");
+                            print("LNG ${lng}");
+                            print("misc id${widget.miscid}");
+                            print("Disc id${context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString()}");
+
                             context.read<GlobalBloc>().add(
                                   CheckinCheckoutEvent(
                                     type: '5',
