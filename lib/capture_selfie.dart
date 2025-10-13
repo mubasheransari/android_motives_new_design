@@ -284,6 +284,107 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
 
   final loc.Location location = loc.Location();
 
+  bool _busy = false;
+          // Put this in the same State class
+void _onUse() async {
+  if (_busy) return; // hard guard
+  setState(() => _busy = true);
+
+  try {
+    // 0) Optional selfie gate
+    if (_report?.pass != true) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please retake a clearer selfie')),
+      );
+      return;
+    }
+
+    // 1) Get location (keep your own permission checks if elsewhere)
+    final current = await location.getLocation();
+    final lat = current.latitude;
+    final lng = current.longitude;
+    if (lat == null || lng == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not get your location')),
+      );
+      return;
+    }
+
+    // 2) Fire attendance
+    final bloc = context.read<GlobalBloc>();
+    final userId = bloc.state.loginModel?.userinfo?.userId?.toString();
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User session missing')),
+      );
+      return;
+    }
+
+    bloc.add(MarkAttendanceEvent(
+      lat: lat.toString(),
+      lng: lng.toString(),
+      type: '1',
+      userId: userId,
+    ));
+
+    // 3) Wait for attendance result ONLY
+    final attendStatus = await bloc.stream
+        .map((s) => s.markAttendanceStatus)
+        .distinct()
+        .firstWhere((st) =>
+            st == MarkAttendanceStatus.success ||
+            st == MarkAttendanceStatus.failure);
+
+    if (attendStatus != MarkAttendanceStatus.success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Attendance failed')),
+      );
+      return;
+    }
+
+    // 4) Silent login refresh (no "login success" toast)
+    final box = GetStorage();
+    final email = box.read<String>("email");
+    final password = box.read<String>("password");
+    if (email != null && password != null) {
+      bloc.add(LoginEvent(email: email, password: password));
+      final loginStatus = await bloc.stream
+          .map((s) => s.status) // LoginStatus from your bloc
+          .distinct()
+          .firstWhere((st) =>
+              st == LoginStatus.success || st == LoginStatus.failure);
+
+      if (loginStatus != LoginStatus.success) {
+        if (!mounted) return;
+        final msg = bloc.state.loginModel?.message ?? 'Login refresh failed';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        return;
+      }
+    }
+
+    // 5) Show ONLY attendance toast, then navigate
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Attendance marked successfully')),
+    );
+
+    // Optional: small delay so the toast is visible before navigation
+    // await Future.delayed(const Duration(milliseconds: 350));
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeUpdated()),
+    );
+  } finally {
+    // If you navigated away with pushReplacement, this setState won't run (widget disposed).
+    if (mounted) setState(() => _busy = false);
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -291,6 +392,8 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
       body: FutureBuilder<void>(
         future: _ready,
         builder: (context, snap) {
+
+
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator(color: Colors.orange));
           }
@@ -307,37 +410,157 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
                 });
                 await _resumePreviewSafe(); // <<< resume preview (no UI change)
               },
-              onUse: () async {
-                if (_report?.pass != true) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please retake a clearer selfie')),
-                  );
-                  return;
-                }
+    onUse: _busy ? null : _onUse,
 
-                // 1) Send attendance
-                final current = await location.getLocation();
-                context.read<GlobalBloc>().add(MarkAttendanceEvent(
-                  lat: current.latitude.toString(),
-                  lng: current.longitude.toString(),
-                  type: '1',
-                  userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
-                ));
+        /*        onUse: () async {
+  // 0) Face/selfie gate
+  if (_report?.pass != true) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please retake a clearer selfie')),
+    );
+    return;
+  }
 
-                // 2) Re-fetch login model (refresh data)
-                final box = GetStorage();
-                final email = box.read("email");
-                final password = box.read("password");
-                context.read<GlobalBloc>().add(LoginEvent(email: email!, password: password));
+  // 1) Make sure location service & permission are OK before reading lat/lng
+  try {
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enable Location Services')),
+        );
+        return;
+      }
+    }
 
-                // 3) Wait until login finishes (success OR failure)
-                await context.read<GlobalBloc>().stream.firstWhere(
-                  (s) => s.status == LoginStatus.success || s.status == LoginStatus.failure,
-                );
+    var permission = await location.hasPermission();
+    if (permission == loc.PermissionStatus.denied) {
+      permission = await location.requestPermission();
+    }
+    if (permission != loc.PermissionStatus.granted &&
+        permission != loc.PermissionStatus.grantedLimited) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location permission required')),
+      );
+      return;
+    }
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Location error: $e')),
+    );
+    return;
+  }
 
-                if (!mounted) return;
-                Navigator.push(context, MaterialPageRoute(builder: (context)=> const HomeUpdated()));
-              },
+  // 2) Read current location
+  final current = await location.getLocation();
+  final lat = current.latitude;
+  final lng = current.longitude;
+  if (lat == null || lng == null) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not get your location')),
+    );
+    return;
+  }
+
+  // 3) Fire attendance and wait for its status (success/failure)
+  final bloc = context.read<GlobalBloc>();
+  final userId = bloc.state.loginModel?.userinfo?.userId?.toString();
+  if (userId == null) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('User session missing')),
+    );
+    return;
+  }
+
+  bloc.add(MarkAttendanceEvent(
+    lat: lat.toString(),
+    lng: lng.toString(),
+    type: '1', // consider an enum
+    userId: userId,
+  ));
+
+  // Wait for attendance result ONLY (don’t match on other state changes)
+  await bloc.stream
+      .map((s) => s.markAttendanceStatus)
+      .distinct()
+      .firstWhere((st) =>
+          st == MarkAttendanceStatus.success ||
+          st == MarkAttendanceStatus.failure);
+
+  // 4) Re-login to refresh the model
+  final box = GetStorage();
+  final email = box.read<String>("email");
+  final password = box.read<String>("password");
+
+  if (email == null || password == null) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Saved credentials not found')),
+    );
+    return;
+  }
+
+  bloc.add(LoginEvent(email: email, password: password));
+
+  // Wait specifically for login status from your _login handler
+  final loginResult = await bloc.stream
+      .map((s) => s.status) // <-- this is your LoginStatus
+      .distinct()
+      .firstWhere((st) =>
+          st == LoginStatus.success ||
+          st == LoginStatus.failure);
+
+  if (!context.mounted) return;
+
+  if (loginResult == LoginStatus.success) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeUpdated()),
+    );
+  } else {
+    // If you store API message inside loginModel on failure, surface it
+    final msg = bloc.state.loginModel?.message ?? 'Login failed';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }}*/
+
+
+                // if (_report?.pass != true) {
+                //   ScaffoldMessenger.of(context).showSnackBar(
+                //     const SnackBar(content: Text('Please retake a clearer selfie')),
+                //   );
+                //   return;
+                // }
+
+                // // 1) Send attendance
+                // final current = await location.getLocation();
+                // context.read<GlobalBloc>().add(MarkAttendanceEvent(
+                //   lat: current.latitude.toString(),
+                //   lng: current.longitude.toString(),
+                //   type: '1',
+                //   userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
+                // ));
+
+                // // 2) Re-fetch login model (refresh data)
+                // final box = GetStorage();
+                // final email = box.read("email");
+                // final password = box.read("password");
+                // context.read<GlobalBloc>().add(LoginEvent(email: email!, password: password));
+
+                // // 3) Wait until login finishes (success OR failure)
+                // await context.read<GlobalBloc>().stream.firstWhere(
+                //   (s) => s.status == LoginStatus.success || s.status == LoginStatus.failure,
+                // );
+
+                // if (!mounted) return;
+                // Navigator.push(context, MaterialPageRoute(builder: (context)=> const HomeUpdated()));
+       
             );
           }
 
@@ -566,14 +789,14 @@ class _ResultView extends StatelessWidget {
     required this.analyzing,
     required this.filePath,
     required this.onRetake,
-    required this.onUse,
+     this.onUse,
   });
 
   final SelfieReport? report;
   final bool analyzing;
   final String filePath;
   final VoidCallback onRetake;
-  final VoidCallback onUse;
+  final VoidCallback? onUse;
 
   @override
   Widget build(BuildContext context) {
