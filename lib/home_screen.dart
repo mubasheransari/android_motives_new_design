@@ -870,8 +870,8 @@ class _GlassActionCard extends StatelessWidget {
                     children: [
                       // Icon tile (orange)
                       Container(
-                        width: 58,
-                        height: 58,
+                        width: 50,
+                        height: 50,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           gradient: const LinearGradient(
@@ -987,7 +987,7 @@ class _WideGlassTile extends StatelessWidget {
                         width: 40,
                         height: 50,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(12),
                           gradient: const LinearGradient(
                             colors: [HomeUpdated.cPrimary, HomeUpdated.cPrimarySoft],
                           ),
@@ -995,7 +995,7 @@ class _WideGlassTile extends StatelessWidget {
                         ),
                         child: Icon(icon, color: Colors.white, size: 26),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
