@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class Constants {
   static String baseUrl = "dummyjson.com";
   static String categoriesApi = "/products/categories";
-  Color themeColor = Color(0xFF4D79FF);
+  static Color themeColor =Color(0xfffc8020);// Color(0xFF4D79FF);
   Color greyColor = Color(0xff666F80);
 
   static final String mapStyle = '''

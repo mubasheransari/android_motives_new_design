@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Constants/constants.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
@@ -72,7 +73,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding:  EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(.70),
             borderRadius: BorderRadius.circular(16),
@@ -83,7 +84,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.access_time, color: HomeUpdated.cPrimary, size: 38),
+               Icon(Icons.access_time, color: Constants.themeColor, size: 38),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(right:31.0),
@@ -162,7 +163,7 @@ class HomeUpdated extends StatelessWidget {
         body: Stack(
           children: [
             // Watermark tiled across entire screen (unlimited)
-            const _WatermarkTiled(),
+            _WatermarkTiledSmall(tileScale: 3.0),
 
             SafeArea(
               child: CustomScrollView(
@@ -171,12 +172,12 @@ class HomeUpdated extends StatelessWidget {
                   // ===== Top bar =====
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      padding:  EdgeInsets.fromLTRB(16, 8, 16, 0),
                       child: _Enter(
                         delayMs: 0,
                         child: Row(
                           children: [
-                            const Expanded(child: _LiveDateTimeBar()),
+                             Expanded(child: _LiveDateTimeBar()),
                           ],
                         ),
                       ),
@@ -196,7 +197,7 @@ class HomeUpdated extends StatelessWidget {
                             'assets/logo-bg.png',
                             height: 54,
                             width: 120,
-                            color: Colors.orange,
+                            color: Color(0xfffc8020),
                             colorBlendMode: BlendMode.srcIn,
                           ),
                         ),
@@ -370,24 +371,32 @@ class HomeUpdated extends StatelessWidget {
 }
 
 /// ================== WATERMARK (TILED / UNLIMITED) ==================
-class _WatermarkTiled extends StatelessWidget {
-  const _WatermarkTiled();
+/// 
+/// ================== WATERMARK (TILED, SMALLER TILES) ==================
+/// ================== WATERMARK (TILED + SMALL) ==================
+class _WatermarkTiledSmall extends StatelessWidget {
+  const _WatermarkTiledSmall({this.tileScale = 3.0}); 
+  // Bigger value => smaller tile (3.0 draws the image at 1/3 size)
+  final double tileScale;
+
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: IgnorePointer(
-        child: Opacity(
-          opacity: 1.0, // overall watermark alpha
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.06), // watermark strength
-              BlendMode.srcIn,
-            ),
-            child: Image.asset(
-              'assets/logo-bg.png',
-              repeat: ImageRepeat.repeat, // tile infinitely
+        child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: const AssetImage('assets/logo-bg.png'),
+              repeat: ImageRepeat.repeat,     // tile infinitely
+              fit: BoxFit.none,               // no scaling by fit
+              // Make watermark subtle & dark-ish
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.06),
+                BlendMode.srcIn,
+              ),
+              // ↓ This controls tile size. Higher = smaller tiles.
+              scale: tileScale,
               alignment: Alignment.topLeft,
-              fit: BoxFit.none, // no scaling; rely on repeat tiling
             ),
           ),
         ),
@@ -395,6 +404,33 @@ class _WatermarkTiled extends StatelessWidget {
     );
   }
 }
+
+
+// class _WatermarkTiled extends StatelessWidget {
+//   const _WatermarkTiled();
+//   @override
+//   Widget build(BuildContext context) {
+//     return Positioned.fill(
+//       child: IgnorePointer(
+//         child: Opacity(
+//           opacity: 1.0, // overall watermark alpha
+//           child: ColorFiltered(
+//             colorFilter: ColorFilter.mode(
+//               Colors.black.withOpacity(0.06), // watermark strength
+//               BlendMode.srcIn,
+//             ),
+//             child: Image.asset(
+//               'assets/logo-bg.png',
+//               repeat: ImageRepeat.repeat, // tile infinitely
+//               alignment: Alignment.topLeft,
+//               fit: BoxFit.none, // no scaling; rely on repeat tiling
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 /// ================== HEADER WIDGETS ==================
 class _IconGlass extends StatelessWidget {
@@ -555,7 +591,7 @@ class _MiniBadge extends StatelessWidget {
           BoxShadow(color: HomeUpdated.cShadow, blurRadius: 12, offset: Offset(0, 6)),
         ],
       ),
-      child: const Icon(Icons.person, color: HomeUpdated.cPrimary, size: 22),
+      child:  Icon(Icons.person, color: Constants.themeColor, size: 26),
     );
   }
 }
