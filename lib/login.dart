@@ -165,8 +165,8 @@ class _NewLoginScreenState extends State<NewLoginScreen> {
                             duration: Duration(milliseconds: 1500),
                           )
                         : SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.40,
-                            height: 50,
+                            width: MediaQuery.of(context).size.width * 0.35,
+                            height: 40,
                             child: FilledButton(
                               style: FilledButton.styleFrom(
                                 backgroundColor: accent,
@@ -215,7 +215,7 @@ class _NewLoginScreenState extends State<NewLoginScreen> {
                                   'Login',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                   ),

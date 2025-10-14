@@ -26,7 +26,7 @@ class _RouteScreenState extends State<RouteScreen> {
   static const Color _shadow = Color(0x14000000);
 
   final loc.Location location = loc.Location();
-  final GetStorage storage = GetStorage();
+  GetStorage storage = GetStorage();
 
   static const String routeKey = 'isRouteStarted';
   bool isRouteStarted = false;

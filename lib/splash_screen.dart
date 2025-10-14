@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/intro_screens.dart';
+import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -101,6 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
+            WatermarkTiledSmall(tileScale: 3.0),
           // Background gradient sweep (very subtle)
           Positioned.fill(
             child: AnimatedBuilder(

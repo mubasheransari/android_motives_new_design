@@ -13,6 +13,7 @@ var password = box.read("password");
 var email_auth = box.read("email_auth");
 var password_auth = box.read("password-auth");
 
+final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
@@ -70,6 +71,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Motives-T',
       debugShowCheckedModeBanner: false,
+            navigatorObservers: [routeObserver],
      // home:email != null ?HomeUpdated() :  SplashScreen(),
       home:  SplashScreen(),
     );

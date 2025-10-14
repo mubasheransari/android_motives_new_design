@@ -27,6 +27,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   String? _selectedAddress;
 
   final Map<String, String> _reasonsByMiscId = {};
+  
   final box = GetStorage();
 
   @override
@@ -40,6 +41,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
     print(_reasonsByMiscId.length);
     print(_reasonsByMiscId.length);
     context.read<GlobalBloc>().add(CoveredRoutesLength(lenght: _reasonsByMiscId.length.toString()));
+    box.write('covered_routes_count', _reasonsByMiscId.length);
   }
 
   @override

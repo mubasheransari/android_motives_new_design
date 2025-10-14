@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Constants/constants.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
@@ -19,6 +21,9 @@ import 'dart:ui'; // ImageFilter
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
+
+import 'main.dart';
 
 // import your own app files as needed:
 // import 'package:your_app/bloc/global_bloc.dart';
@@ -57,11 +62,25 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
   }
 
   String _two(int n) => n < 10 ? '0$n' : '$n';
-  String _time() => '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
+  String _time() =>
+      '${_two(_now.hour)}:${_two(_now.minute)}:${_two(_now.second)}';
 
   String _date() {
-    const w = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const w = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const m = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${w[_now.weekday - 1]}, ${m[_now.month - 1]} ${_now.day}, ${_now.year}';
   }
 
@@ -73,21 +92,25 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          padding:  EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(.70),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 16, offset: Offset(0, 8)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
             ],
           ),
           child: Row(
             children: [
-               Icon(Icons.access_time, color: Constants.themeColor, size: 38),
+              Icon(Icons.access_time, color: Constants.themeColor, size: 38),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(right:31.0),
+                  padding: const EdgeInsets.only(right: 31.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -101,7 +124,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
                           height: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 2),//
+                      const SizedBox(height: 2), //
                       Text(
                         _date(),
                         textAlign: TextAlign.center,
@@ -111,8 +134,6 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
                           height: 1.0,
                         ),
                       ),
-
-                      
                     ],
                   ),
                 ),
@@ -126,7 +147,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
 }
 
 /// ================== HOME SCREEN ==================
-class HomeUpdated extends StatelessWidget {
+class HomeUpdated extends StatefulWidget {
   const HomeUpdated({super.key});
 
   // Palette
@@ -139,9 +160,73 @@ class HomeUpdated extends StatelessWidget {
   static const cPrimarySoft = Color(0xFFFFB07A); // Soft orange
   static const cShadow = Color(0x14000000);
 
+  @override
+  State<HomeUpdated> createState() => _HomeUpdatedState();
+}
+
+class _HomeUpdatedState extends State<HomeUpdated> with RouteAware {
   String _niceDate(DateTime d) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+
+  late final GetStorage _box;
+  int _coveredRoutes = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _box = GetStorage();
+    _coveredRoutes = _coerceToInt(_box.read('covered_routes_count'));
+  }
+
+  int _coerceToInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is String) return int.tryParse(v) ?? 0;
+    return 0;
+  }
+
+  // --- Listen for when user returns from another screen (like JourneyPlanScreen)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+      final route = ModalRoute.of(context);
+    if (route != null) {
+      routeObserver.subscribe(this, route); // ✅ types match
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Called when user returns to this screen
+    _refreshCoveredRoutes();
+  }
+
+  void _refreshCoveredRoutes() {
+    final newValue = _coerceToInt(_box.read('covered_routes_count'));
+    if (mounted && newValue != _coveredRoutes) {
+      setState(() => _coveredRoutes = newValue);
+    }
   }
 
   @override
@@ -149,11 +234,20 @@ class HomeUpdated extends StatelessWidget {
     final state = context.read<GlobalBloc>().state;
     final model = state.loginModel;
 
-    final userName = (model?.userinfo?.userName?.toString().trim().isNotEmpty ?? false)
+    final userName =
+        (model?.userinfo?.userName?.toString().trim().isNotEmpty ?? false)
         ? model!.userinfo!.userName.toString()
         : (model?.userinfo?.userName ?? 'User');
 
     final todayLabel = _niceDate(DateTime.now());
+    final jpCount = context
+        .read<GlobalBloc>()
+        .state
+        .loginModel!
+        .journeyPlan
+        .length;
+    // var box = GetStorage();
+    // var totalCoveredRoutes = box.read('covered_routes_count');
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -161,11 +255,11 @@ class HomeUpdated extends StatelessWidget {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: cBg,
+        backgroundColor: HomeUpdated.cBg,
         body: Stack(
           children: [
             // Watermark tiled across entire screen (unlimited)
-            _WatermarkTiledSmall(tileScale: 3.0),
+            WatermarkTiledSmall(tileScale: 3.0),
 
             SafeArea(
               child: CustomScrollView(
@@ -174,13 +268,11 @@ class HomeUpdated extends StatelessWidget {
                   // ===== Top bar =====
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding:  EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                       child: _Enter(
                         delayMs: 0,
                         child: Row(
-                          children: [
-                             Expanded(child: _LiveDateTimeBar()),
-                          ],
+                          children: [Expanded(child: _LiveDateTimeBar())],
                         ),
                       ),
                     ),
@@ -207,14 +299,46 @@ class HomeUpdated extends StatelessWidget {
                     ),
                   ),
 
-                  // ===== Status pill =====
+                  state.loginModel?.statusAttendance.toString() == "1"
+                      ? SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _MiniStatCard(
+                                        title: 'Planned',
+                                        value: '$jpCount',
+                                        icon: Icons.alt_route,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _MiniStatCard(
+                                        title: 'Done',
+                                        value: _coveredRoutes
+                                            .toString(), //context.read<GlobalBloc>().state.routesCovered.toString(),//'$done',
+                                        icon: Icons.check_circle_rounded,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : SizedBox(),
+
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                       child: _Enter(
                         delayMs: 120,
                         child: _StatusGlass(
-                          text: 'Last Action · ${state.activity!.isEmpty ? "—" : state.activity}',
+                          text:
+                              'Last Action · ${state.activity!.isEmpty ? "—" : state.activity}',
                         ),
                       ),
                     ),
@@ -226,12 +350,13 @@ class HomeUpdated extends StatelessWidget {
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 1.04,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 1.04,
+                          ),
                       delegate: SliverChildListDelegate.fixed([
                         _Enter(
                           delayMs: 260,
@@ -241,7 +366,9 @@ class HomeUpdated extends StatelessWidget {
                             subtitle: 'Mark / Review',
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => MarkAttendanceView()),
+                              MaterialPageRoute(
+                                builder: (_) => MarkAttendanceView(),
+                              ),
                             ),
                           ),
                         ),
@@ -252,13 +379,20 @@ class HomeUpdated extends StatelessWidget {
                             title: 'Routes',
                             subtitle: 'Daily route plan',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance.toString() == "1") {
+                              if (state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1") {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => RouteScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) => RouteScreen(),
+                                  ),
                                 );
                               } else {
-                                toastWidget('Mark your attendance first', Colors.red);
+                                toastWidget(
+                                  'Mark your attendance first',
+                                  Colors.red,
+                                );
                               }
                             },
                           ),
@@ -270,13 +404,20 @@ class HomeUpdated extends StatelessWidget {
                             title: 'Punch Order',
                             subtitle: 'Place new order',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance.toString() == "1") {
+                              if (state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1") {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => JourneyPlanScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) => JourneyPlanScreen(),
+                                  ),
                                 );
                               } else {
-                                toastWidget('Mark your attendance first', Colors.red);
+                                toastWidget(
+                                  'Mark your attendance first',
+                                  Colors.red,
+                                );
                               }
                             },
                           ),
@@ -287,7 +428,7 @@ class HomeUpdated extends StatelessWidget {
                             icon: Icons.insert_drive_file,
                             title: 'Records',
                             subtitle: 'History & logs',
-                            onTap: () {}
+                            onTap: () {},
                           ),
                         ),
                       ]),
@@ -311,7 +452,9 @@ class HomeUpdated extends StatelessWidget {
                                 caption: 'View profile',
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) => const ProfileScreen(),
+                                  ),
                                 ),
                               ),
                             ),
@@ -370,40 +513,39 @@ class HomeUpdated extends StatelessWidget {
 }
 
 /// ================== WATERMARK (TILED / UNLIMITED) ==================
-/// 
+///
 /// ================== WATERMARK (TILED, SMALLER TILES) ==================
 /// ================== WATERMARK (TILED + SMALL) ==================
-class _WatermarkTiledSmall extends StatelessWidget {
-  const _WatermarkTiledSmall({this.tileScale = 3.0}); 
-  // Bigger value => smaller tile (3.0 draws the image at 1/3 size)
-  final double tileScale;
+// class _WatermarkTiledSmall extends StatelessWidget {
+//   const _WatermarkTiledSmall({this.tileScale = 3.0});
+//   // Bigger value => smaller tile (3.0 draws the image at 1/3 size)
+//   final double tileScale;
 
-  @override
-  Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: const AssetImage('assets/logo-bg.png'),
-              repeat: ImageRepeat.repeat,     // tile infinitely
-              fit: BoxFit.none,               // no scaling by fit
-              // Make watermark subtle & dark-ish
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.06),
-                BlendMode.srcIn,
-              ),
-              // ↓ This controls tile size. Higher = smaller tiles.
-              scale: tileScale,
-              alignment: Alignment.topLeft,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
+//   @override
+//   Widget build(BuildContext context) {
+//     return Positioned.fill(
+//       child: IgnorePointer(
+//         child: Container(
+//           decoration: BoxDecoration(
+//             image: DecorationImage(
+//               image: const AssetImage('assets/logo-bg.png'),
+//               repeat: ImageRepeat.repeat, // tile infinitely
+//               fit: BoxFit.none, // no scaling by fit
+//               // Make watermark subtle & dark-ish
+//               colorFilter: ColorFilter.mode(
+//                 Colors.black.withOpacity(0.06),
+//                 BlendMode.srcIn,
+//               ),
+//               // ↓ This controls tile size. Higher = smaller tiles.
+//               scale: tileScale,
+//               alignment: Alignment.topLeft,
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 // class _WatermarkTiled extends StatelessWidget {
 //   const _WatermarkTiled();
@@ -449,7 +591,11 @@ class _IconGlass extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 16, offset: Offset(0, 8)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
             ],
           ),
           child: Icon(icon, color: HomeUpdated.cPrimary),
@@ -478,12 +624,20 @@ class _TopGlassBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 16, offset: Offset(0, 8)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 16,
+                offset: Offset(0, 8),
+              ),
             ],
           ),
           child: Row(
             children: [
-              const Icon(Icons.calendar_month_rounded, color: HomeUpdated.cPrimary, size: 18),
+              const Icon(
+                Icons.calendar_month_rounded,
+                color: HomeUpdated.cPrimary,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -537,7 +691,11 @@ class _HeroGlass extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 22, offset: Offset(0, 12)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 22,
+                offset: Offset(0, 12),
+              ),
             ],
           ),
           child: Row(
@@ -551,7 +709,7 @@ class _HeroGlass extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top:12.0),
+                      padding: const EdgeInsets.only(top: 12.0),
                       child: Text(
                         titleBottom,
                         overflow: TextOverflow.ellipsis,
@@ -587,10 +745,14 @@ class _MiniBadge extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: HomeUpdated.cStroke, width: 1),
         boxShadow: const [
-          BoxShadow(color: HomeUpdated.cShadow, blurRadius: 12, offset: Offset(0, 6)),
+          BoxShadow(
+            color: HomeUpdated.cShadow,
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
-      child:  Icon(Icons.person, color: Constants.themeColor, size: 26),
+      child: Icon(Icons.person, color: Constants.themeColor, size: 26),
     );
   }
 }
@@ -614,14 +776,21 @@ class _StatusGlass extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 12, offset: Offset(0, 6)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
             ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-               Icon(Icons.assignment_turned_in_rounded,
-                  color: Constants.themeColor, size: 18),
+              Icon(
+                Icons.assignment_turned_in_rounded,
+                color: Constants.themeColor,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -670,7 +839,11 @@ class _ChipStatGlass extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: HomeUpdated.cStroke),
             boxShadow: const [
-              BoxShadow(color: HomeUpdated.cShadow, blurRadius: 12, offset: Offset(0, 6)),
+              BoxShadow(
+                color: HomeUpdated.cShadow,
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
             ],
           ),
           child: Row(
@@ -696,18 +869,22 @@ class _ChipStatGlass extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label,
-                        style: t.bodySmall?.copyWith(
-                          color: HomeUpdated.cMuted,
-                          fontWeight: FontWeight.w600,
-                        )),
+                    Text(
+                      label,
+                      style: t.bodySmall?.copyWith(
+                        color: HomeUpdated.cMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(value,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.titleSmall?.copyWith(
-                          color: HomeUpdated.cText,
-                          fontWeight: FontWeight.w800,
-                        )),
+                    Text(
+                      value,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.titleSmall?.copyWith(
+                        color: HomeUpdated.cText,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -731,7 +908,11 @@ class _ActionPill extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(999),
         boxShadow: const [
-          BoxShadow(color: HomeUpdated.cShadow, blurRadius: 16, offset: Offset(0, 8)),
+          BoxShadow(
+            color: HomeUpdated.cShadow,
+            blurRadius: 16,
+            offset: Offset(0, 8),
+          ),
         ],
       ),
       child: Container(
@@ -825,7 +1006,11 @@ class _GlassActionCard extends StatelessWidget {
               color: Colors.white.withOpacity(.84),
               border: Border.all(color: HomeUpdated.cStroke),
               boxShadow: const [
-                BoxShadow(color: HomeUpdated.cShadow, blurRadius: 18, offset: Offset(0, 10)),
+                BoxShadow(
+                  color: HomeUpdated.cShadow,
+                  blurRadius: 18,
+                  offset: Offset(0, 10),
+                ),
               ],
             ),
             child: Stack(
@@ -836,7 +1021,10 @@ class _GlassActionCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(22),
                       gradient: RadialGradient(
-                        colors: [HomeUpdated.cPrimary.withOpacity(.12), Colors.transparent],
+                        colors: [
+                          HomeUpdated.cPrimary.withOpacity(.12),
+                          Colors.transparent,
+                        ],
                         radius: 1.1,
                         center: const Alignment(-1, -1),
                       ),
@@ -854,7 +1042,10 @@ class _GlassActionCard extends StatelessWidget {
                       height: 64,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.white.withOpacity(.38), Colors.transparent],
+                          colors: [
+                            Colors.white.withOpacity(.38),
+                            Colors.transparent,
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -874,13 +1065,22 @@ class _GlassActionCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           gradient: const LinearGradient(
-                            colors: [HomeUpdated.cPrimary, HomeUpdated.cPrimarySoft],
+                            colors: [
+                              HomeUpdated.cPrimary,
+                              HomeUpdated.cPrimarySoft,
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          border: Border.all(color: Colors.white.withOpacity(.55)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(.55),
+                          ),
                           boxShadow: const [
-                            BoxShadow(color: HomeUpdated.cShadow, blurRadius: 12, offset: Offset(0, 6)),
+                            BoxShadow(
+                              color: HomeUpdated.cShadow,
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
                           ],
                         ),
                         child: Icon(icon, color: Colors.white, size: 28),
@@ -902,7 +1102,9 @@ class _GlassActionCard extends StatelessWidget {
                               subtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: t.bodySmall?.copyWith(color: HomeUpdated.cMuted),
+                              style: t.bodySmall?.copyWith(
+                                color: HomeUpdated.cMuted,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -911,12 +1113,21 @@ class _GlassActionCard extends StatelessWidget {
                             height: 28,
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
-                                colors: [HomeUpdated.cPrimary, HomeUpdated.cPrimarySoft],
+                                colors: [
+                                  HomeUpdated.cPrimary,
+                                  HomeUpdated.cPrimarySoft,
+                                ],
                               ),
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withOpacity(.55)),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(.55),
+                              ),
                             ),
-                            child: const Icon(Icons.chevron_right, size: 18, color: Colors.white),
+                            child: const Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -961,7 +1172,11 @@ class _WideGlassTile extends StatelessWidget {
               color: Colors.white.withOpacity(.84),
               border: Border.all(color: HomeUpdated.cStroke),
               boxShadow: const [
-                BoxShadow(color: HomeUpdated.cShadow, blurRadius: 14, offset: Offset(0, 8)),
+                BoxShadow(
+                  color: HomeUpdated.cShadow,
+                  blurRadius: 14,
+                  offset: Offset(0, 8),
+                ),
               ],
             ),
             child: Stack(
@@ -971,7 +1186,10 @@ class _WideGlassTile extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       gradient: RadialGradient(
-                        colors: [HomeUpdated.cPrimarySoft.withOpacity(.30), Colors.transparent],
+                        colors: [
+                          HomeUpdated.cPrimarySoft.withOpacity(.30),
+                          Colors.transparent,
+                        ],
                         radius: 1.3,
                         center: const Alignment(.9, -.9),
                       ),
@@ -988,9 +1206,14 @@ class _WideGlassTile extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           gradient: const LinearGradient(
-                            colors: [HomeUpdated.cPrimary, HomeUpdated.cPrimarySoft],
+                            colors: [
+                              HomeUpdated.cPrimary,
+                              HomeUpdated.cPrimarySoft,
+                            ],
                           ),
-                          border: Border.all(color: Colors.white.withOpacity(.55)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(.55),
+                          ),
                         ),
                         child: Icon(icon, color: Colors.white, size: 26),
                       ),
@@ -1075,14 +1298,18 @@ class _Enter extends StatefulWidget {
 }
 
 class _EnterState extends State<_Enter> with SingleTickerProviderStateMixin {
-  late final AnimationController _ac =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 420));
-  late final Animation<double> _opacity =
-      CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic);
-  late final Animation<Offset> _offset =
-      Tween(begin: const Offset(0, .1), end: Offset.zero).animate(
-    CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic),
+  late final AnimationController _ac = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
   );
+  late final Animation<double> _opacity = CurvedAnimation(
+    parent: _ac,
+    curve: Curves.easeOutCubic,
+  );
+  late final Animation<Offset> _offset = Tween(
+    begin: const Offset(0, .1),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic));
 
   @override
   void initState() {
@@ -1101,6 +1328,82 @@ class _EnterState extends State<_Enter> with SingleTickerProviderStateMixin {
     return FadeTransition(
       opacity: _opacity,
       child: SlideTransition(position: _offset, child: widget.child),
+    );
+  }
+}
+
+class _MiniStatCard extends StatelessWidget {
+  const _MiniStatCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+  final String title;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        margin: const EdgeInsets.all(1.8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 16,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFFEA7A3B)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: t.bodySmall?.copyWith(
+                      color: const Color(0xFF707883),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: t.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1E1E1E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

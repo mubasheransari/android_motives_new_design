@@ -17,15 +17,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final pages = const [
     _OnbData(
-      title: 'Mark your attendance!',
+      title: 'Mark Your Attendance!',
       asset: 'assets/time_card_icon.png',
     ),
     _OnbData(
-      title: 'Start your route and follow your daily journey plan!',
+      title: 'Start Your Route & Follow Your Daily Journey Plan!',
       asset: 'assets/routes.png',
     ),
     _OnbData(
-      title: 'End your route and wrap up your day!',
+      title: 'End Your Route & Wrap Up Your Day!',
       asset: 'assets/end_route_icon.png',
       // underline: true,
     ),
@@ -108,9 +108,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         pages[index].title,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 26,
-                          height: 1.2,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                          height: 1,
+                          fontWeight: FontWeight.w600,
                           color: Colors.black87,
                           decoration: pages[index].underline
                               ? TextDecoration.underline
@@ -150,9 +150,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         onPressed: _next,
                         style: FilledButton.styleFrom(
                           backgroundColor: accent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                         ),
                         child: Text(
