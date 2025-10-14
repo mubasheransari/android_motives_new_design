@@ -17,10 +17,9 @@ class WatermarkTiledSmall extends StatelessWidget {
               fit: BoxFit.none, // no scaling by fit
               // Make watermark subtle & dark-ish
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.06),
+             Colors.orange.withOpacity(0.20), //  Colors.black.withOpacity(0.06),
                 BlendMode.srcIn,
               ),
-              // ↓ This controls tile size. Higher = smaller tiles.
               scale: tileScale,
               alignment: Alignment.topLeft,
             ),
