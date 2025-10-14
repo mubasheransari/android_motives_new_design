@@ -91,6 +91,8 @@ class _RouteScreenState extends State<RouteScreen> {
 
         final canEndRoute = isRouteStarted && (jpCount == done);
 
+          var covereRouteCount =  storage.read('covered_routes_count');
+
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -188,7 +190,7 @@ class _RouteScreenState extends State<RouteScreen> {
                             Expanded(
                                 child: _MiniStatCard(
                                     title: 'Done',
-                                    value: context.read<GlobalBloc>().state.routesCovered.toString(),//'$done',
+                                    value:covereRouteCount.toString(), //context.read<GlobalBloc>().state.routesCovered.toString(),//'$done',
                                     icon: Icons.check_circle_rounded)),
                           ],
                         ),

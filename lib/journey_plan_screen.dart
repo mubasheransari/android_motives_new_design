@@ -34,14 +34,13 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   void initState() {
     super.initState();
     final raw = box.read('journey_reasons');
+
     if (raw is Map) {
       raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
     }
-    print(_reasonsByMiscId.length);
-    print(_reasonsByMiscId.length);
-    print(_reasonsByMiscId.length);
-    context.read<GlobalBloc>().add(CoveredRoutesLength(lenght: _reasonsByMiscId.length.toString()));
-    box.write('covered_routes_count', _reasonsByMiscId.length);
+
+   // context.read<GlobalBloc>().add(CoveredRoutesLength(lenght: _reasonsByMiscId.length.toString()));
+//    box.write('covered_routes_count', _reasonsByMiscId.length);
   }
 
   @override
@@ -61,6 +60,12 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final data = box.read('journey_reasons');
+final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
+
+    box.write('covered_routes_count',lengthOfMarkedReasons);
+
+
     final t = Theme.of(context).textTheme;
 
     final journeyPlans = context.watch<GlobalBloc>().state.loginModel?.journeyPlan ?? const <JourneyPlan>[];
@@ -88,13 +93,6 @@ final filteredPlans = allPlans.where((plan) {
   return matchesSearch && matchesChip;
 }).toList();
 
-
-    // final q = _search.text.trim().toLowerCase();
-    // final filteredPlans = journeyPlans.where((plan) {
-    //   final matchesSearch = plan.partyName.toLowerCase().contains(q);
-    //   final matchesChip = _selectedAddress == null || plan.custAddress == _selectedAddress;
-    //   return matchesSearch && matchesChip;
-    // }).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -308,7 +306,7 @@ final filteredPlans = allPlans.where((plan) {
                         (result['reason'] as String).trim().isNotEmpty) {
                       setState(() {
                         _reasonsByMiscId[miscid] = result['reason'] as String;
-                      });
+                      }); 
                       await box.write('journey_reasons', _reasonsByMiscId);
                     } else {
                       // Also refresh from storage
