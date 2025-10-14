@@ -102,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-            WatermarkTiledSmall(tileScale: 3.0),
+        //    WatermarkTiledSmall(tileScale: 3.0),
           // Background gradient sweep (very subtle)
           Positioned.fill(
             child: AnimatedBuilder(

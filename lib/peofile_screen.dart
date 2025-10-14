@@ -1,42 +1,39 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/widgets/orange_pills_designs.dart';
 
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
+import 'package:provider/provider.dart';
 
 
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+// === Brand Palette (same family as your app) ===
 const kOrange = Color(0xFFEA7A3B);
+const kOrangeSoft = Color(0xFFFFB07A);
 const kText = Color(0xFF1E1E1E);
 const kMuted = Color(0xFF707883);
 const kField = Color(0xFFF2F3F5);
 const kCard = Colors.white;
-const kShadow = Color(0x14000000); 
-
+const kShadow = Color(0x14000000);
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Palette (same family as your app)
-  static const Color kOrange = Color(0xFFEA7A3B);
-  static const Color kText   = Color(0xFF1E1E1E);
-  static const Color kMuted  = Color(0xFF707883);
-  static const Color kField  = Color(0xFFF4F5F7); // <- like NewLoginScreen
-  static const Color kCard   = Colors.white;
-
-  // MOTIVES background controls
-  static const double kBgOpacity = 0.08;
-  static const double kTileScale = 2.8;
-
-  final _formKey = GlobalKey<FormState>();
+  // watermark controls
+  static const double _bgOpacity = 0.08;
+  static const double _tileScale = 2.8;
 
   @override
   void initState() {
@@ -53,51 +50,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .join(' ');
   }
 
-  // === Field decoration exactly like NewLoginScreen ===
-  InputDecoration _loginFieldDec({
-    required String hint,
-    Widget? suffixIcon,
-  }) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10), // same radius
-      borderSide: const BorderSide(color: Colors.transparent),
-    );
-    return InputDecoration(
-      isDense: true,
-      filled: true,
-      fillColor: kField,
-      hintText: hint,
-      hintStyle: const TextStyle(color: kMuted),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-      enabledBorder: border,
-      focusedBorder: border,
-      suffixIcon: suffixIcon,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    final state = context.read<GlobalBloc>().state;
-    final login = state.loginModel!;
+    final login = context.read<GlobalBloc>().state.loginModel!;
 
-    final name   = login.userinfo!.userName?.toString() ?? '';
-    final email  = login.userinfo!.email?.toString() ?? '';
-    final dist   = _titleCase(login.userinfo!.distributionName?.toString() ?? '');
-    final phone  = login.userinfo!.phone?.toString() ?? '';
+    final name  = login.userinfo?.userName?.toString() ?? '';
+    final email = login.userinfo?.email?.toString() ?? '';
+    final dist  = _titleCase(login.userinfo?.distributionName?.toString() ?? '');
+    final phone = login.userinfo?.phone?.toString() ?? '';
     final logInT = '${login.log?.tim ?? ''} , ${login.log?.time ?? ''}';
 
     return Scaffold(
-      backgroundColor: Colors.white,
- 
+   //   backgroundColor: Colors.white,
       body: SafeArea(
         bottom: false,
         child: Stack(
           children: [
-            // ── MOTIVES tiled watermark background ──
+            // === Watermark tiled background ===
             Positioned.fill(
               child: Opacity(
-                opacity: kBgOpacity,
+                opacity: _bgOpacity,
                 child: ColorFiltered(
                   colorFilter: ColorFilter.mode(
                     Colors.grey.shade300,
@@ -106,139 +79,147 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Image.asset(
                     'assets/logo-bg.png',
                     repeat: ImageRepeat.repeat,
-                    scale: kTileScale,
+                    scale: _tileScale,
                     filterQuality: FilterQuality.low,
                   ),
                 ),
               ),
             ),
 
-            // ── Content ──
+            // === Content ===
             CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Gradient header + glass card (like Routes)
+                // Hero header (gradient + glass)
                 SliverToBoxAdapter(
                   child: Stack(
                     children: [
+                       WatermarkTiledSmall(tileScale: 3.0),
                       Container(
                         height: 100,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
+                        color: Colors.white.withOpacity(0.50),
+                      //   decoration: const BoxDecoration(
+                      //     gradient: LinearGradient(
+                      //       colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
+                      //       begin: Alignment.topLeft,
+                      //       end: Alignment.bottomRight,
+                      //     ),
+                      //  ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                        child: _GlassHeader(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                        child: _GlassBlock(
+                          padding: const EdgeInsets.all(16),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(.20),
+                                width: 56,
+                                height: 56,
+                                decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 1.2),
+                                  gradient: LinearGradient(
+                                    colors: [kOrange, kOrangeSoft],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                 ),
-                                child: const Icon(Icons.person, color: Colors.white, size: 20),
+                                child: const Icon(Icons.person, color: Colors.white, size: 28),
                               ),
-                              const SizedBox(width: 14),
+                              const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('Your Profile',
                                         style: t.titleLarge?.copyWith(
-                                          color: Colors.white.withOpacity(.95),
-                                          fontWeight: FontWeight.w700,
+                                          color: kText,
+                                          fontWeight: FontWeight.w800,
                                         )),
-                                    // Text(
-                                    //   name,
-                                    //   overflow: TextOverflow.ellipsis,
-                                    //   style: t.headlineSmall?.copyWith(
-                                    //     color: Colors.white,
-                                    //     fontWeight: FontWeight.w800,
-                                    //   ),
-                                    // ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      name.isEmpty ? '—' : name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: t.titleMedium?.copyWith(
+                                        color: kMuted,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              //Image.asset('assets/logo-bg.png', height: 46, width: 100, fit: BoxFit.contain),
+                              // subtle brand mark
+                              // Image.asset(
+                              //   'assets/logo-bg.png',
+                              //   height: 48,
+                              //   width: 96,
+                              //   color: const Color(0xfffc8020),
+                              //   colorBlendMode: BlendMode.srcIn,
+                              // ),
                             ],
                           ),
                         ),
                       ),
-                      // Positioned(
-                      //   top: 115,
-                      //   left: 20,
-                      //   child: _StatusPill(
-                      //     icon: Icons.access_time,
-                      //     label: logInT,
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
 
-                // Fields styled like NewLoginScreen
+                // Vertical info section (full-width glass blocks)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-                    child: Form(
-                      key: _formKey,
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+                    child: _GlassBlock(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Name', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            readOnly: true,
-                            initialValue: name,
-                            decoration: _loginFieldDec(
-                              hint: 'Name',
-                              suffixIcon: const Icon(Icons.person_outline),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
+                          _InfoRow(icon: Icons.person_outline, label: 'Name', value: name),
+                          const _RowDivider(),
+                          _InfoRow(icon: Icons.mail_outline, label: 'Email', value: email),
+                          const _RowDivider(),
+                          _InfoRow(icon: Icons.apartment_outlined, label: 'Distributor', value: dist),
+                          const _RowDivider(),
+                          _InfoRow(icon: Icons.call_outlined, label: 'Phone Number', value: phone),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
-                          const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            readOnly: true,
-                            initialValue: email,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: _loginFieldDec(
-                              hint: 'Email',
-                              suffixIcon: const Icon(Icons.mail_outline),
+                // Last login (full-width glass)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 6, 20, 24),
+                    child: _GlassBlock(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: kField,
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: const Icon(Icons.access_time, color: kOrange),
                           ),
-                          const SizedBox(height: 18),
-
-                          const Text('Distributor', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            readOnly: true,
-                            initialValue: dist,
-                            decoration: _loginFieldDec(
-                              hint: 'Distributor',
-                              suffixIcon: const Icon(Icons.apartment_outlined),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-
-                          const Text('Phone Number', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            readOnly: true,
-                            initialValue: phone,
-                            decoration: _loginFieldDec(
-                              hint: 'Phone Number',
-                              suffixIcon: const Icon(Icons.call_outlined),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Last Login',
+                                    style: t.titleMedium?.copyWith(
+                                      color: kText,
+                                      fontWeight: FontWeight.w800,
+                                    )),
+                                const SizedBox(height: 4),
+                                Text(
+                                  logInT.isEmpty ? 'No login record' : logInT,
+                                  style: t.bodyMedium?.copyWith(
+                                    color: kMuted,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -255,23 +236,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ===== Helpers reused from your theme =====
-
-class _GlassHeader extends StatelessWidget {
-  const _GlassHeader({required this.child});
+// === Reusable full-width glass container ===
+class _GlassBlock extends StatelessWidget {
   final Widget child;
+  final EdgeInsetsGeometry? padding;
+  const _GlassBlock({required this.child, this.padding});
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          padding: padding ?? const EdgeInsets.fromLTRB(16, 14, 16, 14),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.18),
+            color: Colors.white.withOpacity(.82),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.white.withOpacity(.45), width: 1),
+            boxShadow: const [
+              BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10)),
+            ],
           ),
           child: child,
         ),
@@ -280,29 +265,695 @@ class _GlassHeader extends StatelessWidget {
   }
 }
 
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.icon, required this.label});
+// === One vertical info row ===
+class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String value;
+  const _InfoRow({required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.16),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withOpacity(.45), width: .8),
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 16, color: Colors.white),
-        const SizedBox(width: 8),
-        Text(label, style: t.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700, letterSpacing: .3)),
-      ]),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: kField,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: kOrange),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: t.bodySmall?.copyWith(
+                    color: kMuted,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: .1,
+                  )),
+              const SizedBox(height: 4),
+              Text(
+                value.isEmpty ? '—' : value,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: t.titleMedium?.copyWith(
+                  color: kText,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
+
+// thin divider between rows (inside glass)
+class _RowDivider extends StatelessWidget {
+  const _RowDivider();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      height: 1,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0x22000000), Color(0x00000000)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+      ),
+    );
+  }
+}
+
+
+// === Brand Palette ===
+// const kOrange = Color(0xFFEA7A3B);
+// const kOrangeSoft = Color(0xFFFFB07A);
+// const kText = Color(0xFF1E1E1E);
+// const kMuted = Color(0xFF707883);
+// const kField = Color(0xFFF2F3F5);
+// const kCard = Colors.white;
+// const kShadow = Color(0x14000000);
+
+// class ProfileScreen extends StatefulWidget {
+//   const ProfileScreen({super.key});
+//   @override
+//   State<ProfileScreen> createState() => _ProfileScreenState();
+// }
+
+// class _ProfileScreenState extends State<ProfileScreen> {
+//   static const double kBgOpacity = 0.08;
+//   static const double kTileScale = 2.8;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     context.read<GlobalBloc>().add(Activity(activity: 'PROFILE DETAILS'));
+//   }
+
+//   String _titleCase(String s) {
+//     if (s.isEmpty) return s;
+//     return s
+//         .toLowerCase()
+//         .split(' ')
+//         .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+//         .join(' ');
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final t = Theme.of(context).textTheme;
+//     final state = context.read<GlobalBloc>().state;
+//     final login = state.loginModel!;
+
+//     final name = login.userinfo?.userName?.toString() ?? '';
+//     final email = login.userinfo?.email?.toString() ?? '';
+//     final dist = _titleCase(login.userinfo?.distributionName?.toString() ?? '');
+//     final phone = login.userinfo?.phone?.toString() ?? '';
+//     final logInT = '${login.log?.tim ?? ''} , ${login.log?.time ?? ''}';
+
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       body: SafeArea(
+//         bottom: false,
+//         child: Stack(
+//           children: [
+//             // === Background watermark ===
+//             Positioned.fill(
+//               child: Opacity(
+//                 opacity: kBgOpacity,
+//                 child: ColorFiltered(
+//                   colorFilter: ColorFilter.mode(
+//                     Colors.grey.shade300,
+//                     BlendMode.srcATop,
+//                   ),
+//                   child: Image.asset(
+//                     'assets/logo-bg.png',
+//                     repeat: ImageRepeat.repeat,
+//                     scale: kTileScale,
+//                     filterQuality: FilterQuality.low,
+//                   ),
+//                 ),
+//               ),
+//             ),
+
+//             // === Main Scrollable Content ===
+//             CustomScrollView(
+//               physics: const BouncingScrollPhysics(),
+//               slivers: [
+//                 // === Gradient Hero Section ===
+//                 SliverToBoxAdapter(
+//                   child: Stack(
+//                     children: [
+//                       Container(
+//                         height: 160,
+//                         decoration: const BoxDecoration(
+//                           gradient: LinearGradient(
+//                             colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
+//                             begin: Alignment.topLeft,
+//                             end: Alignment.bottomRight,
+//                           ),
+//                         ),
+//                       ),
+//                       Padding(
+//                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+//                         child: _GlassHeader(
+//                           child: Row(
+//                             crossAxisAlignment: CrossAxisAlignment.center,
+//                             children: [
+//                               Container(
+//                                 width: 56,
+//                                 height: 56,
+//                                 decoration: BoxDecoration(
+//                                   shape: BoxShape.circle,
+//                                   gradient: const LinearGradient(
+//                                     colors: [kOrange, kOrangeSoft],
+//                                     begin: Alignment.topLeft,
+//                                     end: Alignment.bottomRight,
+//                                   ),
+//                                   boxShadow: const [
+//                                     BoxShadow(color: kShadow, blurRadius: 10, offset: Offset(0, 6)),
+//                                   ],
+//                                 ),
+//                                 child: const Icon(Icons.person, color: Colors.white, size: 28),
+//                               ),
+//                               const SizedBox(width: 16),
+//                               Expanded(
+//                                 child: Column(
+//                                   crossAxisAlignment: CrossAxisAlignment.start,
+//                                   children: [
+//                                     Text('Your Profile',
+//                                         style: t.titleLarge?.copyWith(
+//                                           color: Colors.white,
+//                                           fontWeight: FontWeight.bold,
+//                                         )),
+//                                     const SizedBox(height: 4),
+//                                     Text(
+//                                       name,
+//                                       style: t.titleMedium?.copyWith(
+//                                         color: Colors.white.withOpacity(.9),
+//                                         fontWeight: FontWeight.w600,
+//                                       ),
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ),
+//                               Image.asset(
+//                                 'assets/logo-bg.png',
+//                                 height: 50,
+//                                 width: 100,
+//                                 color: const Color(0xfffc8020),
+//                                 colorBlendMode: BlendMode.srcIn,
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+
+//                 SliverPadding(
+//                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+//                   sliver: SliverGrid(
+//                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//                       crossAxisCount: 2,
+//                       crossAxisSpacing: 16,
+//                       mainAxisSpacing: 16,
+//                       childAspectRatio: 1.1,
+//                     ),
+//                     delegate: SliverChildListDelegate.fixed([
+//                       _ProfileInfoCard(
+//                         icon: Icons.person_outline,
+//                         title: 'Name',
+//                         value: name.isEmpty ? '—' : name,
+//                       ),
+//                       _ProfileInfoCard(
+//                         icon: Icons.mail_outline,
+//                         title: 'Email',
+//                         value: email.isEmpty ? '—' : email,
+//                       ),
+//                       _ProfileInfoCard(
+//                         icon: Icons.apartment_outlined,
+//                         title: 'Distributor',
+//                         value: dist.isEmpty ? '—' : dist,
+//                       ),
+//                       _ProfileInfoCard(
+//                         icon: Icons.call_outlined,
+//                         title: 'Phone',
+//                         value: phone.isEmpty ? '—' : phone,
+//                       ),
+//                     ]),
+//                   ),
+//                 ),
+
+//                 // === Last Login Section ===
+//                 SliverToBoxAdapter(
+//                   child: Padding(
+//                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+//                     child: _GlassHeader(
+//                       child: Row(
+//                         children: [
+//                           Container(
+//                             width: 48,
+//                             height: 48,
+//                             decoration: BoxDecoration(
+//                               color: kField,
+//                               borderRadius: BorderRadius.circular(14),
+//                             ),
+//                             child: const Icon(Icons.access_time, color: kOrange, size: 24),
+//                           ),
+//                           const SizedBox(width: 16),
+//                           Expanded(
+//                             child: Column(
+//                               crossAxisAlignment: CrossAxisAlignment.start,
+//                               children: [
+//                                 Text(
+//                                   'Last Login',
+//                                   style: t.titleMedium?.copyWith(
+//                                     color: kText,
+//                                     fontWeight: FontWeight.w700,
+//                                   ),
+//                                 ),
+//                                 const SizedBox(height: 6),
+//                                 Text(
+//                                   logInT.isEmpty ? 'No login record' : logInT,
+//                                   style: t.bodyMedium?.copyWith(
+//                                     color: kMuted,
+//                                     fontWeight: FontWeight.w500,
+//                                   ),
+//                                 ),
+//                               ],
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // === Glass Container (Reusable) ===
+// class _GlassHeader extends StatelessWidget {
+//   const _GlassHeader({required this.child});
+//   final Widget child;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ClipRRect(
+//       borderRadius: BorderRadius.circular(20),
+//       child: BackdropFilter(
+//         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+//         child: Container(
+//           padding: const EdgeInsets.all(16),
+//           decoration: BoxDecoration(
+//             color: Colors.white.withOpacity(.8),
+//             borderRadius: BorderRadius.circular(20),
+//             border: Border.all(color: Colors.white.withOpacity(.4), width: 1),
+//             boxShadow: const [BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10))],
+//           ),
+//           child: child,
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // === Info Card (glassmorphic grid item) ===
+// class _ProfileInfoCard extends StatelessWidget {
+//   const _ProfileInfoCard({
+//     required this.icon,
+//     required this.title,
+//     required this.value,
+//   });
+
+//   final IconData icon;
+//   final String title;
+//   final String value;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final t = Theme.of(context).textTheme;
+//     return Container(
+//       decoration: BoxDecoration(
+//         borderRadius: BorderRadius.circular(18),
+//         gradient: const LinearGradient(
+//           colors: [kOrange, kOrangeSoft],
+//           begin: Alignment.topLeft,
+//           end: Alignment.bottomRight,
+//         ),
+//         boxShadow: const [BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))],
+//       ),
+//       child: Container(
+//         margin: const EdgeInsets.all(1.8),
+//         decoration: BoxDecoration(
+//           color: kCard,
+//           borderRadius: BorderRadius.circular(16),
+//         ),
+//         padding: const EdgeInsets.all(14),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Container(
+//               width: 44,
+//               height: 44,
+//               decoration: BoxDecoration(
+//                 color: kField,
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
+//               child: Icon(icon, color: kOrange),
+//             ),
+//             const Spacer(),
+//             Text(title, style: t.bodySmall?.copyWith(color: kMuted, fontWeight: FontWeight.w600)),
+//             const SizedBox(height: 4),
+//             Text(
+//               value,
+//               maxLines: 2,
+//               overflow: TextOverflow.ellipsis,
+//               style: t.titleMedium?.copyWith(color: kText, fontWeight: FontWeight.bold),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+
+// const kOrange = Color(0xFFEA7A3B);
+// const kText = Color(0xFF1E1E1E);
+// const kMuted = Color(0xFF707883);
+// const kField = Color(0xFFF2F3F5);
+// const kCard = Colors.white;
+// const kShadow = Color(0x14000000); 
+
+
+// class ProfileScreen extends StatefulWidget {
+//   const ProfileScreen({super.key});
+
+//   @override
+//   State<ProfileScreen> createState() => _ProfileScreenState();
+// }
+
+// class _ProfileScreenState extends State<ProfileScreen> {
+//   // Palette (same family as your app)
+//   static const Color kOrange = Color(0xFFEA7A3B);
+//   static const Color kText   = Color(0xFF1E1E1E);
+//   static const Color kMuted  = Color(0xFF707883);
+//   static const Color kField  = Color(0xFFF4F5F7); // <- like NewLoginScreen
+//   static const Color kCard   = Colors.white;
+
+//   // MOTIVES background controls
+//   static const double kBgOpacity = 0.08;
+//   static const double kTileScale = 2.8;
+
+//   final _formKey = GlobalKey<FormState>();
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     context.read<GlobalBloc>().add(Activity(activity: 'PROFILE DETAILS'));
+//   }
+
+//   String _titleCase(String s) {
+//     if (s.isEmpty) return s;
+//     return s
+//         .toLowerCase()
+//         .split(' ')
+//         .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+//         .join(' ');
+//   }
+
+//   // === Field decoration exactly like NewLoginScreen ===
+//   InputDecoration _loginFieldDec({
+//     required String hint,
+//     Widget? suffixIcon,
+//   }) {
+//     final border = OutlineInputBorder(
+//       borderRadius: BorderRadius.circular(10), // same radius
+//       borderSide: const BorderSide(color: Colors.transparent),
+//     );
+//     return InputDecoration(
+//       isDense: true,
+//       filled: true,
+//       fillColor: kField,
+//       hintText: hint,
+//       hintStyle: const TextStyle(color: kMuted),
+//       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+//       enabledBorder: border,
+//       focusedBorder: border,
+//       suffixIcon: suffixIcon,
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final t = Theme.of(context).textTheme;
+//     final state = context.read<GlobalBloc>().state;
+//     final login = state.loginModel!;
+
+//     final name   = login.userinfo!.userName?.toString() ?? '';
+//     final email  = login.userinfo!.email?.toString() ?? '';
+//     final dist   = _titleCase(login.userinfo!.distributionName?.toString() ?? '');
+//     final phone  = login.userinfo!.phone?.toString() ?? '';
+//     final logInT = '${login.log?.tim ?? ''} , ${login.log?.time ?? ''}';
+
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+ 
+//       body: SafeArea(
+//         bottom: false,
+//         child: Stack(
+//           children: [
+//             // ── MOTIVES tiled watermark background ──
+//             Positioned.fill(
+//               child: Opacity(
+//                 opacity: kBgOpacity,
+//                 child: ColorFiltered(
+//                   colorFilter: ColorFilter.mode(
+//                     Colors.grey.shade300,
+//                     BlendMode.srcATop,
+//                   ),
+//                   child: Image.asset(
+//                     'assets/logo-bg.png',
+//                     repeat: ImageRepeat.repeat,
+//                     scale: kTileScale,
+//                     filterQuality: FilterQuality.low,
+//                   ),
+//                 ),
+//               ),
+//             ),
+
+//             // ── Content ──
+//             CustomScrollView(
+//               physics: const BouncingScrollPhysics(),
+//               slivers: [
+//                 // Gradient header + glass card (like Routes)
+//                 SliverToBoxAdapter(
+//                   child: Stack(
+//                     children: [
+//                       Container(
+//                         height: 100,
+//                         decoration: const BoxDecoration(
+//                           gradient: LinearGradient(
+//                             colors: [Color(0xffFF7518), Color(0xFFFFB07A)],
+//                             begin: Alignment.topLeft,
+//                             end: Alignment.bottomRight,
+//                           ),
+//                         ),
+//                       ),
+//                       Padding(
+//                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+//                         child: _GlassHeader(
+//                           child: Row(
+//                             crossAxisAlignment: CrossAxisAlignment.center,
+//                             children: [
+//                               Container(
+//                                 width: 40,
+//                                 height: 40,
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.white.withOpacity(.20),
+//                                   shape: BoxShape.circle,
+//                                   border: Border.all(color: Colors.white, width: 1.2),
+//                                 ),
+//                                 child: const Icon(Icons.person, color: Colors.white, size: 20),
+//                               ),
+//                               const SizedBox(width: 14),
+//                               Expanded(
+//                                 child: Column(
+//                                   crossAxisAlignment: CrossAxisAlignment.start,
+//                                   children: [
+//                                     Text('Your Profile',
+//                                         style: t.titleLarge?.copyWith(
+//                                           color: Colors.white.withOpacity(.95),
+//                                           fontWeight: FontWeight.w700,
+//                                         )),
+//                                     // Text(
+//                                     //   name,
+//                                     //   overflow: TextOverflow.ellipsis,
+//                                     //   style: t.headlineSmall?.copyWith(
+//                                     //     color: Colors.white,
+//                                     //     fontWeight: FontWeight.w800,
+//                                     //   ),
+//                                     // ),
+//                                   ],
+//                                 ),
+//                               ),
+//                               //Image.asset('assets/logo-bg.png', height: 46, width: 100, fit: BoxFit.contain),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                       // Positioned(
+//                       //   top: 115,
+//                       //   left: 20,
+//                       //   child: _StatusPill(
+//                       //     icon: Icons.access_time,
+//                       //     label: logInT,
+//                       //   ),
+//                       // ),
+//                     ],
+//                   ),
+//                 ),
+
+//                 // Fields styled like NewLoginScreen
+//                 SliverToBoxAdapter(
+//                   child: Padding(
+//                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+//                     child: Form(
+//                       key: _formKey,
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: [
+//                           const Text('Name', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+//                           const SizedBox(height: 8),
+//                           TextFormField(
+//                             readOnly: true,
+//                             initialValue: name,
+//                             decoration: _loginFieldDec(
+//                               hint: 'Name',
+//                               suffixIcon: const Icon(Icons.person_outline),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 18),
+
+//                           const Text('Email', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+//                           const SizedBox(height: 8),
+//                           TextFormField(
+//                             readOnly: true,
+//                             initialValue: email,
+//                             keyboardType: TextInputType.emailAddress,
+//                             decoration: _loginFieldDec(
+//                               hint: 'Email',
+//                               suffixIcon: const Icon(Icons.mail_outline),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 18),
+
+//                           const Text('Distributor', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+//                           const SizedBox(height: 8),
+//                           TextFormField(
+//                             readOnly: true,
+//                             initialValue: dist,
+//                             decoration: _loginFieldDec(
+//                               hint: 'Distributor',
+//                               suffixIcon: const Icon(Icons.apartment_outlined),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 18),
+
+//                           const Text('Phone Number', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+//                           const SizedBox(height: 8),
+//                           TextFormField(
+//                             readOnly: true,
+//                             initialValue: phone,
+//                             decoration: _loginFieldDec(
+//                               hint: 'Phone Number',
+//                               suffixIcon: const Icon(Icons.call_outlined),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// // ===== Helpers reused from your theme =====
+
+// class _GlassHeader extends StatelessWidget {
+//   const _GlassHeader({required this.child});
+//   final Widget child;
+//   @override
+//   Widget build(BuildContext context) {
+//     return ClipRRect(
+//       borderRadius: BorderRadius.circular(18),
+//       child: BackdropFilter(
+//         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+//         child: Container(
+//           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+//           decoration: BoxDecoration(
+//             color: Colors.white.withOpacity(.18),
+//             borderRadius: BorderRadius.circular(18),
+//             border: Border.all(color: Colors.white.withOpacity(.45), width: 1),
+//           ),
+//           child: child,
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// class _StatusPill extends StatelessWidget {
+//   const _StatusPill({required this.icon, required this.label});
+//   final IconData icon;
+//   final String label;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final t = Theme.of(context).textTheme;
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//       decoration: BoxDecoration(
+//         color: Colors.white.withOpacity(.16),
+//         borderRadius: BorderRadius.circular(999),
+//         border: Border.all(color: Colors.white.withOpacity(.45), width: .8),
+//       ),
+//       child: Row(mainAxisSize: MainAxisSize.min, children: [
+//         Icon(icon, size: 16, color: Colors.white),
+//         const SizedBox(width: 8),
+//         Text(label, style: t.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w700, letterSpacing: .3)),
+//       ]),
+//     );
+//   }
+// }
 
 
 

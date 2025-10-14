@@ -710,28 +710,28 @@ class _GlassActionCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [
-                                  HomeUpdated.cPrimary,
-                                  HomeUpdated.cPrimarySoft,
-                                ],
-                              ),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white.withOpacity(.55),
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.chevron_right,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                          ),
+                          // const SizedBox(width: 8),
+                          // Container(
+                          //   width: 28,
+                          //   height: 28,
+                          //   decoration: BoxDecoration(
+                          //     gradient: const LinearGradient(
+                          //       colors: [
+                          //         HomeUpdated.cPrimary,
+                          //         HomeUpdated.cPrimarySoft,
+                          //       ],
+                          //     ),
+                          //     shape: BoxShape.circle,
+                          //     border: Border.all(
+                          //       color: Colors.white.withOpacity(.55),
+                          //     ),
+                          //   ),
+                          //   child: const Icon(
+                          //     Icons.chevron_right,
+                          //     size: 18,
+                          //     color: Colors.white,
+                          //   ),
+                          // ),
                         ],
                       ),
                     ],
