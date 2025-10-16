@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Constants/constants.dart';
+import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
@@ -163,7 +164,22 @@ class _HomeUpdatedState extends State<HomeUpdated> {
             : (model?.userinfo?.userName ?? 'User');
 
     final todayLabel = _niceDate(DateTime.now());
-    final jpCount = context.read<GlobalBloc>().state.loginModel!.journeyPlan.length;
+    int dedupJourneyCount(List<JourneyPlan> plans) {
+  final seen = <String>{};
+  for (final p in plans) {
+    final accode = p.accode.trim();
+    final key = accode.isNotEmpty
+        ? 'ID:${accode.toLowerCase()}'
+        : 'N:${p.partyName.trim().toLowerCase()}|${p.custAddress.trim().toLowerCase()}';
+    seen.add(key);
+  }
+  return seen.length;
+}
+
+// use it:
+final jpCount = dedupJourneyCount(
+  context.read<GlobalBloc>().state.loginModel!.journeyPlan,
+);
 
       var covereRouteCount =  box.read('covered_routes_count');
 

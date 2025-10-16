@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart' as loc;
+import 'package:motives_new_ui_conversion/Models/login_model.dart';
 
 class RouteScreen extends StatefulWidget {
   const RouteScreen({super.key});
@@ -79,6 +80,23 @@ class _RouteScreenState extends State<RouteScreen> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
+        int dedupJourneyCount(List<JourneyPlan> plans) {
+  final seen = <String>{};
+  for (final p in plans) {
+    final accode = p.accode.trim();
+    final key = accode.isNotEmpty
+        ? 'ID:${accode.toLowerCase()}'
+        : 'N:${p.partyName.trim().toLowerCase()}|${p.custAddress.trim().toLowerCase()}';
+    seen.add(key);
+  }
+  return seen.length;
+}
+
+// use it:
+final jpCount = dedupJourneyCount(
+  context.read<GlobalBloc>().state.loginModel!.journeyPlan,
+);
+
     return BlocBuilder<GlobalBloc, GlobalState>(
       buildWhen: (p, c) =>
           p.loginModel?.reasons.length != c.loginModel?.reasons.length ||
@@ -86,7 +104,7 @@ class _RouteScreenState extends State<RouteScreen> {
       builder: (context, state) {
         final login = state.loginModel!;
         final userId = login.userinfo!.userId.toString();
-        final jpCount = login.journeyPlan.length;
+       // final jpCount = login.journeyPlan.length;
         final done = login.reasons.length;
 
         final canEndRoute = isRouteStarted && (jpCount == done);
