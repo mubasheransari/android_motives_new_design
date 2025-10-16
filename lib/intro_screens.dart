@@ -1,5 +1,439 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:motives_new_ui_conversion/login.dart';
+
+import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
+
+// TODO: import your NewLoginScreen file
+// import 'package:your_app/new_login_screen.dart';
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  // HomeUpdated / Login theme palette
+  static const cBg = Color(0xFFEEEEEE);
+  static const cSurface = Colors.white;
+  static const cText = Color(0xFF1F2937);
+  static const cMuted = Color(0xFF6B7280);
+  static const cStroke = Color(0xFFE9E9EF);
+  static const cPrimary = Color(0xFFEA7A3B);
+  static const cPrimarySoft = Color(0xFFFFB07A);
+  static const cShadow = Color(0x14000000);
+
+  final controller = PageController();
+  int index = 0;
+
+  final pages = const [
+    _OnbData(
+      title: 'Mark Your Attendance!',
+      asset: 'assets/time_card_icon.png',
+    ),
+    _OnbData(
+      title: 'Start Your Route & Follow Your Daily Journey Plan!',
+      asset: 'assets/routes.png',
+    ),
+    _OnbData(
+      title: 'End Your Route & Wrap Up Your Day!',
+      asset: 'assets/end_route_icon.png',
+    ),
+  ];
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _next() {
+    if (index < pages.length - 1) {
+      controller.nextPage(
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOut,
+      );
+    } else {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const NewLoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _skip() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NewLoginScreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final isLast = index == pages.length - 1;
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: cBg,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // OPTIONAL: watermark only on this screen (must be direct child of Stack)
+            const WatermarkTiledSmall(tileScale: 3.0),
+
+            SafeArea(
+              child: Column(
+                children: [
+                  // top bar: skip
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 8),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: _skip,
+                          style: TextButton.styleFrom(
+                            foregroundColor: cPrimary,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                          child: const Text('Skip', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // pages
+                  Expanded(
+                    child: PageView.builder(
+                      controller: controller,
+                      itemCount: pages.length,
+                      onPageChanged: (i) => setState(() => index = i),
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (_, i) {
+                        final data = pages[i];
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                          child: Column(
+                            children: [
+                              // Glass hero with small badge + title (like HomeUpdated)
+                              _HeroGlassHeader(
+                                titleBottom: data.title,
+                                // right: Image.asset(
+                                //   'assets/logo-bg.png',
+                                //   height: 48,
+                                //   width: 110,
+                                //   color: cPrimary,
+                                //   colorBlendMode: BlendMode.srcIn,
+                                // ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Artwork in a glass panel
+                              Expanded(
+                                child: _GlassPanel(
+                                  child: Center(
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // soft orange radial aura
+                                        Positioned.fill(
+                                          child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              gradient: RadialGradient(
+                                                colors: [cPrimary.withOpacity(.10), Colors.transparent],
+                                                radius: .85,
+                                                center: const Alignment(0, -.2),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(24.0),
+                                          child: Image.asset(
+                                            data.asset,
+                                            height: 300,
+                                           // fit: BoxFit.contain,
+                                            width: MediaQuery.of(context).size.width * .58,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // bottom glass sheet: dots + CTA
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                    child: _BottomGlass(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 8),
+                          _PagerDots(count: pages.length, index: index),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: _PrimaryButton(
+                              label: isLast ? 'Get Started' : 'Next',
+                              onPressed: _next,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/* -------------------- Data -------------------- */
+
+class _OnbData {
+  final String title;
+  final String asset;
+  const _OnbData({required this.title, required this.asset});
+}
+
+/* -------------------- Themed building blocks -------------------- */
+
+class _HeroGlassHeader extends StatelessWidget {
+  const _HeroGlassHeader({
+    required this.titleBottom,
+   // required this.right,
+  });
+  final String titleBottom;
+//  final Widget right;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.75),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: _OnboardingScreenState.cStroke),
+            boxShadow: const [
+              BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 22, offset: Offset(0, 12)),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                // width: 46,
+                // height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  //shape: BoxShape.circle,
+                  border: Border.all(color: _OnboardingScreenState.cStroke),
+                  boxShadow: const [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 12, offset: Offset(0, 6))],
+                ),
+                child: Image.asset('assets/slide.png',height: 40,width: 40,)//const Icon(Icons.flag_roundfded, color: _OnboardingScreenState.cPrimary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    titleBottom,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.titleMedium?.copyWith(
+                      color: _OnboardingScreenState.cText,
+                      fontWeight: FontWeight.w900,
+                      height: 1.06,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+             
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassPanel extends StatelessWidget {
+  const _GlassPanel({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.84),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: _OnboardingScreenState.cStroke),
+            boxShadow: const [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 18, offset: Offset(0, 10))],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomGlass extends StatelessWidget {
+  const _BottomGlass({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.90),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _OnboardingScreenState.cStroke),
+            boxShadow: const [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 16, offset: Offset(0, 8))],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _PagerDots extends StatelessWidget {
+  const _PagerDots({required this.count, required this.index});
+  final int count;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(count, (i) {
+        final active = i == index;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          margin: EdgeInsets.only(right: i == count - 1 ? 0 : 8),
+          height: 8,
+          width: active ? 34 : 10,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: _OnboardingScreenState.cStroke),
+            color: active
+                ? _OnboardingScreenState.cPrimary.withOpacity(.85)
+                : Colors.white.withOpacity(.70),
+            boxShadow: const [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 8, offset: Offset(0, 4))],
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _PrimaryButton extends StatelessWidget {
+  const _PrimaryButton({required this.label, required this.onPressed});
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        boxShadow: [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 16, offset: Offset(0, 10))],
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          backgroundColor: _OnboardingScreenState.cPrimary, // fallback
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+        ),
+        onPressed: onPressed,
+        child: Ink(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            gradient: LinearGradient(
+              colors: [_OnboardingScreenState.cPrimary, _OnboardingScreenState.cPrimarySoft],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Container(
+            height: 48,
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: .2,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// /* -------------------- Optional: stub -------------------- */
+
+// // Watermark widget stub (use your existing implementation)
+// class WatermarkTiledSmall extends StatelessWidget {
+//   const WatermarkTiledSmall({super.key, this.tileScale = 3.0});
+//   final double tileScale;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // Replace with your real tiled watermark; keep Stack direct parent if using Positioned inside.
+//     return Container(); // <-- remove this when using your real implementation
+//   }
+// }
+
+// // Replace with your actual login screen import
+// class NewLoginScreen extends StatelessWidget {
+//   const NewLoginScreen({super.key});
+//   @override
+//   Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('Login'))); 
+// }
+/*
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -291,3 +725,4 @@ class _TiltedBar extends StatelessWidget {
     );
   }
 }
+*/
