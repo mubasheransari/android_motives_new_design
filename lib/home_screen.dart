@@ -144,6 +144,8 @@ class HomeUpdated extends StatefulWidget {
 }
 
 class _HomeUpdatedState extends State<HomeUpdated> {
+
+
   
 final box = GetStorage();
 int _coveredRoutesCount = 0;
@@ -175,6 +177,7 @@ int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
 
   @override
   Widget build(BuildContext context) {
+          final t = Theme.of(context).textTheme;
     final state = context.read<GlobalBloc>().state;
     final model = state.loginModel;
 
@@ -299,12 +302,63 @@ final jpCount = dedupJourneyCount(
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-                      child: _Enter(
-                        delayMs: 120,
-                        child: _StatusGlass(
-                          text: 'Last Action · ${state.activity!.isEmpty ? "—" : state.activity}',
-                        ),
-                      ),
+                      child: Container(
+      margin: const EdgeInsets.all(1.8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(.40),
+        borderRadius: BorderRadius.circular(14.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 16,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFEA7A3B)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Last Action Performed',
+                  style: t.bodySmall?.copyWith(
+                    color: const Color(0xFF707883),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${state.activity!.isEmpty ? "—" : state.activity}',
+                  style: t.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1E1E1E),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+                      
+                      // _Enter(
+                      //   delayMs: 120,
+                      //   child: _StatusGlass(
+                      //     text: 'Last Action · ${state.activity!.isEmpty ? "—" : state.activity}',
+                      //   ),
+                      // ),
                     ),
                   ),
 
