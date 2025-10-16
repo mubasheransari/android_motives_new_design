@@ -289,7 +289,7 @@ final jpCount = dedupJourneyCount(
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                           child: Center(
                             child: Text(
-                              'Route is Completed',
+                              'Route completed! You can end today’s route now',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: HomeUpdated.cPrimary,
                                     fontWeight: FontWeight.w800,
