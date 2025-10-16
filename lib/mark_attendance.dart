@@ -62,8 +62,10 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
   Future<void> _loadCustomMarkers() async {
     _currentMarkerIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(devicePixelRatio: 2.5),
+
+       ImageConfiguration(devicePixelRatio: 2.5),
       'assets/g_marker.png',
+
     );
   }
 

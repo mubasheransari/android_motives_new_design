@@ -15,9 +15,6 @@ import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/home_screen.dart';
 
 
-
-
-
 class SelfieCaptureScreen extends StatefulWidget {
   const SelfieCaptureScreen({super.key});
   @override
@@ -247,6 +244,39 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
     return (sum / 255.0) / samples;
   }
 
+  void showCenteredToast(BuildContext context, String message) {
+  final overlay = Overlay.of(context);
+  if (overlay == null) return;
+
+  final entry = OverlayEntry(
+    builder: (_) => Positioned.fill(
+      child: IgnorePointer(
+        ignoring: true, // taps pass through
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xE6000000),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  overlay.insert(entry);
+  Future.delayed(const Duration(seconds: 2)).then((_) => entry.remove());
+}
+
+
   double _varianceOfLaplacian(img.Image im) {
     final small = img.copyResize(im, width: 320);
     final gray = img.grayscale(small);
@@ -294,9 +324,10 @@ void _onUse() async {
     // 0) Optional selfie gate
     if (_report?.pass != true) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please retake a clearer selfie')),
-      );
+      showCenteredToast(context,'Please retake a clearer selfie');
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text('Please retake a clearer selfie')),
+      // );
       return;
     }
 

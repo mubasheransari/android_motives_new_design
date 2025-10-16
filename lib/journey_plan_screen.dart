@@ -62,6 +62,11 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   Widget build(BuildContext context) {
     final data = box.read('journey_reasons');
 final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
+print("JOURNEY PLAN LENGTH $data");
+print("JOURNEY PLAN LENGTH $data");
+print("JOURNEY PLAN LENGTH $data");
+
+
 
     box.write('covered_routes_count',lengthOfMarkedReasons);
 
