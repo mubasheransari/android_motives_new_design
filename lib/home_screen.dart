@@ -201,6 +201,8 @@ final jpCount = dedupJourneyCount(
   context.read<GlobalBloc>().state.loginModel!.journeyPlan,
 );
 
+ final routeCompleted = (jpCount == _coveredRoutesCount);
+
 
 
       
@@ -277,6 +279,22 @@ final jpCount = dedupJourneyCount(
                         ),
                       ),
                     ),
+
+                           if (routeCompleted)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                          child: Center(
+                            child: Text(
+                              'Route is Completed',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: HomeUpdated.cPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                            ),
+                          ),
+                        ),
+                      ),
 
                   SliverToBoxAdapter(
                     child: Padding(
