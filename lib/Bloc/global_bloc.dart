@@ -60,6 +60,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
         event.userId,
         event.lat,
         event.lng,
+        event.action
       );
 
       print("Status Code: ${response.statusCode}");

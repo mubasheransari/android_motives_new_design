@@ -69,6 +69,7 @@ class Repository {
 
   Future<http.Response> attendance(
     String type,
+    String action,
     String userId,
     String lat,
     String lng,
@@ -87,7 +88,7 @@ class Repository {
         "longitude": lng,
         "device_id": "e95a9ab3bba86f821",
         "act_type": "ATTENDANCE",
-        "action": "IN",
+        "action": action,
         "att_time": currentTime,
         "att_date": currentDate,
         "misc": "0",

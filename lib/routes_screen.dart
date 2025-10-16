@@ -81,6 +81,15 @@ class _RouteScreenState extends State<RouteScreen> {
 
   Future<void> _endRoute(BuildContext context, String userId) async {
     final currentLocation = await location.getLocation();
+
+    
+    context.read<GlobalBloc>().add(MarkAttendanceEvent(
+      action: 'OUT',
+      lat: currentLocation.latitude.toString(),
+            lng: currentLocation.longitude.toString(),
+      type: '0',
+      userId: userId,
+    ));
     context.read<GlobalBloc>().add(
           StartRouteEvent(
             action: 'OUT',
@@ -91,6 +100,26 @@ class _RouteScreenState extends State<RouteScreen> {
           ),
         );
     await _setRouteStatus(false);
+
+        final box = GetStorage();
+    final email = box.read<String>("email");
+    final password = box.read<String>("password");
+        final bloc = context.read<GlobalBloc>();
+    if (email != null && password != null) {
+      bloc.add(LoginEvent(email: email, password: password));
+      final loginStatus = await bloc.stream
+          .map((s) => s.status) // LoginStatus from your bloc
+          .distinct()
+          .firstWhere((st) =>
+              st == LoginStatus.success || st == LoginStatus.failure);
+
+      if (loginStatus != LoginStatus.success) {
+        if (!mounted) return;
+        final msg = bloc.state.loginModel?.message ?? 'Login refresh failed';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        return;
+      }
+    }
   }
 
   // same dedupe logic you used elsewhere — no UI change

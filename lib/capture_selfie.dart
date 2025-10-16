@@ -357,6 +357,7 @@ void _onUse() async {
     }
 
     bloc.add(MarkAttendanceEvent(
+      action: 'IN',
       lat: lat.toString(),
       lng: lng.toString(),
       type: '1',

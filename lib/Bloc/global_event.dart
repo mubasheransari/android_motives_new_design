@@ -21,19 +21,21 @@ class LoginEvent extends GlobalEvent {
 // ignore: must_be_immutable
 class MarkAttendanceEvent extends GlobalEvent {
   String type;
+  String action;
   String userId;
   String lat;
   String lng;
 
   MarkAttendanceEvent({
     required this.type,
+    required this.action,
     required this.userId,
     required this.lat,
     required this.lng,
   });
 
   @override
-  List<Object> get props => [type, userId, lat, lng];
+  List<Object> get props => [type, action,userId, lat, lng];
 }
 
 class StartRouteEvent extends GlobalEvent {
