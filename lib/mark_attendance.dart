@@ -44,7 +44,7 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   @override
   void initState() {
     super.initState();
-    context.read<GlobalBloc>().add(Activity(activity: 'ATTENDANCE DETAILS'));
+    context.read<GlobalBloc>().add(Activity(activity: 'Attendance Details'));
     _initMap();
     _updateTime();
     Timer.periodic(const Duration(seconds: 1), (timer) {

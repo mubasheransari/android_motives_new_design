@@ -39,6 +39,8 @@ class _SelfieCaptureScreenState extends State<SelfieCaptureScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _ready = _initCamera();
+
+     context.read<GlobalBloc>().add(Activity(activity: 'Capture Selfie'));
   }
 
   @override

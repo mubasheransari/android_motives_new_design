@@ -427,6 +427,8 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   @override
   void initState() {
     super.initState();
+
+       context.read<GlobalBloc>().add(Activity(activity: 'Visited Shop ${widget.shopname}'));
     final st = _statusForShop();
     final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
     checkInText = effectiveCheckedIn ? "Check Out" : "Check In";

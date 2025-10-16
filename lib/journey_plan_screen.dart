@@ -54,6 +54,8 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 void initState() {
   super.initState();
 
+    context.read<GlobalBloc>().add(Activity(activity: 'Journey Plan'));
+
   // existing code that seeds _reasonsByMiscId...
   final raw = box.read('journey_reasons');
   if (raw is Map) {

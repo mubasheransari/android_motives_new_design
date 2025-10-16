@@ -38,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<GlobalBloc>().add(Activity(activity: 'PROFILE DETAILS'));
+    context.read<GlobalBloc>().add(Activity(activity: 'Profile Details'));
   }
 
   String _titleCase(String s) {

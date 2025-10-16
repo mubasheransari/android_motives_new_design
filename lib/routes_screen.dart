@@ -39,6 +39,7 @@ class _RouteScreenState extends State<RouteScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<GlobalBloc>().add(Activity(activity: 'Routes Details'));
     _loadRouteStatus();
 
     // ✅ seed current count
