@@ -97,6 +97,8 @@ final jpCount = dedupJourneyCount(
   context.read<GlobalBloc>().state.loginModel!.journeyPlan,
 );
 
+
+
     return BlocBuilder<GlobalBloc, GlobalState>(
       buildWhen: (p, c) =>
           p.loginModel?.reasons.length != c.loginModel?.reasons.length ||
@@ -106,10 +108,11 @@ final jpCount = dedupJourneyCount(
         final userId = login.userinfo!.userId.toString();
        // final jpCount = login.journeyPlan.length;
         final done = login.reasons.length;
+         var covereRouteCount =  storage.read('covered_routes_count');
 
-        final canEndRoute = isRouteStarted && (jpCount == done);
+        final canEndRoute = isRouteStarted && (jpCount == covereRouteCount);
 
-          var covereRouteCount =  storage.read('covered_routes_count');
+          // var covereRouteCount =  storage.read('covered_routes_count');
 
         return Scaffold(
           backgroundColor: Colors.white,

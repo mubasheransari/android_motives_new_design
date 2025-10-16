@@ -43,14 +43,27 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   final Map<String, String> _reasonsByMiscId = {};
   final box = GetStorage();
 
-  @override
-  void initState() {
-    super.initState();
-    final raw = box.read('journey_reasons');
-    if (raw is Map) {
-      raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
-    }
+  void _writeCoveredCount() {
+  final data = box.read('journey_reasons');
+  final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
+  box.write('covered_routes_count', lengthOfMarkedReasons);
+}
+
+
+@override
+void initState() {
+  super.initState();
+
+  // existing code that seeds _reasonsByMiscId...
+  final raw = box.read('journey_reasons');
+  if (raw is Map) {
+    raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
   }
+
+  // ✅ NEW: seed & auto-update covered_routes_count whenever journey_reasons changes
+  _writeCoveredCount();                                // seed once
+  box.listenKey('journey_reasons', (_) => _writeCoveredCount()); // keep in sync
+}
 
   @override
   void dispose() {
@@ -86,9 +99,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final data = box.read('journey_reasons');
-    final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
-    box.write('covered_routes_count', lengthOfMarkedReasons);
+
 
     final t = Theme.of(context).textTheme;
 

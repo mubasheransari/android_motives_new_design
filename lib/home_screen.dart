@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Constants/constants.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
@@ -143,6 +144,23 @@ class HomeUpdated extends StatefulWidget {
 }
 
 class _HomeUpdatedState extends State<HomeUpdated> {
+  
+final box = GetStorage();
+int _coveredRoutesCount = 0;
+
+@override
+void initState() {
+  super.initState();
+  _coveredRoutesCount = _asInt(box.read('covered_routes_count')); // seed
+
+  // ✅ auto-refresh when JourneyPlanScreen writes the new count
+  box.listenKey('covered_routes_count', (v) {
+    if (!mounted) return;
+    setState(() => _coveredRoutesCount = _asInt(v));
+  });
+}
+
+int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
 
 
 
@@ -152,6 +170,8 @@ class _HomeUpdatedState extends State<HomeUpdated> {
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +201,6 @@ final jpCount = dedupJourneyCount(
   context.read<GlobalBloc>().state.loginModel!.journeyPlan,
 );
 
-      var covereRouteCount =  box.read('covered_routes_count');
 
 
       
@@ -250,7 +269,7 @@ final jpCount = dedupJourneyCount(
                             Expanded(
                               child: _MiniStatCard(
                                 title: 'Done',
-                                value: covereRouteCount.toString(),
+                               value: '$_coveredRoutesCount', 
                                 icon: Icons.check_circle_rounded,
                               ),
                             ),
