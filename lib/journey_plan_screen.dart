@@ -520,7 +520,7 @@ class _CustomerCard extends StatelessWidget {
                 runSpacing: 6,
                 children: [
                   if (reason != null && reason!.trim().isNotEmpty)
-                    _TagPill(text: "Reason: ${reason!}"),
+                    _TagPill(text: "ACTION: ${reason!}"),
                 ],
               ),
             ],
