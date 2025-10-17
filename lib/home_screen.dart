@@ -378,8 +378,8 @@ final jpCount = dedupJourneyCount(
                           delayMs: 260,
                           child: _GlassActionCard(
                             icon: Icons.access_time,
-                            title: 'Attendance',
-                            subtitle: 'Mark / Review',
+                            title: 'Mark / Review',
+                            subtitle:'Attendance',// 'Mark / Review',
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(builder: (_) => MarkAttendanceView()),
@@ -390,8 +390,8 @@ final jpCount = dedupJourneyCount(
                           delayMs: 300,
                           child: _GlassActionCard(
                             icon: Icons.alt_route,
-                            title: 'Routes',
-                            subtitle: 'Daily route plan',
+                            title: 'Daily route plan',//'Routes',
+                            subtitle:'Routes',// 'Daily route plan',
                             onTap: () {
                               if (state.loginModel?.statusAttendance.toString() == "1") {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => RouteScreen()));
@@ -405,8 +405,8 @@ final jpCount = dedupJourneyCount(
                           delayMs: 340,
                           child: _GlassActionCard(
                             icon: Icons.shopping_cart,
-                            title: 'Punch Order',
-                            subtitle: 'Place new order',
+                            title:'Place new order', //'Punch Order',
+                            subtitle:'Punch Order', //'Place new order',
                             onTap: () {
                               if (state.loginModel?.statusAttendance.toString() == "1") {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => JourneyPlanScreen()));
@@ -420,8 +420,8 @@ final jpCount = dedupJourneyCount(
                           delayMs: 380,
                           child: _GlassActionCard(
                             icon: Icons.insert_drive_file,
-                            title: 'Records',
-                            subtitle: 'History & logs',
+                            title:'History & logs', 
+                            subtitle: 'Records',
                             onTap: () {},
                           ),
                         ),
@@ -687,7 +687,102 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
+class _GlassActionCard extends StatelessWidget {
+  const _GlassActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
+  final IconData icon;
+  /// Shown like `_MiniStatCard.title` (small, muted)
+  final String title;
+  /// Shown like `_MiniStatCard.value` (big, bold)
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return SizedBox(
+      child: _Pressable(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.30),
+            borderRadius: BorderRadius.circular(14.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 16,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+          //  mainAxisAlignment: MainAxisAlignment.center,
+           // crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: const Color(0xFFEA7A3B)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // small muted title
+                        Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1E1E1E),
+                      ),
+                    ),
+                     const SizedBox(height: 2),
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(
+                        color: const Color(0xFF707883),
+                      ),
+                    ),
+                  //  const SizedBox(height: 2),
+                    // big bold subtitle (acts like the "value" in MiniStatCard)
+                    // Text(
+                    //   subtitle,
+                    //   maxLines: 2,
+                    //   overflow: TextOverflow.ellipsis,
+                    //   style: t.titleSmall?.copyWith(
+                    //     fontWeight: FontWeight.w800,
+                    //     color: const Color(0xFF1E1E1E),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/*
 class _GlassActionCard extends StatelessWidget {
   const _GlassActionCard({
     required this.icon,
@@ -741,7 +836,7 @@ class _GlassActionCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Sheen strip
+
                 Positioned(
                   top: -24,
                   left: -20,
@@ -852,7 +947,7 @@ class _GlassActionCard extends StatelessWidget {
     );
   }
 }
-
+*/
 class _WideGlassTile extends StatelessWidget {
   const _WideGlassTile({
     required this.icon,

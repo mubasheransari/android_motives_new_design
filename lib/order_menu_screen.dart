@@ -9,19 +9,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/products_items_screen.dart';
 
 
-// ── imports ───────────────────────────────────────────────────────────────────
-import 'dart:convert';
-import 'dart:ui' show ImageFilter;
-import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:location/location.dart' as loc;
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-// import your app bits that are referenced:
-// import 'meezan_tea_catalog.dart'; // for MeezanTeaCatalog
-// import 'global_bloc.dart';         // for GlobalBloc, events, states
-
-// ── theme constants ───────────────────────────────────────────────────────────
 const kOrange = Color(0xFFFF7A3D);
 const kOrangeLite = Color(0xFFFFB07A);
 const kText = Color(0xFF0E1631);
@@ -30,7 +18,6 @@ const kField = Color(0xFFF4F6FA);
 const kCard = Colors.white;
 const kShadow = Color(0x1A0E1631);
 
-// ── enums / helpers ───────────────────────────────────────────────────────────
 enum VisitLast { none, hold, noVisit }
 VisitLast _parseLast(String? s) {
   switch ((s ?? '').toLowerCase()) {
@@ -43,7 +30,6 @@ VisitLast _parseLast(String? s) {
   }
 }
 
-// ── screen ────────────────────────────────────────────────────────────────────
 class OrderMenuScreen extends StatefulWidget {
   final String shopname, miscid, address;
   final String? segId;
@@ -172,7 +158,6 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
     } catch (_) {/* ignore */}
   }
 
-  // ===== NEW: read cart from local storage (per user + per shop) and block NO VISIT if not empty =====
   final GetStorage _local = GetStorage();
 
   String _cartKey(String? userId, String shopId) =>
@@ -199,9 +184,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   }
 
   bool _hasPendingOrder() => _readPendingCart().isNotEmpty;
-  // ===== END NEW =====
 
-  // ===== Dialog styling: shared builders =====
   Future<void> _showThemedInfo({
     required BuildContext parentCtx,
     required String title,
