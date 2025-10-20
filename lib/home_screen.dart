@@ -150,16 +150,30 @@ class _HomeUpdatedState extends State<HomeUpdated> {
 final box = GetStorage();
 int _coveredRoutesCount = 0;
 
+
+
 @override
 void initState() {
   super.initState();
-  _coveredRoutesCount = _asInt(box.read('covered_routes_count')); // seed
 
-  // ✅ auto-refresh when JourneyPlanScreen writes the new count
+    super.initState();
+  _coveredRoutesCount = _asInt(box.read('covered_routes_count'));
+
   box.listenKey('covered_routes_count', (v) {
     if (!mounted) return;
-    setState(() => _coveredRoutesCount = _asInt(v));
+    // Defer setState until after the current build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _coveredRoutesCount = _asInt(v));
+    });
   });
+  // _coveredRoutesCount = _asInt(box.read('covered_routes_count')); // seed
+
+  // // ✅ auto-refresh when JourneyPlanScreen writes the new count
+  // box.listenKey('covered_routes_count', (v) {
+  //   if (!mounted) return;
+  //   setState(() => _coveredRoutesCount = _asInt(v));
+  // });
 }
 
 int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
