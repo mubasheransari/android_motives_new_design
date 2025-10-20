@@ -948,11 +948,126 @@ class _GlassActionCard extends StatelessWidget {
   }
 }
 */
+// class _WideGlassTile extends StatelessWidget {
+//   const _WideGlassTile({
+//     required this.icon,
+//     required this.title,
+//     required this.caption,
+//     required this.onTap,
+//   });
+
+//   final IconData icon;
+//   final String title;
+//   final String caption;
+//   final VoidCallback onTap;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final t = Theme.of(context).textTheme;
+//     return _Pressable(
+//       onTap: onTap,
+//       child: ClipRRect(
+//         borderRadius: BorderRadius.circular(20),
+//         child: BackdropFilter(
+//           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+//           child: Container(
+//             height: 90,
+//             decoration: BoxDecoration(
+//               borderRadius: BorderRadius.circular(20),
+//               color: Colors.white.withOpacity(.84),
+//               border: Border.all(color: HomeUpdated.cStroke),
+//               boxShadow: const [
+//                 BoxShadow(
+//                   color: HomeUpdated.cShadow,
+//                   blurRadius: 14,
+//                   offset: Offset(0, 8),
+//                 ),
+//               ],
+//             ),
+//             child: Stack(
+//               children: [
+//                 Positioned.fill(
+//                   child: DecoratedBox(
+//                     decoration: BoxDecoration(
+//                       borderRadius: BorderRadius.circular(20),
+//                       gradient: RadialGradient(
+//                         colors: [
+//                           HomeUpdated.cPrimarySoft.withOpacity(.30),
+//                           Colors.transparent,
+//                         ],
+//                         radius: 1.3,
+//                         center: const Alignment(.9, -.9),
+//                       ),
+//                     ),
+//                   ),
+//                 ),
+//                 Padding(
+//                   padding: const EdgeInsets.symmetric(horizontal: 14),
+//                   child: Row(
+//                     children: [
+//                       Container(
+//                         width: 40,
+//                         height: 50,
+//                         decoration: BoxDecoration(
+//                           borderRadius: BorderRadius.circular(12),
+//                           gradient: const LinearGradient(
+//                             colors: [
+//                               HomeUpdated.cPrimary,
+//                               HomeUpdated.cPrimarySoft,
+//                             ],
+//                           ),
+//                           border: Border.all(
+//                             color: Colors.white.withOpacity(.55),
+//                           ),
+//                         ),
+//                         child: Icon(icon, color: Colors.white, size: 26),
+//                       ),
+//                       const SizedBox(width: 8),
+//                       Expanded(
+//                         child: Column(
+//                           mainAxisAlignment: MainAxisAlignment.center,
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Text(
+//                               title,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: t.titleSmall?.copyWith(
+//                                 color: HomeUpdated.cText,
+//                                 fontWeight: FontWeight.w800,
+//                               ),
+//                             ),
+//                             const SizedBox(height: 2),
+//                             Text(
+//                               caption,
+//                               maxLines: 1,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: t.bodySmall?.copyWith(
+//                                 color: HomeUpdated.cMuted,
+//                                 fontWeight: FontWeight.w500,
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
 class _WideGlassTile extends StatelessWidget {
   const _WideGlassTile({
     required this.icon,
-    required this.title,
-    required this.caption,
+    required this.title,   // small, muted
+    required this.caption, // big, bold
     required this.onTap,
   });
 
@@ -964,102 +1079,74 @@ class _WideGlassTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return _Pressable(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            height: 90,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white.withOpacity(.84),
-              border: Border.all(color: HomeUpdated.cStroke),
-              boxShadow: const [
-                BoxShadow(
-                  color: HomeUpdated.cShadow,
-                  blurRadius: 14,
-                  offset: Offset(0, 8),
+
+    return SizedBox(
+      child: _Pressable(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.30),
+            borderRadius: BorderRadius.circular(14.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 16,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F7),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: RadialGradient(
-                        colors: [
-                          HomeUpdated.cPrimarySoft.withOpacity(.30),
-                          Colors.transparent,
-                        ],
-                        radius: 1.3,
-                        center: const Alignment(.9, -.9),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
+                child: Icon(icon, color: const Color(0xFFEA7A3B)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 60, // keeps vertical alignment tidy
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          gradient: const LinearGradient(
-                            colors: [
-                              HomeUpdated.cPrimary,
-                              HomeUpdated.cPrimarySoft,
-                            ],
-                          ),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(.55),
-                          ),
+                      // Big, bold (acts like "subtitle" in your target design)
+                      Text(
+                        caption,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E1E1E),
                         ),
-                        child: Icon(icon, color: Colors.white, size: 26),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.titleSmall?.copyWith(
-                                color: HomeUpdated.cText,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              caption,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.bodySmall?.copyWith(
-                                color: HomeUpdated.cMuted,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                      const SizedBox(height: 2),
+                      // Small, muted (acts like "title" in your target design)
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.bodySmall?.copyWith(
+                          color: const Color(0xFF707883),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
 
 class _Pressable extends StatefulWidget {
   const _Pressable({required this.child, required this.onTap});

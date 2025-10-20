@@ -8,21 +8,8 @@ import 'package:motives_new_ui_conversion/order_menu_screen.dart';
 import 'dart:ui';
 
 
-
-// ── imports ───────────────────────────────────────────────────────────────────
-import 'dart:ui' show ImageFilter;
-import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-// import your app bits that are referenced:
-// import 'order_menu_screen.dart';
-// import 'global_bloc.dart';
-// import 'models.dart'; // contains JourneyPlan, etc.
-
-// ── theme constants ───────────────────────────────────────────────────────────
 const kOrange = Color(0xFFEA7A3B);
-const kOrangeLite = Color(0xFFFFB07A); // added (used in gradients)
+const kOrangeLite = Color(0xFFFFB07A);
 const kText = Color(0xFF1E1E1E);
 const kMuted = Color(0xFF707883);
 const kField = Color(0xFFF2F3F5);
