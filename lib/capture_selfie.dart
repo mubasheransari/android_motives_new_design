@@ -372,6 +372,10 @@ void _onUse() async {
             st == MarkAttendanceStatus.success ||
             st == MarkAttendanceStatus.failure);
 
+            print("ATTENDANCE STATUS ${context.read<GlobalBloc>().state.markAttendanceStatus}}");
+              print("ATTENDANCE STATUS ${context.read<GlobalBloc>().state.markAttendanceStatus}}");
+                print("ATTENDANCE STATUS ${context.read<GlobalBloc>().state.markAttendanceStatus}}");
+
     if (attendStatus != MarkAttendanceStatus.success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

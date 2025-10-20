@@ -1115,7 +1115,6 @@ class _WideGlassTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Big, bold (acts like "subtitle" in your target design)
                       Text(
                         caption,
                         maxLines: 2,
