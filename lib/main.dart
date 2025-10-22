@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motives_new_ui_conversion/Offline/sync_service.dart';
 import 'package:motives_new_ui_conversion/home_screen.dart';
 import 'package:motives_new_ui_conversion/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,13 +15,17 @@ var email_auth = box.read("email_auth");
 var password_auth = box.read("password-auth");
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await GetStorage.init();
+    WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  await SyncService.instance.init();
+  runApp(const MyApp());
 
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()..add(Activity(activity: 'App Opens'))
+        BlocProvider<GlobalBloc>(create: (_) => GlobalBloc()..add(Activity(activity: 'App Opens'))..add(const HydrateLoginFromCache()),
         ),
       ],
       child: const MyApp(),

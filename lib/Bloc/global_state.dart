@@ -4,9 +4,14 @@ import 'package:motives_new_ui_conversion/Models/markattendance_model.dart';
 
 
 enum LoginStatus { initial, loading, success, failure }
-enum MarkAttendanceStatus { initial, loading, success, failure }
-enum StartRouteStatus { initial, loading, success, failure }
-enum CheckinCheckoutStatus { initial, loading, success, failure }
+// enum MarkAttendanceStatus { initial, loading, success, failure }
+// enum StartRouteStatus { initial, loading, success, failure }
+// enum CheckinCheckoutStatus { initial, loading, success, failure }
+
+
+enum MarkAttendanceStatus { initial, loading, queued, success, failure }
+enum StartRouteStatus     { initial, loading, queued, success, failure }
+enum CheckinCheckoutStatus{ initial, loading, queued, success, failure }
 
 
 class GlobalState extends Equatable {

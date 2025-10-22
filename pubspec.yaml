@@ -54,6 +54,8 @@ dependencies:
   google_mlkit_face_detection:
   image:
   camera: ^0.11.0+2
+  uuid: ^4.4.0
+
 
 
 dev_dependencies:

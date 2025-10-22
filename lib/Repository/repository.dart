@@ -81,6 +81,7 @@ class Repository {
       box.write("password", password);
       box.write("email_auth", email);
       box.write("password-auth", password);
+        box.write("login_model_json", res.body);
     }
 
     debugPrint("➡️ /login body: $body");
@@ -151,45 +152,161 @@ class Repository {
     return res;
   }
 
-  /// ROUTE (check-in / check-out / hold / unhold / no-visit)
-  /// Keep sending `pic` (default "0") to mirror the Android behavior.
   Future<http.Response> checkin_checkout(
-    String type,
-    String userId,
-    String lat,
-    String lng,
-    String act_type,
-    String action,
-    String misc,
-    String dist_id, {
-    String pic = "0",
-  }) async {
-    final payload = {
-      "type": type,
-      "user_id": userId,
-      "latitude": lat,
-      "longitude": lng,
-      "device_id": "e95a9ab3bba86f821",
-      "act_type": act_type,
-      "action": action,
-      "att_time": _attTimeNoSep(),
-      "att_date": _attDateNoSep(),
-      "misc": misc,   // shop id
-      "dist_id": dist_id,
-      "app_version": "1.0.1",
-    };
+  String type,
+  String userId,
+  String lat,
+  String lng,
+  String act_type,
+  String action,
+  String misc,
+  String dist_id,
+) async {
+  final now = DateTime.now();
 
-    final body = {
-      "request": jsonEncode(payload),
-      "pic": pic,
-    };
+  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
+  final currentTime =
+      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
-    final res = await http.post(Uri.parse(routeUrl), headers: _formHeaders, body: body);
+  // 🔹 Create 'request' object
+  final requestData = {
+    "type": type,
+    "user_id": userId,
+    "latitude": lat,
+    "longitude": lng,
+    "device_id": "e95a9ab3bba86f821",
+    "act_type": act_type,
+    "action": action,
+    "att_time": currentTime,
+    "att_date": currentDate,
+    "misc": misc,
+    "dist_id": dist_id,
+    "app_version": "1.0.1",
+  };
 
-    debugPrint("➡️ /route body: $body");
-    debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
-    return res;
-  }
+  // 🔹 Final JSON with 'request' object and 'pic' string
+  final body = {
+    "request": requestData,
+    "pic": "0",
+  };
+
+  final res = await http.post(
+    Uri.parse(routeUrl),
+    headers: {
+      "Content-Type": "application/json",
+      ..._formHeaders, // optional
+    },
+    body: jsonEncode(body), // ✅ Encode once at the end
+  );
+
+  debugPrint("➡️ /route body: ${jsonEncode(body)}");
+  debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
+  return res;
+}
+
+
+// Future<http.Response> checkin_checkout(
+//   String type,
+//   String userId,
+//   String lat,
+//   String lng,
+//   String act_type,
+//   String action,
+//   String misc,
+//   String dist_id,
+// ) async {
+//   final now = DateTime.now();
+
+//   final currentDate = DateFormat("dd-MMM-yyyy").format(now); 
+//   final currentTime =
+//       "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+
+//   final payload = {
+//     "type": type,
+//     "user_id": userId,
+//     "latitude": lat,
+//     "longitude": lng,
+//     "device_id": "e95a9ab3bba86f821",
+//     "act_type": act_type,
+//     "action": action,
+//     "att_time": currentTime,
+//     "att_date": currentDate,
+//     "misc": misc, // shop id
+//     "dist_id": dist_id,
+//     "app_version": "1.0.1",
+//   };
+
+
+//   final body = {
+//     "request": payload,
+//     "pic": "0",
+//   };
+
+//   final res = await http.post(
+//     Uri.parse(routeUrl),
+//     headers: {
+//       "Content-Type": "application/json",
+//       ..._formHeaders, // merge your custom headers if needed
+//     },
+//     body: jsonEncode(body),
+//   );
+
+//   debugPrint("➡️ /route body: ${jsonEncode(body)}");
+//   debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
+//   return res;
+// }
+
+/*Future<http.Response> checkin_checkout(
+  String type,
+  String userId,
+  String lat,
+  String lng,
+  String act_type,
+  String action,
+  String misc,
+  String dist_id,
+) async {
+  final now = DateTime.now();
+
+  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
+  final currentTime =
+      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+
+  final payload = {
+    "type": type,
+    "user_id": userId,
+    "latitude": lat,
+    "longitude": lng,
+    "device_id": "e95a9ab3bba86f821",
+    "act_type": act_type,
+    "action": action,
+    "att_time": currentTime,
+    "att_date": currentDate,
+    "misc": misc, // shop id
+    "dist_id": dist_id,
+    "app_version": "1.0.1",
+  };
+
+  // ✅ 'pic' as plain string
+  final body = {
+    "request": payload,
+    "pic": "0",
+  };
+
+  final res = await http.post(
+    Uri.parse(routeUrl),
+    headers: {
+      "Content-Type": "application/json",
+      ..._formHeaders, // merge your custom headers if needed
+    },
+    body: jsonEncode(body),
+  );
+
+  debugPrint("➡️ /route body: ${jsonEncode(body)}");
+  debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
+  return res;
+}*/
+
 }
 
 // If you had logic here originally, keep it. Leaving it as a stub so the file compiles.

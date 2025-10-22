@@ -6,6 +6,10 @@ abstract class GlobalEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class HydrateLoginFromCache extends GlobalEvent {
+  const HydrateLoginFromCache();
+}
+
 class LoginEvent extends GlobalEvent {
   final String email;
   final String password;
