@@ -1200,7 +1200,7 @@ class _Chip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(label,
               style: const TextStyle(
-                  color: kText, fontWeight: FontWeight.w700, fontSize: 12)),
+                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
         ],
       ),
     );
