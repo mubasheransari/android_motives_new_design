@@ -165,6 +165,26 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
+    String formatToHms(String input) {
+  // keep only digits
+  var s = input.replaceAll(RegExp(r'\D'), '');
+  // cap at 6 and left-pad with zeros
+  s = s.length > 6 ? s.substring(0, 6) : s.padLeft(6, '0');
+  final hh = s.substring(0, 2);
+  final mm = s.substring(2, 4);
+  final ss = s.substring(4, 6);
+  return '$hh:$mm:$ss';
+}
+
+final s = formatToHms( context
+                                .read<GlobalBloc>()
+                                .state
+                                .loginModel!
+                                .log!
+                                .tim
+                                .toString());
+
+
     final loginModel = context.read<GlobalBloc>().state.loginModel;
 final hasAttendanceOut = loginModel?.log?.tim != null;
 
@@ -272,15 +292,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                         children: [
                           _PunchCard(
                             title: "Punch In",
-                            time: 
-
-                            context
-                                .read<GlobalBloc>()
-                                .state
-                                .loginModel!
-                                .log!
-                                .tim
-                                .toString() ?? "--:--",
+                            time: s ?? "--:--",
                           ),
                           _PunchCard(title: "Punch Out", time: "--:--"),
                         ],
@@ -325,13 +337,13 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                                     .read<GlobalBloc>()
                                     .state
                                     .loginModel!
-                                    .reasons!
+                                    .reasons
                                     .length !=
                                 context
                                     .read<GlobalBloc>()
                                     .state
                                     .loginModel!
-                                    .journeyPlan!
+                                    .journeyPlan
                                     .length) {
                               toastWidget(
                                 'Complete your journey plan first',
