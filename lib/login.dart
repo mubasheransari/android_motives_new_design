@@ -347,6 +347,9 @@ class _GlassCard extends StatelessWidget {
   }
 }
 
+
+
+
 class _PrimaryButton extends StatelessWidget {
   const _PrimaryButton({required this.label, required this.onPressed});
   final String label;
@@ -354,39 +357,35 @@ class _PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        boxShadow: [BoxShadow(color: _NewLoginScreenState.cShadow, blurRadius: 16, offset: Offset(0, 10))],
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.zero,
+        backgroundColor: _NewLoginScreenState.cPrimary, // fallback
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 0,
       ),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          backgroundColor: _NewLoginScreenState.cPrimary, // fallback
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
+      onPressed: onPressed,
+      child: Ink(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(6)),
+          color: _NewLoginScreenState.cPrimary
+          // gradient: LinearGradient(
+          //   colors: [_NewLoginScreenState.cPrimary, _NewLoginScreenState.cPrimarySoft],
+          //   begin: Alignment.topLeft,
+          //   end: Alignment.bottomRight,
+          // ),
         ),
-        onPressed: onPressed,
-        child: Ink(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-            gradient: LinearGradient(
-              colors: [_NewLoginScreenState.cPrimary, _NewLoginScreenState.cPrimarySoft],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Container(
-            height: 48,
-            alignment: Alignment.center,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 17.5,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-                letterSpacing: .5,
-              ),
+        child: Container(
+          height: 42,
+          width: 110,
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 17.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 1,
             ),
           ),
         ),

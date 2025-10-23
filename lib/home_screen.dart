@@ -15,7 +15,6 @@ import 'dart:ui';
 import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 import 'main.dart';
 
-
 class _LiveDateTimeBar extends StatefulWidget {
   const _LiveDateTimeBar();
 
@@ -105,7 +104,7 @@ class _LiveDateTimeBarState extends State<_LiveDateTimeBar> {
                           height: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 2), 
+                      const SizedBox(height: 2),
                       Text(
                         _date(),
                         textAlign: TextAlign.center,
@@ -144,85 +143,84 @@ class HomeUpdated extends StatefulWidget {
 }
 
 class _HomeUpdatedState extends State<HomeUpdated> {
+  final box = GetStorage();
+  int _coveredRoutesCount = 0;
+      var routes ;
 
-
-  
-final box = GetStorage();
-int _coveredRoutesCount = 0;
-
-
-
-@override
-void initState() {
-  super.initState();
-
+  @override
+  void initState() {
     super.initState();
-  _coveredRoutesCount = _asInt(box.read('covered_routes_count'));
+   routes= box.read("routeKey");
+    _coveredRoutesCount = _asInt(box.read('covered_routes_count'));
 
-  box.listenKey('covered_routes_count', (v) {
-    if (!mounted) return;
-    // Defer setState until after the current build completes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    box.listenKey('covered_routes_count', (v) {
       if (!mounted) return;
-      setState(() => _coveredRoutesCount = _asInt(v));
+      // Defer setState until after the current build completes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _coveredRoutesCount = _asInt(v));
+      });
     });
-  });
-  // _coveredRoutesCount = _asInt(box.read('covered_routes_count')); // seed
+    // _coveredRoutesCount = _asInt(box.read('covered_routes_count')); // seed
 
-  // // ✅ auto-refresh when JourneyPlanScreen writes the new count
-  // box.listenKey('covered_routes_count', (v) {
-  //   if (!mounted) return;
-  //   setState(() => _coveredRoutesCount = _asInt(v));
-  // });
-}
+    // // ✅ auto-refresh when JourneyPlanScreen writes the new count
+    // box.listenKey('covered_routes_count', (v) {
+    //   if (!mounted) return;
+    //   setState(() => _coveredRoutesCount = _asInt(v));
+    // });
+  }
 
-int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
-
-
+  int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
 
   String _niceDate(DateTime d) {
     const months = [
-      'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[d.month - 1]} ${d.day}, ${d.year}';
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
-          final t = Theme.of(context).textTheme;
+    // var routes = box.read("routeKey");
+    final t = Theme.of(context).textTheme;
     final state = context.read<GlobalBloc>().state;
     final model = state.loginModel;
 
     final userName =
         (model?.userinfo?.userName?.toString().trim().isNotEmpty ?? false)
-            ? model!.userinfo!.userName.toString()
-            : (model?.userinfo?.userName ?? 'User');
+        ? model!.userinfo!.userName.toString()
+        : (model?.userinfo?.userName ?? 'User');
 
     final todayLabel = _niceDate(DateTime.now());
     int dedupJourneyCount(List<JourneyPlan> plans) {
-  final seen = <String>{};
-  for (final p in plans) {
-    final accode = p.accode.trim();
-    final key = accode.isNotEmpty
-        ? 'ID:${accode.toLowerCase()}'
-        : 'N:${p.partyName.trim().toLowerCase()}|${p.custAddress.trim().toLowerCase()}';
-    seen.add(key);
-  }
-  return seen.length;
-}
+      final seen = <String>{};
+      for (final p in plans) {
+        final accode = p.accode.trim();
+        final key = accode.isNotEmpty
+            ? 'ID:${accode.toLowerCase()}'
+            : 'N:${p.partyName.trim().toLowerCase()}|${p.custAddress.trim().toLowerCase()}';
+        seen.add(key);
+      }
+      return seen.length;
+    }
 
-// use it:
-final jpCount = dedupJourneyCount(
-  context.read<GlobalBloc>().state.loginModel!.journeyPlan,
-);
+    // use it:
+    final jpCount = dedupJourneyCount(
+      context.read<GlobalBloc>().state.loginModel!.journeyPlan,
+    );
 
- final routeCompleted = (jpCount == _coveredRoutesCount);
-
-
-
-      
+    final routeCompleted = (jpCount == _coveredRoutesCount);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -288,7 +286,7 @@ final jpCount = dedupJourneyCount(
                             Expanded(
                               child: _MiniStatCard(
                                 title: 'Done',
-                               value: '$_coveredRoutesCount', 
+                                value: '$_coveredRoutesCount',
                                 icon: Icons.check_circle_rounded,
                               ),
                             ),
@@ -297,76 +295,80 @@ final jpCount = dedupJourneyCount(
                       ),
                     ),
 
-                           if (routeCompleted)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                          child: Center(
-                            child: Text(
-                              'Route completed! You can end today’s route now',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: HomeUpdated.cPrimary,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                            ),
+                  if (routeCompleted)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                        child: Center(
+                          child: Text(
+                            'Route completed! You can end today’s route now',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: HomeUpdated.cPrimary,
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
                         ),
                       ),
+                    ),
 
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                       child: Container(
-      margin: const EdgeInsets.all(1.8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.40),
-        borderRadius: BorderRadius.circular(14.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14000000),
-            blurRadius: 16,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFEA7A3B)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Last Action Performed',
-                  style: t.bodySmall?.copyWith(
-                    color: const Color(0xFF707883),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${state.activity!.isEmpty ? "—" : state.activity}',
-                  style: t.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1E1E1E),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
-                      
+                        margin: const EdgeInsets.all(1.8),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(.40),
+                          borderRadius: BorderRadius.circular(14.2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x14000000),
+                              blurRadius: 16,
+                              offset: Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F5F7),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.assignment_turned_in_rounded,
+                                color: const Color(0xFFEA7A3B),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Last Action Performed',
+                                    style: t.bodySmall?.copyWith(
+                                      color: const Color(0xFF707883),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${state.activity!.isEmpty ? "—" : state.activity}',
+                                    style: t.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF1E1E1E),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                       // _Enter(
                       //   delayMs: 120,
                       //   child: _StatusGlass(
@@ -381,22 +383,25 @@ final jpCount = dedupJourneyCount(
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 6, 16, 10),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 1.04,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 1.04,
+                          ),
                       delegate: SliverChildListDelegate.fixed([
                         _Enter(
                           delayMs: 260,
                           child: _GlassActionCard(
                             icon: Icons.access_time,
                             title: 'Mark / Review',
-                            subtitle:'Attendance',// 'Mark / Review',
+                            subtitle: 'Attendance', // 'Mark / Review',
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => MarkAttendanceView()),
+                              MaterialPageRoute(
+                                builder: (_) => MarkAttendanceView(),
+                              ),
                             ),
                           ),
                         ),
@@ -404,13 +409,23 @@ final jpCount = dedupJourneyCount(
                           delayMs: 300,
                           child: _GlassActionCard(
                             icon: Icons.alt_route,
-                            title: 'Daily route plan',//'Routes',
-                            subtitle:'Routes',// 'Daily route plan',
+                            title: 'Daily route plan', //'Routes',
+                            subtitle: 'Routes', // 'Daily route plan',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance.toString() == "1") {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => RouteScreen()));
+                              if (state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1") {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => RouteScreen(),
+                                  ),
+                                );
                               } else {
-                                toastWidget('Mark your attendance first', Colors.red);
+                                toastWidget(
+                                  'Mark your attendance first',
+                                  Colors.red,
+                                );
                               }
                             },
                           ),
@@ -419,13 +434,32 @@ final jpCount = dedupJourneyCount(
                           delayMs: 340,
                           child: _GlassActionCard(
                             icon: Icons.shopping_cart,
-                            title:'Place new order', //'Punch Order',
-                            subtitle:'Punch Order', //'Place new order',
+                            title: 'Place new order', //'Punch Order',
+                            subtitle: 'Punch Order', //'Place new order',
                             onTap: () {
-                              if (state.loginModel?.statusAttendance.toString() == "1") {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => JourneyPlanScreen()));
+                              if (state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1") {
+                                if (routes == null) {
+                                  toastWidget(
+                                    'Start your route first',
+                                    Colors.red,
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => JourneyPlanScreen(),
+                                    ),
+                                  );
+                                }
+
+                                //   Navigator.push(context, MaterialPageRoute(builder: (_) => JourneyPlanScreen()));
                               } else {
-                                toastWidget('Mark your attendance first', Colors.red);
+                                toastWidget(
+                                  'Mark your attendance first',
+                                  Colors.red,
+                                );
                               }
                             },
                           ),
@@ -434,7 +468,7 @@ final jpCount = dedupJourneyCount(
                           delayMs: 380,
                           child: _GlassActionCard(
                             icon: Icons.insert_drive_file,
-                            title:'History & logs', 
+                            title: 'History & logs',
                             subtitle: 'Records',
                             onTap: () {},
                           ),
@@ -459,7 +493,9 @@ final jpCount = dedupJourneyCount(
                                 caption: 'View profile',
                                 onTap: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                                  MaterialPageRoute(
+                                    builder: (_) => const ProfileScreen(),
+                                  ),
                                 ),
                               ),
                             ),
@@ -701,6 +737,7 @@ class _SectionLabel extends StatelessWidget {
     );
   }
 }
+
 class _GlassActionCard extends StatelessWidget {
   const _GlassActionCard({
     required this.icon,
@@ -710,8 +747,10 @@ class _GlassActionCard extends StatelessWidget {
   });
 
   final IconData icon;
+
   /// Shown like `_MiniStatCard.title` (small, muted)
   final String title;
+
   /// Shown like `_MiniStatCard.value` (big, bold)
   final String subtitle;
   final VoidCallback onTap;
@@ -737,8 +776,8 @@ class _GlassActionCard extends StatelessWidget {
             ],
           ),
           child: Row(
-          //  mainAxisAlignment: MainAxisAlignment.center,
-           // crossAxisAlignment: CrossAxisAlignment.center,
+            //  mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 44,
@@ -756,7 +795,7 @@ class _GlassActionCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // small muted title
-                        Text(
+                    Text(
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -765,7 +804,7 @@ class _GlassActionCard extends StatelessWidget {
                         color: const Color(0xFF1E1E1E),
                       ),
                     ),
-                     const SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       title,
                       maxLines: 2,
@@ -774,7 +813,7 @@ class _GlassActionCard extends StatelessWidget {
                         color: const Color(0xFF707883),
                       ),
                     ),
-                  //  const SizedBox(height: 2),
+                    //  const SizedBox(height: 2),
                     // big bold subtitle (acts like the "value" in MiniStatCard)
                     // Text(
                     //   subtitle,
@@ -1075,12 +1114,10 @@ class _GlassActionCard extends StatelessWidget {
 //   }
 // }
 
-
-
 class _WideGlassTile extends StatelessWidget {
   const _WideGlassTile({
     required this.icon,
-    required this.title,   // small, muted
+    required this.title, // small, muted
     required this.caption, // big, bold
     required this.onTap,
   });
@@ -1160,7 +1197,6 @@ class _WideGlassTile extends StatelessWidget {
   }
 }
 
-
 class _Pressable extends StatefulWidget {
   const _Pressable({required this.child, required this.onTap});
   final Widget child;
@@ -1199,22 +1235,38 @@ class _Enter extends StatefulWidget {
   @override
   State<_Enter> createState() => _EnterState();
 }
+
 class _EnterState extends State<_Enter> with SingleTickerProviderStateMixin {
   late final AnimationController _ac = AnimationController(
-    vsync: this, duration: const Duration(milliseconds: 420),
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
   );
-  late final Animation<double> _opacity =
-      CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic);
-  late final Animation<Offset> _offset = Tween(begin: const Offset(0, .1), end: Offset.zero)
-      .animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic));
+  late final Animation<double> _opacity = CurvedAnimation(
+    parent: _ac,
+    curve: Curves.easeOutCubic,
+  );
+  late final Animation<Offset> _offset = Tween(
+    begin: const Offset(0, .1),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(parent: _ac, curve: Curves.easeOutCubic));
   @override
-  void initState() { super.initState(); Future.delayed(Duration(milliseconds: widget.delayMs), _ac.forward); }
-  @override
-  void dispose() { _ac.dispose(); super.dispose(); }
-  @override
-  Widget build(BuildContext context) => FadeTransition(opacity: _opacity, child: SlideTransition(position: _offset, child: widget.child));
-}
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(milliseconds: widget.delayMs), _ac.forward);
+  }
 
+  @override
+  void dispose() {
+    _ac.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: _opacity,
+    child: SlideTransition(position: _offset, child: widget.child),
+  );
+}
 
 class _MiniStatCard extends StatelessWidget {
   const _MiniStatCard({
@@ -1261,9 +1313,7 @@ class _MiniStatCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: t.bodySmall?.copyWith(
-                    color: const Color(0xFF707883),
-                  ),
+                  style: t.bodySmall?.copyWith(color: const Color(0xFF707883)),
                 ),
                 const SizedBox(height: 2),
                 Text(

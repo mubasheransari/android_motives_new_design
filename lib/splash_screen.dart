@@ -58,6 +58,8 @@ class _SplashScreenState extends State<SplashScreen>
     _logoOpacity = Tween(begin: 0.0, end: 1.0)
         .animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut));
 
+        
+
     // Sequence: start logo, then pills, then tagline, then start auth flow.
     _logoCtrl.forward().whenComplete(() {
       _pillCtrl.repeat();
