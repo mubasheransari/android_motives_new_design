@@ -163,9 +163,9 @@ class _NewLoginScreenState extends State<NewLoginScreen> {
                     BlocConsumer<GlobalBloc, GlobalState>(
                       listener: (context, state) {
                         if (state.status == LoginStatus.success) {
-                          Navigator.pushReplacement(
+                          Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => const HomeUpdated()),
+                            MaterialPageRoute(builder: (context) => const HomeUpdated()),(route) => false,
                           );
                           toastWidget("✅ Authenticated Successfully!", Colors.green);
 
