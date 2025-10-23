@@ -145,9 +145,36 @@ class HomeUpdated extends StatefulWidget {
 class _HomeUpdatedState extends State<HomeUpdated> {
   final box = GetStorage();
   int _coveredRoutesCount = 0;
-      var routes ;
+  var routes;
+
+  // ✅ strongly typed and reactive
+  bool _routeStarted = false;
 
   @override
+  void initState() {
+    super.initState();
+
+    // seed current values
+    _routeStarted = box.read('routeKey') == true;
+    _coveredRoutesCount = _asInt(box.read('covered_routes_count'));
+
+    // live updates
+    box.listenKey('routeKey', (v) {
+      if (!mounted) return;
+      setState(() => _routeStarted = v == true);
+    });
+
+    box.listenKey('covered_routes_count', (v) {
+      if (!mounted) return;
+      // optional defer if you ever hit "setState during build"
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() => _coveredRoutesCount = _asInt(v));
+      });
+    });
+  }
+
+  /* @override
   void initState() {
     super.initState();
    routes= box.read("routeKey");
@@ -168,7 +195,7 @@ class _HomeUpdatedState extends State<HomeUpdated> {
     //   if (!mounted) return;
     //   setState(() => _coveredRoutesCount = _asInt(v));
     // });
-  }
+  }*/
 
   int _asInt(dynamic v) => v is int ? v : int.tryParse('$v') ?? 0;
 
@@ -436,7 +463,33 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                             icon: Icons.shopping_cart,
                             title: 'Place new order', //'Punch Order',
                             subtitle: 'Punch Order', //'Place new order',
+                            // Quick Actions → Punch Order button
                             onTap: () {
+                              if (state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1") {
+                                if (!_routeStarted) {
+                                  toastWidget(
+                                    'Start your route first',
+                                    Colors.red,
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => JourneyPlanScreen(),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                toastWidget(
+                                  'Mark your attendance first',
+                                  Colors.red,
+                                );
+                              }
+                            },
+
+                            /*  onTap: () {
                               if (state.loginModel?.statusAttendance
                                       .toString() ==
                                   "1") {
@@ -461,7 +514,7 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                                   Colors.red,
                                 );
                               }
-                            },
+                            },*/
                           ),
                         ),
                         _Enter(

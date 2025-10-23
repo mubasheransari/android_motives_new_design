@@ -201,7 +201,7 @@ class _RouteScreenState extends State<RouteScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Routes $saved',
+                                      'Routes',
                                       style: t.titleMedium?.copyWith(
                                         color: Colors.white.withOpacity(.95),
                                         fontWeight: FontWeight.w700,
