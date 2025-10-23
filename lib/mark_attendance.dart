@@ -62,10 +62,8 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
   Future<void> _loadCustomMarkers() async {
     _currentMarkerIcon = await BitmapDescriptor.fromAssetImage(
-
-       ImageConfiguration(devicePixelRatio: 2.5),
+      ImageConfiguration(devicePixelRatio: 2.5),
       'assets/g_marker.png',
-
     );
   }
 
@@ -165,34 +163,40 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
+    var formattedTimeDate;
+
     String formatToHms(String input) {
-  // keep only digits
-  var s = input.replaceAll(RegExp(r'\D'), '');
-  // cap at 6 and left-pad with zeros
-  s = s.length > 6 ? s.substring(0, 6) : s.padLeft(6, '0');
-  final hh = s.substring(0, 2);
-  final mm = s.substring(2, 4);
-  final ss = s.substring(4, 6);
-  return '$hh:$mm:$ss';
-}
+      // keep only digits
+      var s = input.replaceAll(RegExp(r'\D'), '');
+      // cap at 6 and left-pad with zeros
+      s = s.length > 6 ? s.substring(0, 6) : s.padLeft(6, '0');
+      final hh = s.substring(0, 2);
+      final mm = s.substring(2, 4);
+      final ss = s.substring(4, 6);
+      return '$hh:$mm:$ss';
+    }
 
-final s = formatToHms( context
-                                .read<GlobalBloc>()
-                                .state
-                                .loginModel!
-                                .log!
-                                .tim
-                                .toString());
-
+    if (context
+            .read<GlobalBloc>()
+            .state
+            .loginModel
+            ?.statusAttendance
+            .toString() ==
+        "1") {
+      formattedTimeDate = formatToHms(
+        context.read<GlobalBloc>().state.loginModel!.log!.tim.toString(),
+      );
+    }
 
     final loginModel = context.read<GlobalBloc>().state.loginModel;
-final hasAttendanceOut = loginModel?.log?.tim != null;
+    final hasAttendanceOut = loginModel?.log?.tim != null;
 
-final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
+    final attendanceStatus = hasAttendanceOut
+        ? "ATTENDANCE OUT"
+        : "ATTENDANCE IN";
     return Scaffold(
       body: Stack(
         children: [
-
           if (_initialCameraPosition != null)
             GoogleMap(
               padding: const EdgeInsets.only(bottom: 60),
@@ -287,26 +291,24 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
 
                   BlocBuilder<GlobalBloc, GlobalState>(
                     builder: (context, state) {
-                      return state.loginModel!.statusAttendance == "1"? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _PunchCard(
-                            title: "Punch In",
-                            time: s ?? "--:--",
-                          ),
-                          _PunchCard(title: "Punch Out", time: "--:--"),
-                        ],
-                      ):Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _PunchCard(
-                            title: "Punch In",
-                            time: "--:--",
-
-                          ),
-                          _PunchCard(title: "Punch Out", time: "--:--"),
-                        ],
-                      );
+                      return state.loginModel!.statusAttendance == "1"
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _PunchCard(
+                                  title: "Punch In",
+                                  time: formattedTimeDate ?? "--:--",
+                                ),
+                                _PunchCard(title: "Punch Out", time: "--:--"),
+                              ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _PunchCard(title: "Punch In", time: "--:--"),
+                                _PunchCard(title: "Punch Out", time: "--:--"),
+                              ],
+                            );
                     },
                   ),
                   const SizedBox(height: 5),
@@ -324,9 +326,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                           ),
                         ),
                         onPressed: () async {
-
-                      
-                        if (context
+                          if (context
                                   .read<GlobalBloc>()
                                   .state
                                   .loginModel!
@@ -378,7 +378,6 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                               //         .toString(),
                               //   ),
                               // );
-                            
                             }
                           } else {
                             Navigator.push(
@@ -390,7 +389,7 @@ final attendanceStatus = hasAttendanceOut ? "ATTENDANCE OUT" : "ATTENDANCE IN";
                           }
                         },
                         child: Text(
-                        attendanceStatus,  
+                          attendanceStatus,
                           style: t.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
