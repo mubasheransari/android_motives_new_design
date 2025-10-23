@@ -19,7 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 class Repository {
-  // Base URLs
+  // Base URLs//http://services.zankgroup.com/motivesteang/index.php?route=api/user/
   final String baseUrl =
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user";
 
@@ -34,6 +34,7 @@ class Repository {
 
   final String routeUrl =
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/route";
+      
 
   // ===== Helpers to match the legacy Android formats =====
   // Android removed separators -> "14.04.15".replace(".", "") => "140415"
@@ -187,7 +188,7 @@ class Repository {
   // 🔹 Final JSON with 'request' object and 'pic' string
   final body = {
     "request": requestData,
-    "pic": "0",
+  //  "pic": "0",
   };
 
   final res = await http.post(

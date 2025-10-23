@@ -52,6 +52,7 @@ class _MyAppState extends State<MyApp> {
       print("if condition");
       print("EMAIL :$email");
       print("PASSWRD $password");
+      
       Future.microtask(() {
         context.read<GlobalBloc>().add(
           LoginEvent(email: email!, password: password),
@@ -59,15 +60,15 @@ class _MyAppState extends State<MyApp> {
       });
     } 
     
-    else if (email_auth != null) {
-      print("else condition");
-      print("else condition");
-      print("else condition");
-      print("else condition");
-      context.read<GlobalBloc>().add(
-        LoginEvent(email: email_auth, password: password_auth),
-      );
-    }
+    // else if (email_auth != null) {
+    //   print("else condition");
+    //   print("else condition");
+    //   print("else condition");
+    //   print("else condition");
+    //   context.read<GlobalBloc>().add(
+    //     LoginEvent(email: email_auth, password: password_auth),
+    //   );
+    // }
   }
 
   @override

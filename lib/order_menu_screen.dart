@@ -727,7 +727,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       listener: (ctx, state) {
         switch (state.checkinCheckoutStatus) {
           case CheckinCheckoutStatus.loading:
-            _showBlockingLoader(ctx);
+            // _showBlockingLoader(ctx);
             break;
           case CheckinCheckoutStatus.success:
             _hideBlockingLoader(ctx);
