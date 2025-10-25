@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Models/order_payload.dart';
 import 'package:motives_new_ui_conversion/Models/order_storage.dart';
+import 'package:motives_new_ui_conversion/Models/order_sumbitted_model.dart';
 import 'package:motives_new_ui_conversion/records_history_screen.dart';
 
 import 'Models/lagecy_payload.dart';
@@ -138,15 +139,14 @@ Map<String, dynamic> buildCartRequest({
 }
 
 
-
-Future<void> sendCartToApi({
+Future<OrderSubmitResult> sendCartToApi({
   required BuildContext context,
-  required Map<String, dynamic> legacyPayload,
+  required Map<String, dynamic> legacyPayload, // the ORDER payload
   required String endpoint,
   required String userId,
   required String distId,
-  Map<String, String>? extraHeaders,     // e.g. {'Accept':'application/json','Authorization':'Bearer ...'}
-  String requestField = 'request',
+  Map<String, String>? extraHeaders,          // optional: auth, accept, etc.
+  String requestField = 'request',             // {"request":"<json>"}
   bool navigateToRecordsOnSuccess = true,
 }) async {
   final uri = Uri.parse(endpoint);
@@ -156,41 +156,118 @@ Future<void> sendCartToApi({
   headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
   headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
-  // EXACT format: {"request":"<json>"} as form
+  // {"request":"<json>"}
   final Map<String, String> body = { requestField: jsonEncode(legacyPayload) };
 
+  debugPrint('➡️ /order body: $body');
   final res = await http.post(uri, headers: headers, body: body);
+  debugPrint('⬅️ /order ${res.statusCode}: ${res.body}');
 
+  Map<String, dynamic>? parsed;
+  String? message;
   bool ok = res.statusCode >= 200 && res.statusCode < 300;
+
   try {
-    final parsed = jsonDecode(res.body);
-    if (parsed is Map && parsed.containsKey('isSuccess')) {
-      ok = ok && (parsed['isSuccess'] == true);
+    final d = jsonDecode(res.body);
+    if (d is Map<String, dynamic>) {
+      parsed = d;
+      // common message fields your API might use
+      message = (d['message'] ?? d['msg'] ?? d['error'] ?? d['status'] ?? '').toString();
+      if (d.containsKey('isSuccess')) ok = ok && (d['isSuccess'] == true);
+      // if your API returns success flags differently, add here
+      if (d.containsKey('success') && d['success'] is bool) ok = ok && d['success'] == true;
     }
-  } catch (_) {}
-
-  if (!ok) {
-    throw Exception('API error ${res.statusCode}: ${res.body}');
+  } catch (_) {
+    // leave parsed=null, ok stays as HTTP success
   }
 
-  // Optional: save success locally & open Records
-  final rec = OrderRecord(
-    id: (legacyPayload['unique'] ?? '').toString(),
-    userId: userId,
-    distId: distId,
-    dateStr: (legacyPayload['date'] ?? '').toString(),
-    status: 'Success',
-    payload: legacyPayload,
-    httpStatus: res.statusCode,
-    serverBody: res.body,
-    createdAt: DateTime.now(),
+  // Persist on success
+  if (ok) {
+    final rec = OrderRecord(
+      id: (legacyPayload['unique'] ?? '').toString(),
+      userId: userId,
+      distId: distId,
+      dateStr: (legacyPayload['date'] ?? '').toString(),
+      status: 'Success',
+      payload: legacyPayload,
+      httpStatus: res.statusCode,
+      serverBody: res.body,
+      createdAt: DateTime.now(),
+    );
+    await OrdersStorage().addOrder(userId, rec);
+
+    if (navigateToRecordsOnSuccess && context.mounted) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const RecordsScreen()),
+      );
+    }
+  }
+
+  // Return full context so caller can print/log/branch
+  return OrderSubmitResult(
+    success: ok,
+    statusCode: res.statusCode,
+    rawBody: res.body,
+    json: parsed,
+    serverMessage: (message?.isEmpty ?? true) ? null : message,
   );
-  await OrdersStorage().addOrder(userId, rec);
-
-  if (navigateToRecordsOnSuccess && context.mounted) {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
-  }
 }
+
+
+
+// Future<void> sendCartToApi({ //current newwww
+//   required BuildContext context,
+//   required Map<String, dynamic> legacyPayload,
+//   required String endpoint,
+//   required String userId,
+//   required String distId,
+//   Map<String, String>? extraHeaders,     // e.g. {'Accept':'application/json','Authorization':'Bearer ...'}
+//   String requestField = 'request',
+//   bool navigateToRecordsOnSuccess = true,
+// }) async {
+//   final uri = Uri.parse(endpoint);
+
+//   // enforce form encoding
+//   final headers = {...?extraHeaders};
+//   headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+//   headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+//   // EXACT format: {"request":"<json>"} as form
+//   final Map<String, String> body = { requestField: jsonEncode(legacyPayload) };
+
+//   final res = await http.post(uri, headers: headers, body: body);
+
+//   bool ok = res.statusCode >= 200 && res.statusCode < 300;
+//   try {
+//     final parsed = jsonDecode(res.body);
+//     if (parsed is Map && parsed.containsKey('isSuccess')) {
+//       ok = ok && (parsed['isSuccess'] == true);
+//     }
+//   } catch (_) {}
+
+//   if (!ok) {
+//     throw Exception('API error ${res.statusCode}: ${res.body}');
+//   }
+
+//   // Optional: save success locally & open Records
+//   final rec = OrderRecord(
+//     id: (legacyPayload['unique'] ?? '').toString(),
+//     userId: userId,
+//     distId: distId,
+//     dateStr: (legacyPayload['date'] ?? '').toString(),
+//     status: 'Success',
+//     payload: legacyPayload,
+//     httpStatus: res.statusCode,
+//     serverBody: res.body,
+//     createdAt: DateTime.now(),
+//   );
+//   await OrdersStorage().addOrder(userId, rec);
+
+//   if (navigateToRecordsOnSuccess && context.mounted) {
+//     await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
+//   }
+// }
 
 
 
@@ -964,7 +1041,6 @@ Future<void> _submitOrder() async {
 
   final userId = (login?.userinfo?.userId ?? '').trim();
   final distId = (login?.distributors.isNotEmpty == true ? (login!.distributors.first.id ?? '') : '').trim();
-
   if (userId.isEmpty || distId.isEmpty) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -973,43 +1049,47 @@ Future<void> _submitOrder() async {
     return;
   }
 
-  // Build EXACT legacy ORDER payload from TeaItem + cart
   final orderPayload = buildLegacyOrderPayloadFromTea(
     allItems: widget.allItems,
     cart: widget.cart,
     userId: userId,
     distId: distId,
-    // If you have real values, pass them here instead of defaults:
-    // accCode: '500001', segmentId: '11002', compId: '11',
-    // orderBookerId: '1001', paymentType: 'CR', headerOrderType: 'OR', orderStatus: 'N',
+    // override header fields if you have dynamic values
   );
 
-  // Sanity log: this must show header order fields + "order":[...]
-  debugPrint('ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
+  // Optional: pretty-print the outgoing payload
+  debugPrint('🧾 ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
 
-  try {
-    await sendCartToApi(
-      context: context,
-      legacyPayload: orderPayload,
-      endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',  // ✅ your ORDER endpoint (NOT route URL)
-      userId: userId,
-      distId: distId,
-      requestField: 'request',            // sends {"request":"<json>"} as form
-      // extraHeaders: {'Accept': 'application/json'}, // optional
-      navigateToRecordsOnSuccess: true,
-    );
+  final result = await sendCartToApi(
+    context: context,
+    legacyPayload: orderPayload,
+    endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',   // your order URL
+    userId: userId,
+    distId: distId,
+    // extraHeaders: {'Accept': 'application/json'}, // optional
+    requestField: 'request',
+    navigateToRecordsOnSuccess: true,
+  );
 
-    widget.cart.clear(); // clear live cart
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Order submitted & saved')),
-    );
+  // 🔊 Print/log outcome
+  debugPrint('✅ success=${result.success}  status=${result.statusCode}');
+  if (result.json != null) {
+    debugPrint('🧩 response JSON:\n${const JsonEncoder.withIndent("  ").convert(result.json)}');
+  } else {
+    debugPrint('🧩 response (raw): ${result.rawBody}');
+  }
+
+  // Show a user-facing message
+  final msg = result.success
+      ? (result.serverMessage ?? 'Order submitted successfully')
+      : (result.serverMessage ?? 'Order submit failed');
+  if (!mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+  if (result.success) {
+    // Clear live cart and notify parent so it clears persisted cart too
+    widget.cart.clear();
     Navigator.pop<Map<String, dynamic>>(context, {'submitted': true});
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Submit failed: $e')),
-    );
   }
 }
 
