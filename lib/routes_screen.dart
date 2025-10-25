@@ -5,12 +5,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'dart:ui';
-
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
 
 

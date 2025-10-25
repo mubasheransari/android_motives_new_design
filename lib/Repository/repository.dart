@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Service/api_basehelper.dart';
 import 'package:http/http.dart' as http;
 
-
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
@@ -31,23 +30,16 @@ class Repository {
 
   final String routeStartUrlZankGroup =
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/routeStart";
-        // final String routeStartUrlmezangrp ="http://services.mezangrp.com/motivesteang/index.php?route=api/user/routeStart";
-
-
-  // String _attTimeNoSep() => DateFormat('HHmmss').format(DateTime.now());
-
-  // String _attDateNoSep() => DateFormat('ddMMMyyyy', 'en_US').format(DateTime.now());
 
   Map<String, String> get _formHeaders => const {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      };
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+  };
 
-  // ===== API calls =====
-
-  /// LOGIN — your current format worked, so we keep it.
   Future<http.Response> login(String email, String password) async {
     final now = DateTime.now();
-    final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 20-Oct-2025
+    final currentDate = DateFormat(
+      "dd-MMM-yyyy",
+    ).format(now); // e.g., 20-Oct-2025
     final currentTime =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}"; // 14:04:15
 
@@ -67,7 +59,11 @@ class Repository {
     };
 
     final body = {"request": jsonEncode(payload)};
-    final res = await http.post(Uri.parse(loginUrl), headers: _formHeaders, body: body);
+    final res = await http.post(
+      Uri.parse(loginUrl),
+      headers: _formHeaders,
+      body: body,
+    );
 
     if (res.statusCode == 200) {
       final box = GetStorage();
@@ -75,7 +71,7 @@ class Repository {
       box.write("password", password);
       box.write("email_auth", email);
       box.write("password-auth", password);
-        box.write("login_model_json", res.body);
+      box.write("login_model_json", res.body);
     }
 
     debugPrint("➡️ /login body: $body");
@@ -83,8 +79,6 @@ class Repository {
     return res;
   }
 
-  /// ATTENDANCE — FIXED parameter order to match Bloc calls:
-  /// attendance(type, userId, lat, lng, action)
   Future<http.Response> attendance(
     String type,
     String userId,
@@ -92,8 +86,8 @@ class Repository {
     String lng,
     String action,
   ) async {
-        final now = DateTime.now();
-    final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 20-Oct-2025
+    final now = DateTime.now();
+    final currentDate = DateFormat("dd-MMM-yyyy").format(now);
     final currentTime =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
     final payload = {
@@ -104,7 +98,7 @@ class Repository {
       "device_id": "e95a9ab3bba86f821",
       "act_type": "ATTENDANCE",
       "action": action,
-     "att_time": currentTime,
+      "att_time": currentTime,
       "att_date": currentDate,
       "misc": "0",
       "dist_id": "0",
@@ -112,14 +106,17 @@ class Repository {
     };
 
     final body = {"request": jsonEncode(payload)};
-    final res = await http.post(Uri.parse(attendanceUrl), headers: _formHeaders, body: body);
+    final res = await http.post(
+      Uri.parse(attendanceUrl),
+      headers: _formHeaders,
+      body: body,
+    );
 
     debugPrint("➡️ /attendance body: $body");
     debugPrint("⬅️ /attendance ${res.statusCode}: ${res.body}");
     return res;
   }
 
-  /// ROUTE START — uses the no-separator formats as well.
   Future<http.Response> startRouteApi(
     String type,
     String userId,
@@ -127,11 +124,15 @@ class Repository {
     String lng,
     String action,
   ) async {
-      final now = DateTime.now();
+    final now = DateTime.now();
 
-  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
-  final currentTime =
-      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    final currentDate = DateFormat("dd-MMM-yyyy").format(now);
+    final currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    print("CURRENT DATE $currentDate");
+    print("CURRENT DATE $currentDate");
+    print("CURRENT TIME $currentTime");
+    print("CURRENT TIME $currentTime");
     final payload = {
       "type": type,
       "user_id": userId,
@@ -140,15 +141,19 @@ class Repository {
       "device_id": "e95a9ab3bba86f821",
       "act_type": "ROUTE",
       "action": action,
-    "att_time": currentTime,
-    "att_date": currentDate,
+      "att_time": currentTime,
+      "att_date": currentDate,
       "misc": "0",
       "dist_id": "0",
       "app_version": "1.0.1",
     };
 
     final body = {"request": jsonEncode(payload)};
-    final res = await http.post(Uri.parse(routeStartUrlZankGroup), headers: _formHeaders, body: body);
+    final res = await http.post(
+      Uri.parse(routeStartUrlZankGroup),
+      headers: _formHeaders,
+      body: body,
+    );
 
     debugPrint("➡️ /routeStart body: $body");
     debugPrint("⬅️ /routeStart ${res.statusCode}: ${res.body}");
@@ -156,158 +161,49 @@ class Repository {
   }
 
   Future<http.Response> checkin_checkout(
-  String type,
-  String userId,
-  String lat,
-  String lng,
-  String act_type,
-  String action,
-  String misc,
-  String dist_id,
-) async {
-  final now = DateTime.now();
+    String type,
+    String userId,
+    String lat,
+    String lng,
+    String act_type,
+    String action,
+    String misc,
+    String dist_id,
+  ) async {
+    final now = DateTime.now();
 
-  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
-  final currentTime =
-      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    final currentDate = DateFormat("dd-MMM-yyyy").format(now);
+    final currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
-  // 🔹 Create 'request' object
-  final requestData = {
-    "type": type,
-    "user_id": userId,
-    "latitude": lat,
-    "longitude": lng,
-    "device_id": "e95a9ab3bba86f821",
-    "act_type": act_type,
-    "action": action,
-    "att_time": currentTime,
-    "att_date": currentDate,
-    "misc": misc,
-    "dist_id": dist_id,
-    "app_version": "1.0.1",
-  };
+    final requestData = {
+      "type": type,
+      "user_id": userId,
+      "latitude": lat,
+      "longitude": lng,
+      "device_id": "e95a9ab3bba86f821",
+      "act_type": act_type,
+      "action": action,
+      "att_time": currentTime,
+      "att_date": currentDate,
+      "misc": misc,
+      "dist_id": dist_id,
+      "app_version": "1.0.1",
+    };
 
-  // 🔹 Final JSON with 'request' object and 'pic' string
-  final body = {
-    "request": requestData,
-  //  "pic": "0",
-  };
+    final body = {
+      "request": requestData,
+      //  "pic": "0",
+    };
 
-  final res = await http.post(
-    Uri.parse(routeStartUrlZankGroup),
-    headers: {
-      "Content-Type": "application/json",
-      ..._formHeaders, // optional
-    },
-    body: jsonEncode(body), // ✅ Encode once at the end
-  );
+    final res = await http.post(
+      Uri.parse(routeStartUrlZankGroup),
+      headers: {"Content-Type": "application/json", ..._formHeaders},
+      body: jsonEncode(body),
+    );
 
-  debugPrint("➡️ /route body: ${jsonEncode(body)}");
-  debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
-  return res;
-}
-
-
-// Future<http.Response> checkin_checkout(
-//   String type,
-//   String userId,
-//   String lat,
-//   String lng,
-//   String act_type,
-//   String action,
-//   String misc,
-//   String dist_id,
-// ) async {
-//   final now = DateTime.now();
-
-//   final currentDate = DateFormat("dd-MMM-yyyy").format(now); 
-//   final currentTime =
-//       "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
-
-//   final payload = {
-//     "type": type,
-//     "user_id": userId,
-//     "latitude": lat,
-//     "longitude": lng,
-//     "device_id": "e95a9ab3bba86f821",
-//     "act_type": act_type,
-//     "action": action,
-//     "att_time": currentTime,
-//     "att_date": currentDate,
-//     "misc": misc, // shop id
-//     "dist_id": dist_id,
-//     "app_version": "1.0.1",
-//   };
-
-
-//   final body = {
-//     "request": payload,
-//     "pic": "0",
-//   };
-
-//   final res = await http.post(
-//     Uri.parse(routeUrl),
-//     headers: {
-//       "Content-Type": "application/json",
-//       ..._formHeaders, // merge your custom headers if needed
-//     },
-//     body: jsonEncode(body),
-//   );
-
-//   debugPrint("➡️ /route body: ${jsonEncode(body)}");
-//   debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
-//   return res;
-// }
-
-/*Future<http.Response> checkin_checkout(
-  String type,
-  String userId,
-  String lat,
-  String lng,
-  String act_type,
-  String action,
-  String misc,
-  String dist_id,
-) async {
-  final now = DateTime.now();
-
-  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
-  final currentTime =
-      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
-
-  final payload = {
-    "type": type,
-    "user_id": userId,
-    "latitude": lat,
-    "longitude": lng,
-    "device_id": "e95a9ab3bba86f821",
-    "act_type": act_type,
-    "action": action,
-    "att_time": currentTime,
-    "att_date": currentDate,
-    "misc": misc, // shop id
-    "dist_id": dist_id,
-    "app_version": "1.0.1",
-  };
-
-  // ✅ 'pic' as plain string
-  final body = {
-    "request": payload,
-    "pic": "0",
-  };
-
-  final res = await http.post(
-    Uri.parse(routeUrl),
-    headers: {
-      "Content-Type": "application/json",
-      ..._formHeaders, // merge your custom headers if needed
-    },
-    body: jsonEncode(body),
-  );
-
-  debugPrint("➡️ /route body: ${jsonEncode(body)}");
-  debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
-  return res;
-}*/
-
+    debugPrint("➡️ /route body: ${jsonEncode(body)}");
+    debugPrint("⬅️ /route ${res.statusCode}: ${res.body}");
+    return res;
+  }
 }
