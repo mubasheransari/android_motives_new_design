@@ -34,9 +34,9 @@ class Repository {
         // final String routeStartUrlmezangrp ="http://services.mezangrp.com/motivesteang/index.php?route=api/user/routeStart";
 
 
-  String _attTimeNoSep() => DateFormat('HHmmss').format(DateTime.now());
+  // String _attTimeNoSep() => DateFormat('HHmmss').format(DateTime.now());
 
-  String _attDateNoSep() => DateFormat('ddMMMyyyy', 'en_US').format(DateTime.now());
+  // String _attDateNoSep() => DateFormat('ddMMMyyyy', 'en_US').format(DateTime.now());
 
   Map<String, String> get _formHeaders => const {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -92,6 +92,10 @@ class Repository {
     String lng,
     String action,
   ) async {
+        final now = DateTime.now();
+    final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 20-Oct-2025
+    final currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
     final payload = {
       "type": type,
       "user_id": userId,
@@ -100,8 +104,8 @@ class Repository {
       "device_id": "e95a9ab3bba86f821",
       "act_type": "ATTENDANCE",
       "action": action,
-      "att_time": _attTimeNoSep(), // "HHmmss"
-      "att_date": _attDateNoSep(), // "ddMMMyyyy"
+     "att_time": currentTime,
+      "att_date": currentDate,
       "misc": "0",
       "dist_id": "0",
       "app_version": "1.0.1",
@@ -123,6 +127,11 @@ class Repository {
     String lng,
     String action,
   ) async {
+      final now = DateTime.now();
+
+  final currentDate = DateFormat("dd-MMM-yyyy").format(now); // e.g., 22-Oct-2025
+  final currentTime =
+      "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
     final payload = {
       "type": type,
       "user_id": userId,
@@ -131,8 +140,8 @@ class Repository {
       "device_id": "e95a9ab3bba86f821",
       "act_type": "ROUTE",
       "action": action,
-      "att_time": _attTimeNoSep(),
-      "att_date": _attDateNoSep(),
+    "att_time": currentTime,
+    "att_date": currentDate,
       "misc": "0",
       "dist_id": "0",
       "app_version": "1.0.1",

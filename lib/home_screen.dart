@@ -322,7 +322,9 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                       ),
                     ),
 
-                  if (routeCompleted)
+                  if (routeCompleted && state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1")
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
@@ -395,13 +397,6 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                           ],
                         ),
                       ),
-
-                      // _Enter(
-                      //   delayMs: 120,
-                      //   child: _StatusGlass(
-                      //     text: 'Last Action · ${state.activity!.isEmpty ? "—" : state.activity}',
-                      //   ),
-                      // ),
                     ),
                   ),
 
@@ -488,33 +483,6 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                                 );
                               }
                             },
-
-                            /*  onTap: () {
-                              if (state.loginModel?.statusAttendance
-                                      .toString() ==
-                                  "1") {
-                                if (routes == null) {
-                                  toastWidget(
-                                    'Start your route first',
-                                    Colors.red,
-                                  );
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => JourneyPlanScreen(),
-                                    ),
-                                  );
-                                }
-
-                                //   Navigator.push(context, MaterialPageRoute(builder: (_) => JourneyPlanScreen()));
-                              } else {
-                                toastWidget(
-                                  'Mark your attendance first',
-                                  Colors.red,
-                                );
-                              }
-                            },*/
                           ),
                         ),
                         _Enter(
@@ -866,17 +834,7 @@ class _GlassActionCard extends StatelessWidget {
                         color: const Color(0xFF707883),
                       ),
                     ),
-                    //  const SizedBox(height: 2),
-                    // big bold subtitle (acts like the "value" in MiniStatCard)
-                    // Text(
-                    //   subtitle,
-                    //   maxLines: 2,
-                    //   overflow: TextOverflow.ellipsis,
-                    //   style: t.titleSmall?.copyWith(
-                    //     fontWeight: FontWeight.w800,
-                    //     color: const Color(0xFF1E1E1E),
-                    //   ),
-                    // ),
+                 
                   ],
                 ),
               ),
@@ -888,284 +846,6 @@ class _GlassActionCard extends StatelessWidget {
   }
 }
 
-/*
-class _GlassActionCard extends StatelessWidget {
-  const _GlassActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-    return _Pressable(
-      onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: Colors.white.withOpacity(.84),
-              border: Border.all(color: HomeUpdated.cStroke),
-              boxShadow: const [
-                BoxShadow(
-                  color: HomeUpdated.cShadow,
-                  blurRadius: 18,
-                  offset: Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // Orange aura
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(22),
-                      gradient: RadialGradient(
-                        colors: [
-                          HomeUpdated.cPrimary.withOpacity(.12),
-                          Colors.transparent,
-                        ],
-                        radius: 1.1,
-                        center: const Alignment(-1, -1),
-                      ),
-                    ),
-                  ),
-                ),
-
-                Positioned(
-                  top: -24,
-                  left: -20,
-                  child: Transform.rotate(
-                    angle: -.6,
-                    child: Container(
-                      width: 160,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(.38),
-                            Colors.transparent,
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Icon tile (orange)
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: const LinearGradient(
-                            colors: [
-                              HomeUpdated.cPrimary,
-                              HomeUpdated.cPrimarySoft,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(.55),
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: HomeUpdated.cShadow,
-                              blurRadius: 12,
-                              offset: Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: Icon(icon, color: Colors.white, size: 28),
-                      ),
-                      const Spacer(),
-                      Text(
-                        title,
-                        style: t.titleMedium?.copyWith(
-                          color: HomeUpdated.cText,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: .2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subtitle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.bodySmall?.copyWith(
-                                color: HomeUpdated.cMuted,
-                              ),
-                            ),
-                          ),
-                          // const SizedBox(width: 8),
-                          // Container(
-                          //   width: 28,
-                          //   height: 28,
-                          //   decoration: BoxDecoration(
-                          //     gradient: const LinearGradient(
-                          //       colors: [
-                          //         HomeUpdated.cPrimary,
-                          //         HomeUpdated.cPrimarySoft,
-                          //       ],
-                          //     ),
-                          //     shape: BoxShape.circle,
-                          //     border: Border.all(
-                          //       color: Colors.white.withOpacity(.55),
-                          //     ),
-                          //   ),
-                          //   child: const Icon(
-                          //     Icons.chevron_right,
-                          //     size: 18,
-                          //     color: Colors.white,
-                          //   ),
-                          // ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-*/
-// class _WideGlassTile extends StatelessWidget {
-//   const _WideGlassTile({
-//     required this.icon,
-//     required this.title,
-//     required this.caption,
-//     required this.onTap,
-//   });
-
-//   final IconData icon;
-//   final String title;
-//   final String caption;
-//   final VoidCallback onTap;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final t = Theme.of(context).textTheme;
-//     return _Pressable(
-//       onTap: onTap,
-//       child: ClipRRect(
-//         borderRadius: BorderRadius.circular(20),
-//         child: BackdropFilter(
-//           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-//           child: Container(
-//             height: 90,
-//             decoration: BoxDecoration(
-//               borderRadius: BorderRadius.circular(20),
-//               color: Colors.white.withOpacity(.84),
-//               border: Border.all(color: HomeUpdated.cStroke),
-//               boxShadow: const [
-//                 BoxShadow(
-//                   color: HomeUpdated.cShadow,
-//                   blurRadius: 14,
-//                   offset: Offset(0, 8),
-//                 ),
-//               ],
-//             ),
-//             child: Stack(
-//               children: [
-//                 Positioned.fill(
-//                   child: DecoratedBox(
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(20),
-//                       gradient: RadialGradient(
-//                         colors: [
-//                           HomeUpdated.cPrimarySoft.withOpacity(.30),
-//                           Colors.transparent,
-//                         ],
-//                         radius: 1.3,
-//                         center: const Alignment(.9, -.9),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 14),
-//                   child: Row(
-//                     children: [
-//                       Container(
-//                         width: 40,
-//                         height: 50,
-//                         decoration: BoxDecoration(
-//                           borderRadius: BorderRadius.circular(12),
-//                           gradient: const LinearGradient(
-//                             colors: [
-//                               HomeUpdated.cPrimary,
-//                               HomeUpdated.cPrimarySoft,
-//                             ],
-//                           ),
-//                           border: Border.all(
-//                             color: Colors.white.withOpacity(.55),
-//                           ),
-//                         ),
-//                         child: Icon(icon, color: Colors.white, size: 26),
-//                       ),
-//                       const SizedBox(width: 8),
-//                       Expanded(
-//                         child: Column(
-//                           mainAxisAlignment: MainAxisAlignment.center,
-//                           crossAxisAlignment: CrossAxisAlignment.start,
-//                           children: [
-//                             Text(
-//                               title,
-//                               overflow: TextOverflow.ellipsis,
-//                               style: t.titleSmall?.copyWith(
-//                                 color: HomeUpdated.cText,
-//                                 fontWeight: FontWeight.w800,
-//                               ),
-//                             ),
-//                             const SizedBox(height: 2),
-//                             Text(
-//                               caption,
-//                               maxLines: 1,
-//                               overflow: TextOverflow.ellipsis,
-//                               style: t.bodySmall?.copyWith(
-//                                 color: HomeUpdated.cMuted,
-//                                 fontWeight: FontWeight.w500,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class _WideGlassTile extends StatelessWidget {
   const _WideGlassTile({

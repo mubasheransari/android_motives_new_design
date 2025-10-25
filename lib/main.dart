@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:motives_new_ui_conversion/Offline/sync_service.dart';
 import 'package:motives_new_ui_conversion/home_screen.dart';
 import 'package:motives_new_ui_conversion/splash_screen.dart';
@@ -10,6 +11,76 @@ import 'package:location/location.dart' as loc;
 import 'dart:async';
 import 'dart:io';
 
+
+
+
+class AppBlocObserver extends BlocObserver {
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    super.onError(bloc, error, stackTrace);
+    // debugPrint('Bloc error in ${bloc.runtimeType}: $error');
+  }
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Local key-value store ready BEFORE any reads
+  await GetStorage.init();
+
+  // Safe to ignore if not present
+  try {
+    await SyncService.instance.init();
+  } catch (_) { /* ignore */ }
+
+  // Light status bar for splash/login
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
+
+  Bloc.observer = AppBlocObserver();
+
+  // ✅ Single runApp with providers ABOVE the whole app.
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<GlobalBloc>(
+          create: (_) => GlobalBloc()
+            ..add(Activity(activity: 'App Opens'))
+            ..add(const HydrateLoginFromCache()),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Motives-T',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEA7A3B)),
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const SplashScreen(), // Splash handles auth/navigation flow
+    );
+  }
+}
+
+
+/*
 final box = GetStorage();
 var email = box.read("email");
 var password = box.read("password");
@@ -186,3 +257,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+*/

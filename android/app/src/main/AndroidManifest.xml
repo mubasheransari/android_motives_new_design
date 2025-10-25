@@ -12,7 +12,6 @@
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
     <uses-feature android:name="android.hardware.biometrics" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false"/>
-    
 
     <application
         android:label="Motives-T"
