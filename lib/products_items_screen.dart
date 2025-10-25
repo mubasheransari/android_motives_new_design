@@ -139,32 +139,28 @@ Map<String, dynamic> buildCartRequest({
 
 
 
-
 Future<void> sendCartToApi({
   required BuildContext context,
-  required Map<String, dynamic> legacyPayload, // your legacy JSON map
-  required String endpoint,                    // e.g. orderSubmitUrlZankGroup
-  required String userId,                      // for local save
-  required String distId,                      // for local save
-  Map<String, String>? extraHeaders,          // e.g. _formHeaders
-  String requestField = 'request',             // server expects "request=<json>"
+  required Map<String, dynamic> legacyPayload,
+  required String endpoint,
+  required String userId,
+  required String distId,
+  Map<String, String>? extraHeaders,     // e.g. {'Accept':'application/json','Authorization':'Bearer ...'}
+  String requestField = 'request',
   bool navigateToRecordsOnSuccess = true,
 }) async {
   final uri = Uri.parse(endpoint);
 
-  // sanitize + enforce form header
+  // enforce form encoding
   final headers = {...?extraHeaders};
   headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
   headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
-  // 👇 EXACT format you wanted
-  final Map<String, String> body = {
-    requestField: jsonEncode(legacyPayload),
-  };
+  // EXACT format: {"request":"<json>"} as form
+  final Map<String, String> body = { requestField: jsonEncode(legacyPayload) };
 
   final res = await http.post(uri, headers: headers, body: body);
 
-  // await sendCartToApiccess rule: 2xx and, if present, isSuccess == true
   bool ok = res.statusCode >= 200 && res.statusCode < 300;
   try {
     final parsed = jsonDecode(res.body);
@@ -177,7 +173,7 @@ Future<void> sendCartToApi({
     throw Exception('API error ${res.statusCode}: ${res.body}');
   }
 
-  // Save successful order locally
+  // Optional: save success locally & open Records
   final rec = OrderRecord(
     id: (legacyPayload['unique'] ?? '').toString(),
     userId: userId,
@@ -191,14 +187,74 @@ Future<void> sendCartToApi({
   );
   await OrdersStorage().addOrder(userId, rec);
 
-  // Optional: open Records
   if (navigateToRecordsOnSuccess && context.mounted) {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RecordsScreen()),
-    );
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
   }
 }
+
+
+
+
+
+// Future<void> sendCartToApi({ current
+//   required BuildContext context,
+//   required Map<String, dynamic> legacyPayload, // your legacy JSON map
+//   required String endpoint,                    // e.g. orderSubmitUrlZankGroup
+//   required String userId,                      // for local save
+//   required String distId,                      // for local save
+//   Map<String, String>? extraHeaders,          // e.g. _formHeaders
+//   String requestField = 'request',             // server expects "request=<json>"
+//   bool navigateToRecordsOnSuccess = true,
+// }) async {
+//   final uri = Uri.parse(endpoint);
+
+//   // sanitize + enforce form header
+//   final headers = {...?extraHeaders};
+//   headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+//   headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+//   // 👇 EXACT format you wanted
+//   final Map<String, String> body = {
+//     requestField: jsonEncode(legacyPayload),
+//   };
+
+//   final res = await http.post(uri, headers: headers, body: body);
+
+//   // await sendCartToApiccess rule: 2xx and, if present, isSuccess == true
+//   bool ok = res.statusCode >= 200 && res.statusCode < 300;
+//   try {
+//     final parsed = jsonDecode(res.body);
+//     if (parsed is Map && parsed.containsKey('isSuccess')) {
+//       ok = ok && (parsed['isSuccess'] == true);
+//     }
+//   } catch (_) {}
+
+//   if (!ok) {
+//     throw Exception('API error ${res.statusCode}: ${res.body}');
+//   }
+
+//   // Save successful order locally
+//   final rec = OrderRecord(
+//     id: (legacyPayload['unique'] ?? '').toString(),
+//     userId: userId,
+//     distId: distId,
+//     dateStr: (legacyPayload['date'] ?? '').toString(),
+//     status: 'Success',
+//     payload: legacyPayload,
+//     httpStatus: res.statusCode,
+//     serverBody: res.body,
+//     createdAt: DateTime.now(),
+//   );
+//   await OrdersStorage().addOrder(userId, rec);
+
+//   // Optional: open Records
+//   if (navigateToRecordsOnSuccess && context.mounted) {
+//     await Navigator.push(
+//       context,
+//       MaterialPageRoute(builder: (_) => const RecordsScreen()),
+//     );
+//   }
+// }
 
 
 
@@ -511,7 +567,30 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.shopping_bag_outlined, color: kText),
+
                   onPressed: () async {
+  final result = await Navigator.of(context).push<Map<String, dynamic>>(
+    MaterialPageRoute(
+      builder: (_) => _MyListView(
+        allItems: items,
+        cart: _cart,
+        onIncrement: _inc,
+        onDecrement: _dec,
+        getPayloadMeta: () => Tuple2(userId, distributorId),
+      ),
+    ),
+  );
+
+  // ✅ No API calls here. Only react to the result.
+  if (result?['submitted'] == true) {
+    setState(() => _cart.clear());
+    await _storage.clear(_activeUserId, _activeShopId);
+  } else {
+    setState(() {}); // refresh only
+  }
+},
+
+               /*   onPressed: () async {
                     // Open My List and return payload (we submit here centrally)
                     final payload =
                         await Navigator.of(context).push<Map<String, dynamic>>(
@@ -553,7 +632,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
                     } else {
                       setState(() {}); // refresh badge if list changed only
                     }*/
-                  },
+                  },*/
                 ),
                 if (totalItems > 0)
                   Positioned(
@@ -880,66 +959,61 @@ class _MyListViewState extends State<_MyListView> {
 
   int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
 
-  // ✅ Put _submitOrder HERE (inside _MyListViewState)
-  Future<void> _submitOrder() async {
-    final meta = widget.getPayloadMeta?.call();
-    final userId = (meta?.item1 ?? '').trim();
-    final distId = (meta?.item2 ?? '').trim();
+Future<void> _submitOrder() async {
+  final login = context.read<GlobalBloc>().state.loginModel;
 
-    if (userId.isEmpty || distId.isEmpty) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User or Distributor not found')),
-      );
-      return;
-    }
+  final userId = (login?.userinfo?.userId ?? '').trim();
+  final distId = (login?.distributors.isNotEmpty == true ? (login!.distributors.first.id ?? '') : '').trim();
 
-    // Build the legacy object EXACTLY as required, from TeaItem + cart
-    final legacyPayload = buildLegacyOrderPayloadFromTea(
-      allItems: widget.allItems,
-      cart: widget.cart,
+  if (userId.isEmpty || distId.isEmpty) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('User or Distributor not found')),
+    );
+    return;
+  }
+
+  // Build EXACT legacy ORDER payload from TeaItem + cart
+  final orderPayload = buildLegacyOrderPayloadFromTea(
+    allItems: widget.allItems,
+    cart: widget.cart,
+    userId: userId,
+    distId: distId,
+    // If you have real values, pass them here instead of defaults:
+    // accCode: '500001', segmentId: '11002', compId: '11',
+    // orderBookerId: '1001', paymentType: 'CR', headerOrderType: 'OR', orderStatus: 'N',
+  );
+
+  // Sanity log: this must show header order fields + "order":[...]
+  debugPrint('ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
+
+  try {
+    await sendCartToApi(
+      context: context,
+      legacyPayload: orderPayload,
+      endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',  // ✅ your ORDER endpoint (NOT route URL)
       userId: userId,
       distId: distId,
-      // accCode/segmentId/compId/orderBookerId/paymentType/orderStatus can be overridden if needed
+      requestField: 'request',            // sends {"request":"<json>"} as form
+      // extraHeaders: {'Accept': 'application/json'}, // optional
+      navigateToRecordsOnSuccess: true,
     );
 
-    try {
-
-const Map<String, String> kFormHeaders = {
-  'Accept': 'application/json',
-};
-
-// call
-await sendCartToApi(
-  context: context,
-  legacyPayload: legacyPayload,
-  endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction', 
-  userId: userId,
-  distId: distId,
-  extraHeaders: kFormHeaders,   // ✅ optional
-  requestField: 'request',
-  navigateToRecordsOnSuccess: true,
-);
-
-
-      widget.cart.clear();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order submitted & saved')),
-      );
-
-      Navigator.pop<Map<String, dynamic>>(context, {'submitted': true});
-    } catch (e) {
-      if (!mounted) return;
-      print("EXCEPTION $e");
-      print("EXCEPTION $e");
-      print("EXCEPTION $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Submit failed: $e')),
-      );
-    }
+    widget.cart.clear(); // clear live cart
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Order submitted & saved')),
+    );
+    Navigator.pop<Map<String, dynamic>>(context, {'submitted': true});
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Submit failed: $e')),
+    );
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
