@@ -170,7 +170,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     }
   }
 
-  // ---------------- Misc (unchanged) ----------------
+
   Future<void> activity(Activity event, Emitter<GlobalState> emit) async {
     emit(state.copyWith(activity: event.activity));
   }
