@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Models/order_payload.dart';
+import 'package:motives_new_ui_conversion/Models/order_storage.dart';
+import 'package:motives_new_ui_conversion/records_history_screen.dart';
 
+import 'Models/lagecy_payload.dart';
 import 'Models/login_model.dart';
 
 // meezan_tea_catalog.dart
@@ -133,10 +137,146 @@ Map<String, dynamic> buildCartRequest({
   };
 }
 
-Future<void> sendCartToApi(
-  Map<String, dynamic> payload, {
-  String endpoint = 'https://your.api/orders', // TODO: replace
+
+
+
+Future<void> sendCartToApi({
+  required BuildContext context,
+  required Map<String, dynamic> legacyPayload, // your legacy JSON map
+  required String endpoint,                    // e.g. orderSubmitUrlZankGroup
+  required String userId,                      // for local save
+  required String distId,                      // for local save
+  Map<String, String>? extraHeaders,          // e.g. _formHeaders
+  String requestField = 'request',             // server expects "request=<json>"
+  bool navigateToRecordsOnSuccess = true,
+}) async {
+  final uri = Uri.parse(endpoint);
+
+  // sanitize + enforce form header
+  final headers = {...?extraHeaders};
+  headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+  headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+  // 👇 EXACT format you wanted
+  final Map<String, String> body = {
+    requestField: jsonEncode(legacyPayload),
+  };
+
+  final res = await http.post(uri, headers: headers, body: body);
+
+  // await sendCartToApiccess rule: 2xx and, if present, isSuccess == true
+  bool ok = res.statusCode >= 200 && res.statusCode < 300;
+  try {
+    final parsed = jsonDecode(res.body);
+    if (parsed is Map && parsed.containsKey('isSuccess')) {
+      ok = ok && (parsed['isSuccess'] == true);
+    }
+  } catch (_) {}
+
+  if (!ok) {
+    throw Exception('API error ${res.statusCode}: ${res.body}');
+  }
+
+  // Save successful order locally
+  final rec = OrderRecord(
+    id: (legacyPayload['unique'] ?? '').toString(),
+    userId: userId,
+    distId: distId,
+    dateStr: (legacyPayload['date'] ?? '').toString(),
+    status: 'Success',
+    payload: legacyPayload,
+    httpStatus: res.statusCode,
+    serverBody: res.body,
+    createdAt: DateTime.now(),
+  );
+  await OrdersStorage().addOrder(userId, rec);
+
+  // Optional: open Records
+  if (navigateToRecordsOnSuccess && context.mounted) {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RecordsScreen()),
+    );
+  }
+}
+
+
+
+/*Future<void> sendCartToApi({
+  required BuildContext context,
+  required Map<String, dynamic> legacyPayload,
+  required String endpoint,
+  required String userId,
+  required String distId,
   Map<String, String>? extraHeaders,
+  bool asForm = false,                 // 👈 set true if server expects request=<json>
+  String requestField = 'request',     // 👈 name of the wrapper field
+  bool navigateToRecordsOnSuccess = true,
+}) async {
+  final uri = Uri.parse(endpoint);
+
+  // sanitize headers, we control Content-Type
+  final headers = {...?extraHeaders};
+  headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+  headers['Content-Type'] =
+      asForm ? 'application/x-www-form-urlencoded' : 'application/json';
+
+  http.Response res;
+  if (asForm) {
+    // form fields require String values
+    final Map<String, String> body = {
+      requestField: jsonEncode(legacyPayload),
+    };
+    res = await http.post(uri, headers: headers, body: body);
+  } else {
+    res = await http.post(uri, headers: headers, body: jsonEncode(legacyPayload));
+  }
+
+  bool ok = res.statusCode >= 200 && res.statusCode < 300;
+  try {
+    final parsed = jsonDecode(res.body);
+    if (parsed is Map && parsed.containsKey('isSuccess')) {
+      ok = ok && (parsed['isSuccess'] == true);
+    }
+  } catch (_) {}
+
+  if (!ok) {
+    throw Exception('API error ${res.statusCode}: ${res.body}');
+  }
+
+  // save successful order locally
+  final rec = OrderRecord(
+    id: (legacyPayload['unique'] ?? '').toString(),
+    userId: userId,
+    distId: distId,
+    dateStr: (legacyPayload['date'] ?? '').toString(),
+    status: 'Success',
+    payload: legacyPayload,
+    httpStatus: res.statusCode,
+    serverBody: res.body,
+    createdAt: DateTime.now(),
+  );
+  await OrdersStorage().addOrder(userId, rec);
+
+  if (navigateToRecordsOnSuccess && context.mounted) {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RecordsScreen()),
+    );
+  }
+}
+*/
+
+
+/*
+Future<void> sendCartToApi({
+  required BuildContext context,
+  required Map<String, dynamic> legacyPayload, // the legacy object
+  required String endpoint,                    // e.g. 'https://your.api/orders'
+  required String userId,                      // for saving locally
+  required String distId,                      // for saving locally
+  Map<String, String>? extraHeaders,
+  bool navigateToRecordsOnSuccess = true,
 }) async {
   final uri = Uri.parse(endpoint);
   final res = await http.post(
@@ -145,13 +285,66 @@ Future<void> sendCartToApi(
       'Content-Type': 'application/json',
       ...?extraHeaders,
     },
-    body: jsonEncode(payload),
+      body : {"request": jsonEncode(legacyPayload)}
+    // body: jsonEncode(legacyPayload),
   );
 
-  if (res.statusCode < 200 || res.statusCode >= 300) {
+  // Basic success: HTTP 2xx (and if body has isSuccess, it must be true)
+  bool ok = res.statusCode >= 200 && res.statusCode < 300;
+  try {
+    final parsed = jsonDecode(res.body);
+    if (parsed is Map && parsed.containsKey('isSuccess')) {
+      ok = ok && (parsed['isSuccess'] == true);
+    }
+  } catch (_) { /* ignore parse errors */ }
+
+  if (!ok) {
     throw Exception('API error ${res.statusCode}: ${res.body}');
   }
-}
+
+  // Save successful order locally
+  final rec = OrderRecord(
+    id: (legacyPayload['unique'] ?? '').toString(),
+    userId: userId,
+    distId: distId,
+    dateStr: (legacyPayload['date'] ?? '').toString(),
+    status: 'Success',
+    payload: legacyPayload,
+    httpStatus: res.statusCode,
+    serverBody: res.body,
+    createdAt: DateTime.now(),
+  );
+  await OrdersStorage().addOrder(userId, rec);
+
+  // Open records screen (optional)
+  if (navigateToRecordsOnSuccess && context.mounted) {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RecordsScreen()),
+    );
+  }
+}*/
+
+
+// Future<void> sendCartToApi(
+//   Map<String, dynamic> payload, {
+//   String endpoint = 'https://your.api/orders', // TODO: replace
+//   Map<String, String>? extraHeaders,
+// }) async {
+//   final uri = Uri.parse(endpoint);
+//   final res = await http.post(
+//     uri,
+//     headers: {
+//       'Content-Type': 'application/json',
+//       ...?extraHeaders,
+//     },
+//     body: jsonEncode(payload),
+//   );
+
+//   if (res.statusCode < 200 || res.statusCode >= 300) {
+//     throw Exception('API error ${res.statusCode}: ${res.body}');
+//   }
+// }
 
 // ===== GETSTORAGE CART PERSISTENCE (per user + per shop) =====
 class CartStorage {
@@ -264,6 +457,9 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
 
   @override
   Widget build(BuildContext context) {
+
+
+
     final t = Theme.of(context).textTheme;
 
     // Read your LoginModel from GlobalBloc
@@ -293,6 +489,9 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
     }).toList();
 
     final totalItems = _cart.values.fold<int>(0, (a, b) => a + b);
+
+
+    
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -327,7 +526,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
                       ),
                     );
 
-                    if (payload != null) {
+             /*       if (payload != null) {
                       // ensure the shopId is part of payload if backend expects it
                       payload['shopId'] = _activeShopId;
 
@@ -353,7 +552,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
                       }
                     } else {
                       setState(() {}); // refresh badge if list changed only
-                    }
+                    }*/
                   },
                 ),
                 if (totalItems > 0)
@@ -644,6 +843,246 @@ class _QtyControls extends StatelessWidget {
   }
 }
 
+class _MyListView extends StatefulWidget {
+  final List<TeaItem> allItems;
+  final Map<String, int> cart; // live reference to parent cart
+  final void Function(TeaItem) onIncrement;
+  final void Function(TeaItem) onDecrement;
+  final Tuple2<String?, String?> Function()? getPayloadMeta;
+
+  const _MyListView({
+    required this.allItems,
+    required this.cart,
+    required this.onIncrement,
+    required this.onDecrement,
+    this.getPayloadMeta,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_MyListView> createState() => _MyListViewState();
+}
+
+class _MyListViewState extends State<_MyListView> {
+  List<_CartRow> get _rows {
+    final rows = <_CartRow>[];
+    widget.cart.forEach((key, qty) {
+      final item = widget.allItems.firstWhere(
+        (e) => e.key == key,
+        orElse: () => TeaItem(
+          key: key, itemId: null, name: 'Unknown', desc: '', brand: 'Meezan'),
+      );
+      rows.add(_CartRow(item: item, qty: qty));
+    });
+    rows.sort((a, b) => a.item.name.compareTo(b.item.name));
+    return rows;
+  }
+
+  int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
+
+  // ✅ Put _submitOrder HERE (inside _MyListViewState)
+  Future<void> _submitOrder() async {
+    final meta = widget.getPayloadMeta?.call();
+    final userId = (meta?.item1 ?? '').trim();
+    final distId = (meta?.item2 ?? '').trim();
+
+    if (userId.isEmpty || distId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User or Distributor not found')),
+      );
+      return;
+    }
+
+    // Build the legacy object EXACTLY as required, from TeaItem + cart
+    final legacyPayload = buildLegacyOrderPayloadFromTea(
+      allItems: widget.allItems,
+      cart: widget.cart,
+      userId: userId,
+      distId: distId,
+      // accCode/segmentId/compId/orderBookerId/paymentType/orderStatus can be overridden if needed
+    );
+
+    try {
+
+const Map<String, String> kFormHeaders = {
+  'Accept': 'application/json',
+};
+
+// call
+await sendCartToApi(
+  context: context,
+  legacyPayload: legacyPayload,
+  endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction', 
+  userId: userId,
+  distId: distId,
+  extraHeaders: kFormHeaders,   // ✅ optional
+  requestField: 'request',
+  navigateToRecordsOnSuccess: true,
+);
+
+
+      widget.cart.clear();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order submitted & saved')),
+      );
+
+      Navigator.pop<Map<String, dynamic>>(context, {'submitted': true});
+    } catch (e) {
+      if (!mounted) return;
+      print("EXCEPTION $e");
+      print("EXCEPTION $e");
+      print("EXCEPTION $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Submit failed: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: kText),
+        title: Text('My List',
+            style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
+      ),
+      body: Column(
+        children: [
+          // header
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kOrange, Color(0xFFFFB07A)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.shopping_bag_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Items in your list: $_totalQty',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+          ),
+
+          if (_rows.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.local_grocery_store_outlined, size: 56, color: kMuted),
+                  const SizedBox(height: 8),
+                  Text('Your list is empty', style: t.titleMedium?.copyWith(color: kText)),
+                  const SizedBox(height: 4),
+                  Text('Add products from the catalog.', style: t.bodySmall?.copyWith(color: kMuted)),
+                ]),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                itemCount: _rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) {
+                  final row = _rows[i];
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: kCard,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [BoxShadow(color: kShadow, blurRadius: 12, offset: Offset(0, 6))],
+                      border: Border.all(color: const Color(0xFFEDEFF2)),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                              color: kField, borderRadius: BorderRadius.circular(14)),
+                          child: const Icon(Icons.local_cafe_rounded, color: kOrange),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _TagPill(text: row.item.brand),
+                              const SizedBox(height: 6),
+                              Text(row.item.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.titleMedium?.copyWith(
+                                      color: kText, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text(row.item.desc,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.bodySmall?.copyWith(color: kMuted)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _QtyControls(
+                          qty: row.qty,
+                          onInc: () {
+                            widget.onIncrement(row.item);
+                            setState(() {});
+                          },
+                          onDec: () {
+                            widget.onDecrement(row.item);
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          // ✅ Button now calls _submitOrder (not _returnPayload)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 52),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _rows.isEmpty ? null : _submitOrder,
+                child: const Text('Confirm & Send',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16.5)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/*
 // ===== MY LIST VIEW (returns payload, submitting happens in caller) =====
 class _MyListView extends StatefulWidget {
   final List<TeaItem> allItems;
@@ -850,7 +1289,7 @@ class _MyListViewState extends State<_MyListView> {
       ),
     );
   }
-}
+}*/
 
 class _CartRow {
   final TeaItem item;

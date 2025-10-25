@@ -9,6 +9,7 @@ import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
+import 'package:motives_new_ui_conversion/records_history_screen.dart';
 import 'package:motives_new_ui_conversion/routes_screen.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 import 'dart:ui';
@@ -491,7 +492,14 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                             icon: Icons.insert_drive_file,
                             title: 'History & logs',
                             subtitle: 'Records',
-                            onTap: () {},
+                            onTap: () {//RecordsScreen
+                                   Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => RecordsScreen(),
+                                    ),
+                                  );
+                            },
                           ),
                         ),
                       ]),

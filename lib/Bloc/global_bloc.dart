@@ -128,7 +128,6 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     }
   }
 
-  // ---------------- Checkin/Checkout/Hold/No-Visit (offline queue aware) ----
   Future<void> _checkinCheckout(CheckinCheckoutEvent event, Emitter<GlobalState> emit) async {
     if (!await SyncService.instance.isOnlineNow()) {
       await SyncService.instance.enqueueRouteAction(
