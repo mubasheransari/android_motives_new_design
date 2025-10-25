@@ -65,7 +65,7 @@ class _RouteScreenState extends State<RouteScreen> {
     context.read<GlobalBloc>().add(
           StartRouteEvent(
             action: 'IN',
-            type: '1',
+            type: '3',
             userId: userId,
             lat: currentLocation.latitude.toString(),
             lng: currentLocation.longitude.toString(),
@@ -82,7 +82,7 @@ class _RouteScreenState extends State<RouteScreen> {
       action: 'OUT',
       lat: currentLocation.latitude.toString(),
             lng: currentLocation.longitude.toString(),
-      type: '0',
+      type: '4',
       userId: userId,
     ));
     context.read<GlobalBloc>().add(
