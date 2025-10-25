@@ -53,11 +53,12 @@ class SyncService {
     required String lat,
     required String lng,
     required String action,
+    required String disid
   }) async {
     await _store.add(OutboxJob(
       id: _uuid.v4(),
       kind: QueueKind.startRoute,
-      fields: {'type': type, 'userId': userId, 'lat': lat, 'lng': lng, 'action': action},
+      fields: {'type': type, 'userId': userId, 'lat': lat, 'lng': lng, 'action': action,'dis_id':disid},
       createdAt: DateTime.now(),
     ));
   }
@@ -124,7 +125,7 @@ class SyncService {
       }
       case QueueKind.startRoute: {
         final f = job.fields;
-        final res = await repo.startRouteApi(f['type'], f['userId'], f['lat'], f['lng'], f['action']);
+        final res = await repo.startRouteApi(f['type'], f['userId'], f['lat'], f['lng'], f['action'],f['dist_id']);
         return res.statusCode == 200;
       }
       case QueueKind.routeAction: {

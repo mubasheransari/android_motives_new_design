@@ -41,15 +41,17 @@ class StartRouteEvent extends GlobalEvent {
   final String lat;
   final String lng;
   final String action;
+  final String disid;
   const StartRouteEvent({
     required this.type,
     required this.userId,
     required this.lat,
     required this.lng,
     required this.action,
+    required this.disid
   });
   @override
-  List<Object?> get props => [type, userId, lat, lng, action];
+  List<Object?> get props => [type, userId, lat, lng, action,disid];
 }
 
 class CheckinCheckoutEvent extends GlobalEvent {

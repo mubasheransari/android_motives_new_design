@@ -123,6 +123,7 @@ class Repository {
     String lat,
     String lng,
     String action,
+    String disid
   ) async {
     final now = DateTime.now();
 
@@ -144,7 +145,7 @@ class Repository {
       "att_time": currentTime,
       "att_date": currentDate,
       "misc": "0",
-      "dist_id": "0",
+      "dist_id": disid,
       "app_version": "1.0.1",
     };
 

@@ -60,7 +60,7 @@ class _RouteScreenState extends State<RouteScreen> {
     setState(() => isRouteStarted = value);
   }
 
-  Future<void> _startRoute(BuildContext context, String userId) async {
+  Future<void> _startRoute(BuildContext context, String userId, String disid) async {
     final currentLocation = await location.getLocation();
     context.read<GlobalBloc>().add(
           StartRouteEvent(
@@ -69,12 +69,13 @@ class _RouteScreenState extends State<RouteScreen> {
             userId: userId,
             lat: currentLocation.latitude.toString(),
             lng: currentLocation.longitude.toString(),
+            disid: disid
           ),
         );
     await _setRouteStatus(true);
   }
 
-  Future<void> _endRoute(BuildContext context, String userId) async {
+  Future<void> _endRoute(BuildContext context, String userId,String disid) async {
     final currentLocation = await location.getLocation();
 
     
@@ -87,6 +88,7 @@ class _RouteScreenState extends State<RouteScreen> {
     ));
     context.read<GlobalBloc>().add(
           StartRouteEvent(
+            disid: disid,
             action: 'OUT',
             type: '0',
             userId: userId,
@@ -143,6 +145,7 @@ class _RouteScreenState extends State<RouteScreen> {
       builder: (context, state) {
         final login = state.loginModel!;
         final userId = login.userinfo!.userId.toString();
+        final distribution_Id = login.userinfo!.disid.toString();
 
         // Planned (dedup) — updates via BlocBuilder; unchanged UI
         final jpCount = _dedupJourneyCount(login.journeyPlan);
@@ -271,8 +274,8 @@ class _RouteScreenState extends State<RouteScreen> {
                               elevation: 0,
                             ),
                             onPressed: !isRouteStarted
-                                ? () => _startRoute(context, userId)
-                                : (canEndRoute ? () => _endRoute(context, userId) : null),
+                                ? () => _startRoute(context, userId,distribution_Id)
+                                : (canEndRoute ? () => _endRoute(context, userId,distribution_Id) : null),
                             child: Text(
                               !isRouteStarted ? 'Start your route' : 'End Route',
                               style: t.titleMedium?.copyWith(

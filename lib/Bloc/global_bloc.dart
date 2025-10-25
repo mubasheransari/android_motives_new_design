@@ -101,7 +101,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
   Future<void> _startRoute(StartRouteEvent event, Emitter<GlobalState> emit) async {
     if (!await SyncService.instance.isOnlineNow()) {
       await SyncService.instance.enqueueStartRoute(
-        type: event.type, userId: event.userId, lat: event.lat, lng: event.lng, action: event.action,
+        type: event.type, userId: event.userId, lat: event.lat, lng: event.lng, action: event.action,disid:event.disid
       );
       emit(state.copyWith(startRouteStatus: StartRouteStatus.queued));
       return;
@@ -109,7 +109,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
 
     emit(state.copyWith(startRouteStatus: StartRouteStatus.loading));
     try {
-      final response = await repo.startRouteApi(event.type, event.userId, event.lat, event.lng, event.action);
+      final response = await repo.startRouteApi(event.type, event.userId, event.lat, event.lng, event.action,event.disid);
       if (response.statusCode == 200) {
         // parse tolerant
         final Map<String, dynamic> data = jsonDecode(response.body);
