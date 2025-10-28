@@ -258,7 +258,7 @@ class _HomeUpdatedState extends State<HomeUpdated> {
       ),
       child: Scaffold(
         floatingActionButton: FloatingActionButton(onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=> SmartFaqChatScreen()));
+          Navigator.push(context, MaterialPageRoute(builder: (context)=> SmartFaqChatBilingual()));
         },child: Container(height: 100,width: 300,child: Text('FAQS'),),),
         backgroundColor: HomeUpdated.cBg,
         body: Stack(
