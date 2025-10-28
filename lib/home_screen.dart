@@ -294,7 +294,7 @@ floatingActionButton: Padding(
         setState(() => _faqBtnScale = 1);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AreaMarkersFromJourneyPlanMap() //SmartFaqChatBilingual()
+          MaterialPageRoute(builder: (_) => const SmartFaqChatBilingual() //JourneyPlanMapSingleFile() //SmartFaqChatBilingual()
           ),
         );
       },

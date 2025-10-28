@@ -736,7 +736,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
       child: Scaffold(
         // keep scaffold background so app still looks consistent outside body
         backgroundColor: _kBg,
-        appBar: AppBar(
+      /*  appBar: AppBar(
           backgroundColor: _kCard,
           elevation: 0,
           title: Text(
@@ -755,15 +755,60 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
               icon: const Icon(Icons.delete_outline, color: _kMuted),
             ),
           ],
-        ),
+        ),*/
         // ✅ UI-only update: watermark behind the chat content
         body: Stack(
           children: [
              WatermarkTiledSmall(tileScale: 3.0),
 
+          //    Positioned(
+          //     top: 250,
+          //     child: Row(
+          //     children: [
+          //       Text(
+          //   _t.appTitle,
+          //   style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700, color: _kText),
+          // ),
+          
+          //   _LangToggle(
+          //     lang: _lang,
+          //     onChanged: _switchLang,
+          //     t: _t,
+          //   ),
+          //   IconButton(
+          //     tooltip: _t.clearChat,
+          //     onPressed: _clearHistory,
+          //     icon: const Icon(Icons.delete_outline, color: _kMuted),
+          //   ),
+          //     ],
+          //    )),
+
             // Foreground content (unchanged logic)
             Column(
               children: [
+                SizedBox(height: 40,),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+
+                Text(
+            _t.appTitle,
+            style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700, color: _kText),
+          ),
+          
+            _LangToggle(
+              lang: _lang,
+              onChanged: _switchLang,
+              t: _t,
+            ),
+            IconButton(
+              tooltip: _t.clearChat,
+              onPressed: _clearHistory,
+              icon: const Icon(Icons.delete_outline, color: _kMuted),
+            ),
+              ],
+             ),
                 // Category filter + suggestion chips (opaque so watermark peeks around)
                 Container(
                   width: double.infinity,
