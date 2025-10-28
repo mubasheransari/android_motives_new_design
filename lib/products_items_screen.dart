@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Models/order_storage.dart';
 import 'package:motives_new_ui_conversion/Models/order_sumbitted_model.dart';
 import 'package:motives_new_ui_conversion/records_history_screen.dart';
@@ -359,6 +361,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
   final result = await Navigator.of(context).push<Map<String, dynamic>>(
     MaterialPageRoute(
       builder: (_) => _MyListView(
+        shopId: widget.shopId,
         allItems: items,
         cart: _cart,
         onIncrement: _inc,
@@ -665,7 +668,304 @@ class _QtyControls extends StatelessWidget {
   }
 }
 
+
 class _MyListView extends StatefulWidget {
+  final List<TeaItem> allItems;
+  final Map<String, int> cart; // live reference to parent cart
+  final void Function(TeaItem) onIncrement;
+  final void Function(TeaItem) onDecrement;
+  final Tuple2<String?, String?> Function()? getPayloadMeta;
+
+  // ✅ NEW: needed to persist reason and send events
+  final String shopId; // miscid
+
+  const _MyListView({
+    required this.allItems,
+    required this.cart,
+    required this.onIncrement,
+    required this.onDecrement,
+    this.getPayloadMeta,
+    required this.shopId,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_MyListView> createState() => _MyListViewState();
+}
+
+class _MyListViewState extends State<_MyListView> {
+  List<_CartRow> get _rows {
+    final rows = <_CartRow>[];
+    widget.cart.forEach((key, qty) {
+      final item = widget.allItems.firstWhere(
+        (e) => e.key == key,
+        orElse: () => TeaItem(
+          key: key, itemId: null, name: 'Unknown', desc: '', brand: 'Meezan'),
+      );
+      rows.add(_CartRow(item: item, qty: qty));
+    });
+    rows.sort((a, b) => a.item.name.compareTo(b.item.name));
+    return rows;
+  }
+
+  int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
+
+  Future<void> _submitOrder() async {
+    final login = context.read<GlobalBloc>().state.loginModel;
+
+    final userId = (login?.userinfo?.userId ?? '').trim();
+    final distId = (login?.distributors.isNotEmpty == true
+        ? (login!.distributors.first.id ?? '')
+        : '').trim();
+
+    if (userId.isEmpty || distId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User or Distributor not found')),
+      );
+      return;
+    }
+
+    // ⚠️ Keep your existing payload builder as-is
+    final orderPayload = buildLegacyOrderPayloadFromTea(
+      allItems: widget.allItems,
+      cart: widget.cart,
+      userId: userId,
+      distId: distId,
+    );
+
+    debugPrint('🧾 ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
+
+    final result = await sendCartToApi(
+      context: context,
+      legacyPayload: orderPayload,
+      endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
+      userId: userId,
+      distId: distId,
+      requestField: 'request',
+      navigateToRecordsOnSuccess: true,
+    );
+
+    debugPrint('✅ success=${result.success}  status=${result.statusCode}');
+    if (result.json != null) {
+      debugPrint('🧩 response JSON:\n${const JsonEncoder.withIndent("  ").convert(result.json)}');
+    } else {
+      debugPrint('🧩 response (raw): ${result.rawBody}');
+    }
+
+    final msg = result.success
+        ? (result.serverMessage ?? 'Order submitted successfully')
+        : (result.serverMessage ?? 'Order submit failed');
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+    if (!result.success) return;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ✅ On success: fire ORDER (type 7) + CHECKOUT (type 6) and persist reason
+    // ─────────────────────────────────────────────────────────────────────
+    final gb = context.read<GlobalBloc>();
+
+    String lat = '0', lng = '0';
+    try {
+      final l = await loc.Location().getLocation();
+      lat = (l.latitude ?? 0).toString();
+      lng = (l.longitude ?? 0).toString();
+    } catch (_) {/* ignore location failure */}
+
+    // Optional ORDER record (reason trail)
+    gb.add(CheckinCheckoutEvent(
+      type: '7', // ORDER reason
+      userId: userId,
+      lat: lat,
+      lng: lng,
+      act_type: 'ORDER',
+      action: 'Order placed',
+      misc: widget.shopId,    // miscid
+      dist_id: distId,
+    ));
+
+    // Mandatory CHECKOUT
+    gb.add(CheckinCheckoutEvent(
+      type: '6', // CHECK OUT
+      userId: userId,
+      lat: lat,
+      lng: lng,
+      act_type: 'SHOP_CHECK',
+      action: 'OUT',
+      misc: widget.shopId,
+      dist_id: distId,
+    ));
+
+    // Persist "Order placed" against this shop id
+    final box = GetStorage();
+    final raw = box.read('journey_reasons');
+    final reasons = <String, String>{};
+    if (raw is Map) {
+      raw.forEach((k, v) => reasons[k.toString()] = v.toString());
+    }
+    reasons[widget.shopId] = 'Order placed';
+    await box.write('journey_reasons', reasons);
+
+    // optional (keep status consistent)
+    final stRaw = box.read('journey_status');
+    final st = (stRaw is Map) ? Map<String, dynamic>.from(stRaw) : <String, dynamic>{};
+    st[widget.shopId] = {'checkedIn': false, 'last': 'none', 'holdUI': false};
+    await box.write('journey_status', st);
+
+    // Clear live cart and bubble result up
+    widget.cart.clear();
+    if (!mounted) return;
+    Navigator.pop<Map<String, dynamic>>(context, {
+      'submitted': true,
+      'miscid': widget.shopId,
+      'reason': 'Order placed',
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: kText),
+        title: Text('My List',
+            style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
+      ),
+      body: Column(
+        children: [
+          // header
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kOrange, Color(0xFFFFB07A)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.shopping_bag_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Items in your list: $_totalQty',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+          ),
+
+          if (_rows.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Icon(Icons.local_grocery_store_outlined, size: 56, color: kMuted),
+                  const SizedBox(height: 8),
+                  Text('Your list is empty', style: t.titleMedium?.copyWith(color: kText)),
+                  const SizedBox(height: 4),
+                  Text('Add products from the catalog.', style: t.bodySmall?.copyWith(color: kMuted)),
+                ]),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                itemCount: _rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) {
+                  final row = _rows[i];
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: kCard,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [BoxShadow(color: kShadow, blurRadius: 12, offset: Offset(0, 6))],
+                      border: Border.all(color: const Color(0xFFEDEFF2)),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                              color: kField, borderRadius: BorderRadius.circular(14)),
+                          child: const Icon(Icons.local_cafe_rounded, color: kOrange),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _TagPill(text: row.item.brand),
+                              const SizedBox(height: 6),
+                              Text(row.item.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.titleMedium?.copyWith(
+                                      color: kText, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text(row.item.desc,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.bodySmall?.copyWith(color: kMuted)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _QtyControls(
+                          qty: row.qty,
+                          onInc: () { widget.onIncrement(row.item); setState(() {}); },
+                          onDec: () { widget.onDecrement(row.item); setState(() {}); },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 52),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kOrange,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _rows.isEmpty ? null : _submitOrder,
+                child: const Text('Confirm & Send',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16.5)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CartRow {
+  final TeaItem item;
+  final int qty;
+  _CartRow({required this.item, required this.qty});
+}
+
+
+/*class _MyListView extends StatefulWidget {
   final List<TeaItem> allItems;
   final Map<String, int> cart; // live reference to parent cart
   final void Function(TeaItem) onIncrement;
@@ -900,13 +1200,13 @@ Future<void> _submitOrder() async {
       ),
     );
   }
-}
+}*/
 
-class _CartRow {
-  final TeaItem item;
-  final int qty;
-  _CartRow({required this.item, required this.qty});
-}
+// class _CartRow {
+//   final TeaItem item;
+//   final int qty;
+//   _CartRow({required this.item, required this.qty});
+// }
 
 // Tiny Tuple helper
 class Tuple2<T1, T2> {
