@@ -17,7 +17,7 @@
 //     runApp(const MyApp());
 //   }
 //
-// Usage:
+// Open:
 //   Navigator.push(context,
 //     MaterialPageRoute(builder: (_) => const SmartFaqChatBilingual()),
 //   );
@@ -112,147 +112,185 @@ class FaqItem {
   List<String> tags(FaqLang l) => l == FaqLang.en ? tagsEn : tagsUr;
 }
 
-// ---------- DATA ----------
+// ---------- DATA (UPDATED with your domain Q&As) ----------
 const _faqs = <FaqItem>[
+  // Overview
+  FaqItem(
+    id: 'ov_what_is_motives',
+    categoryEn: 'Overview',
+    questionEn: 'What is Motives?',
+    answerEn:
+        'Motives is a field-sales app for distributors to capture shop orders according to a journey plan. Riders mark attendance, start the route, then visit shops to check-in, take orders, collect payments, mark No-Visit with a reason, or put shops on Hold. You cannot end the route until the journey plan is completed.',
+    tagsEn: ['motives', 'overview', 'what is', 'distributor app', 'field sales', 'route'],
+    categoryUr: 'جائزہ',
+    questionUr: 'موٹیوز کیا ہے؟',
+    answerUr:
+        'موٹیوز ڈسٹری بیوٹرز کے لئے فیلڈ سیلز ایپ ہے جس سے جرنی پلان کے مطابق دکانوں کے آرڈر لیے جاتے ہیں۔ رائیڈر حاضری لگاتا ہے، روٹ شروع کرتا ہے، پھر دکان پر چیک اِن، آرڈر، پیمنٹ، نو وِزٹ (وجہ کے ساتھ) یا ہولڈ کرتا ہے۔ جرنی پلان مکمل ہونے سے پہلے روٹ ختم نہیں کیا جا سکتا۔',
+    tagsUr: ['موٹیوز', 'جائزہ', 'کیا ہے', 'ڈسٹری بیوٹر', 'فیلڈ سیلز', 'روٹ'],
+  ),
+
+  // Attendance & Route
+  FaqItem(
+    id: 'route_flow',
+    categoryEn: 'Attendance & Route',
+    questionEn: 'What is the correct daily flow: attendance, route, and visits?',
+    answerEn:
+        '1) Mark Attendance → 2) Start Route → 3) Visit shops in order → 4) At each shop: Check-In first, then take an action (Order / Collect Payment / No-Visit with reason / Hold). Repeat until all shops in the journey plan are handled.',
+    tagsEn: ['attendance', 'start route', 'flow', 'daily', 'visit order'],
+    categoryUr: 'حاضری اور روٹ',
+    questionUr: 'روزانہ کا درست طریقہ کیا ہے: حاضری، روٹ اور وزٹس؟',
+    answerUr:
+        '1) حاضری لگائیں → 2) روٹ شروع کریں → 3) ترتیب کے مطابق دکانوں پر جائیں → 4) ہر دکان پر پہلے چیک اِن کریں، پھر ایکشن کریں (آرڈر / پیمنٹ / نو وِزٹ وجہ کے ساتھ / ہولڈ)۔ یہ عمل تب تک دہرائیں جب تک جرنی پلان مکمل نہ ہو۔',
+    tagsUr: ['حاضری', 'روٹ شروع', 'طریقہ', 'روزانہ', 'وزٹ ترتیب'],
+  ),
+
+  FaqItem(
+    id: 'cant_end_route',
+    categoryEn: 'Attendance & Route',
+    questionEn: "Why can't I end the route yet?",
+    answerEn:
+        'You can’t end the route until the full journey plan is covered. Make sure every shop in the current plan is handled (Order Done, No-Visit with reason, or Hold as needed) and you are checked-out from the last visited shop.',
+    tagsEn: ['end route', 'cannot end', 'journey plan complete', 'block'],
+    categoryUr: 'حاضری اور روٹ',
+    questionUr: 'میں روٹ ابھی ختم کیوں نہیں کر پا رہا/رہی؟',
+    answerUr:
+        'جب تک مکمل جرنی پلان کور نہ ہو، روٹ ختم نہیں کیا جا سکتا۔ موجودہ پلان کی ہر دکان پر ایکشن مکمل کریں (آرڈر ڈن، نو وِزٹ وجہ کے ساتھ، یا ہولڈ) اور آخری وزٹ کی دکان سے چیک آؤٹ یقینی بنائیں۔',
+    tagsUr: ['روٹ ختم', 'اختتام نہیں', 'جرنی پلان مکمل', 'بلاک'],
+  ),
+
+  // Visits & Reasons
+  FaqItem(
+    id: 'checkin_first',
+    categoryEn: 'Visits & Reasons',
+    questionEn: 'Do I need to Check-In before taking any action at a shop?',
+    answerEn:
+        'Yes. Check-In is required before taking orders, collecting payments, or selecting reasons (No-Visit/Hold).',
+    tagsEn: ['check in', 'required', 'visit', 'reason', 'hold', 'no visit'],
+    categoryUr: 'وزٹس اور وجوہات',
+    questionUr: 'کیا دکان پر کسی بھی ایکشن سے پہلے چیک اِن ضروری ہے؟',
+    answerUr:
+        'جی ہاں۔ آرڈر لینے، پیمنٹ جمع کرنے یا وجوہات (نو وِزٹ/ہولڈ) منتخب کرنے سے پہلے چیک اِن لازمی ہے۔',
+    tagsUr: ['چیک اِن', 'ضروری', 'وزٹ', 'وجہ', 'ہولڈ', 'نو وزٹ'],
+  ),
+
+  FaqItem(
+    id: 'hold_shop',
+    categoryEn: 'Visits & Reasons',
+    questionEn: 'When should I mark a shop as Hold?',
+    answerEn:
+        'Use Hold when the owner is unavailable or the shop is temporarily closed. You can move to the next shop and return later.',
+    tagsEn: ['hold', 'unavailable', 'closed', 'reason', 'pause'],
+    categoryUr: 'وزٹس اور وجوہات',
+    questionUr: 'دکان کو ہولڈ کب مارک کروں؟',
+    answerUr:
+        'جب مالک موجود نہ ہو یا دکان عارضی طور پر بند ہو تو ہولڈ کریں۔ آپ اگلی دکان پر جا سکتے ہیں اور بعد میں واپس آ سکتے ہیں۔',
+    tagsUr: ['ہولڈ', 'غیر موجود', 'بند', 'وجہ', 'وقفہ'],
+  ),
+
+  FaqItem(
+    id: 'no_visit_reason',
+    categoryEn: 'Visits & Reasons',
+    questionEn: 'How do I mark No-Visit with a reason?',
+    answerEn:
+        'After Check-In, choose No-Visit and select the appropriate reason from the list, then proceed to the next shop.',
+    tagsEn: ['no visit', 'reason', 'visit', 'skip'],
+    categoryUr: 'وزٹس اور وجوہات',
+    questionUr: 'نو وِزٹ وجہ کے ساتھ کیسے مارک کروں؟',
+    answerUr:
+        'چیک اِن کے بعد نو وِزٹ منتخب کریں اور فہرست میں سے موزوں وجہ چنیں، پھر اگلی دکان پر جائیں۔',
+    tagsUr: ['نو وزٹ', 'وجہ', 'وزٹ', 'اسکپ'],
+  ),
+
   // Orders
   FaqItem(
-    id: 'orders_01',
+    id: 'place_order',
     categoryEn: 'Orders',
-    questionEn: 'How do I place an order?',
+    questionEn: 'How do I take/place an order after Check-In?',
     answerEn:
-        'Open “Products”, add items, then go to “My List” and press “Confirm & Send”. You’ll see a success toast and the order will appear in Records.',
-    tagsEn: ['order', 'place', 'buy', 'cart', 'bag', 'confirm', 'send'],
+        'From Order Menu, open Products, add items, and in “My List” press “Confirm & Send”. On success, the shop becomes “Order Done”, you’re checked-out locally, and covered routes increment.',
+    tagsEn: ['order', 'take order', 'products', 'confirm & send', 'order done'],
     categoryUr: 'آرڈرز',
-    questionUr: 'آرڈر کیسے کریں؟',
+    questionUr: 'چیک اِن کے بعد آرڈر کیسے لوں/کروں؟',
     answerUr:
-        '“Products” کھولیں، آئٹمز شامل کریں، پھر “My List” میں جا کر “Confirm & Send” دبائیں۔ کامیابی کا پیغام آئے گا اور آرڈر “Records” میں نظر آئے گا۔',
-    tagsUr: ['آرڈر', 'خرید', 'کارٹ', 'بیگ', 'کنفرم', 'سینڈ', 'جمع'],
+        'آرڈر مینو سے “Products” کھولیں، آئٹمز شامل کریں، پھر “My List” میں “Confirm & Send” دبائیں۔ کامیابی پر دکان “Order Done” ہو جاتی ہے، مقامی طور پر چیک آؤٹ ہو جاتا ہے اور کورڈ روٹس کی گنتی بڑھتی ہے۔',
+    tagsUr: ['آرڈر', 'پروڈکٹس', 'کنفرم سینڈ', 'آرڈر ڈن'],
   ),
+
   FaqItem(
-    id: 'orders_02',
+    id: 'brand_filter',
     categoryEn: 'Orders',
-    questionEn: 'Can I edit quantities before submitting?',
+    questionEn: 'Can I filter by brand to speed up ordering?',
     answerEn:
-        'Yes. In “My List” use the +/– controls to adjust quantities before pressing “Confirm & Send”.',
-    tagsEn: ['qty', 'quantity', 'change', 'update', 'edit', 'cart'],
+        'Yes. Use the brand chips at the top of the catalog and Search to quickly narrow down items.',
+    tagsEn: ['brand', 'filter', 'catalog', 'chips', 'search'],
     categoryUr: 'آرڈرز',
-    questionUr: 'کیا میں سبمٹ کرنے سے پہلے مقدار تبدیل کر سکتا/سکتی ہوں؟',
+    questionUr: 'کیا میں برانڈ فلٹر سے آرڈر تیز بنا سکتا/سکتی ہوں؟',
     answerUr:
-        'جی ہاں۔ “My List” میں ہر لائن پر +/– سے مقدار تبدیل کریں، پھر “Confirm & Send” دبائیں۔',
-    tagsUr: ['مقدار', 'تبدیل', 'ایڈٹ', 'کارٹ'],
+        'جی ہاں۔ کیٹلاگ کے اوپر برانڈ چپس اور سرچ استعمال کریں تاکہ آئٹمز تیزی سے شارٹ لسٹ ہوں۔',
+    tagsUr: ['برانڈ', 'فلٹر', 'کیٹلاگ', 'چپس', 'سرچ'],
   ),
+
+  // Payments
   FaqItem(
-    id: 'orders_03',
-    categoryEn: 'Orders',
-    questionEn: 'Where can I see my previous orders?',
+    id: 'collect_payment',
+    categoryEn: 'Payments',
+    questionEn: 'Can I collect payment after Check-In?',
     answerEn:
-        'Open the “Records” screen from the menu. Latest orders appear at the top with status and time.',
-    tagsEn: ['history', 'records', 'previous', 'past', 'orders', 'status'],
-    categoryUr: 'آرڈرز',
-    questionUr: 'پرانے آرڈرز کہاں دیکھ سکتا/سکتی ہوں؟',
+        'If your account has invoice/collection rights, open “Collect Payment” from the Order Menu and follow on-screen steps.',
+    tagsEn: ['payment', 'collect', 'invoice', 'rights', 'check in'],
+    categoryUr: 'ادائیگیاں',
+    questionUr: 'کیا چیک اِن کے بعد پیمنٹ جمع کر سکتا/سکتی ہوں؟',
     answerUr:
-        'مینیو سے “Records” کھولیں۔ تازہ ترین آرڈرز اوپر سٹیٹس اور وقت کے ساتھ نظر آئیں گے۔',
-    tagsUr: ['ریکارڈز', 'ہسٹری', 'پرانے', 'آرڈر', 'سٹیٹس'],
+        'اگر آپ کے اکاؤنٹ میں ان وائس/کلیکشن کی اجازت ہے تو “Order Menu” سے “Collect Payment” کھولیں اور ہدایات پر عمل کریں۔',
+    tagsUr: ['پیمنٹ', 'کلیکٹ', 'ان وائس', 'رائٹس', 'چیک اِن'],
   ),
+
+  // Journey Plan & Area efficiency
   FaqItem(
-    id: 'orders_04',
-    categoryEn: 'Orders',
+    id: 'area_based_plan',
+    categoryEn: 'Journey Plan',
+    questionEn: 'How does the area-based journey plan help?',
+    answerEn:
+        'Shops are grouped by area so you can cover nearby stops in one visit. Use the area filter in Journey Plan to focus and finish faster.',
+    tagsEn: ['journey plan', 'area', 'filter', 'efficiency', 'nearby'],
+    categoryUr: 'جرنی پلان',
+    questionUr: 'ایریا بیسڈ جرنی پلان کیسے مدد دیتا ہے؟',
+    answerUr:
+        'دکانیں ایریا کے لحاظ سے گروپ ہوتی ہیں تاکہ ایک ہی وزٹ میں قریبی جگہیں کور ہو جائیں۔ جرنی پلان میں ایریا فلٹر استعمال کریں اور کام جلد مکمل کریں۔',
+    tagsUr: ['جرنی پلان', 'ایریا', 'فلٹر', 'موثر', 'قریب'],
+  ),
+
+  FaqItem(
+    id: 'after_success_order',
+    categoryEn: 'Journey Plan',
+    questionEn: 'What happens after a successful order?',
+    answerEn:
+        'The shop is marked “Order Done”, local checkout is performed, and your covered-routes/visited count increases so you can continue to the next shop.',
+    tagsEn: ['order done', 'visited', 'covered routes', 'checkout'],
+    categoryUr: 'جرنی پلان',
+    questionUr: 'کامیاب آرڈر کے بعد کیا ہوتا ہے؟',
+    answerUr:
+        'دکان “Order Done” ہو جاتی ہے، مقامی چیک آؤٹ ہو جاتا ہے، اور کورڈ روٹس/وزٹڈ کاؤنٹ بڑھ جاتا ہے تاکہ آپ اگلی دکان پر چل سکیں۔',
+    tagsUr: ['آرڈر ڈن', 'وزٹڈ', 'کورڈ روٹس', 'چیک آؤٹ'],
+  ),
+
+  // Troubleshooting / Generic app
+  FaqItem(
+    id: 'order_fail',
+    categoryEn: 'Troubleshooting',
     questionEn: 'Why did my order fail to submit?',
     answerEn:
         'Common causes: no network, missing user/distributor, or server maintenance. Check internet and retry. If it persists, contact support.',
     tagsEn: ['error', 'fail', 'submit', 'network', 'server'],
-    categoryUr: 'آرڈرز',
+    categoryUr: 'ٹرَبل شوٹنگ',
     questionUr: 'میرا آرڈر سبمٹ کیوں نہیں ہوا؟',
     answerUr:
         'عام وجوہات: انٹرنیٹ نہیں، یوزر/ڈسٹری بیوٹر کی معلومات نہیں، یا سرور مینٹیننس۔ نیٹ چیک کریں اور دوبارہ کوشش کریں۔ مسئلہ برقرار رہے تو سپورٹ سے رابطہ کریں۔',
     tagsUr: ['خرابی', 'ناکام', 'نیٹ ورک', 'سرور', 'سبمٹ'],
   ),
 
-  // Route
   FaqItem(
-    id: 'route_01',
-    categoryEn: 'Route',
-    questionEn: 'How do I check in at a shop?',
-    answerEn:
-        'From “Order Menu” tap “Check In”. If location is required, allow location services. You must check in to take orders or mark reasons.',
-    tagsEn: ['check-in', 'shop', 'visit', 'location', 'gps', 'route'],
-    categoryUr: 'روٹ',
-    questionUr: 'دکان پر چیک اِن کیسے کروں؟',
-    answerUr:
-        '“Order Menu” میں “Check In” دبائیں۔ اگر لوکیشن درکار ہو تو اجازت دیں۔ آرڈر لینے یا وجوہات مارک کرنے کے لیے چیک اِن ضروری ہے۔',
-    tagsUr: ['چیک اِن', 'دکان', 'وزٹ', 'لوکیشن', 'جی پی ایس', 'روٹ'],
-  ),
-  FaqItem(
-    id: 'route_02',
-    categoryEn: 'Route',
-    questionEn: 'I need to check out — what should I do?',
-    answerEn:
-        'From “Order Menu” tap “Check Out”. If a reason is required, select HOLD or NO VISIT before checking out.',
-    tagsEn: ['check-out', 'reason', 'hold', 'no visit', 'route'],
-    categoryUr: 'روٹ',
-    questionUr: 'مجھے چیک آؤٹ کرنا ہے — کیا کروں؟',
-    answerUr:
-        '“Order Menu” میں “Check Out” دبائیں۔ اگر وجہ درکار ہو تو چیک آؤٹ سے پہلے HOLD یا NO VISIT منتخب کریں۔',
-    tagsUr: ['چیک آؤٹ', 'وجہ', 'ہولڈ', 'نو وزٹ', 'روٹ'],
-  ),
-  FaqItem(
-    id: 'route_03',
-    categoryEn: 'Route',
-    questionEn: 'What is “Order Done” on Journey Plan?',
-    answerEn:
-        'After a successful order, the app marks that shop as “Order Done”, checks you out locally, and increments covered routes.',
-    tagsEn: ['order done', 'journey plan', 'covered routes', 'label'],
-    categoryUr: 'روٹ',
-    questionUr: 'جرنی پلان میں “آرڈر ڈن” کیا ہے؟',
-    answerUr:
-        'کامیاب آرڈر کے بعد وہ شاپ “Order Done” سے نشان زد ہوتی ہے، مقامی طور پر چیک آؤٹ ہو جاتا ہے، اور کورڈ روٹس کی گنتی بڑھتی ہے۔',
-    tagsUr: ['آرڈر ڈن', 'جرنی پلان', 'کورڈ روٹس', 'لیبل'],
-  ),
-
-  // Payments
-  FaqItem(
-    id: 'pay_01',
-    categoryEn: 'Payments',
-    questionEn: 'How do I pay for an order?',
-    answerEn:
-        'Orders are submitted to your distributor — payments follow business rules. If “Collect Payment” is enabled, open it from Order Menu.',
-    tagsEn: ['payment', 'pay', 'invoice', 'collect'],
-    categoryUr: 'ادائیگیاں',
-    questionUr: 'آرڈر کی ادائیگی کیسے کروں؟',
-    answerUr:
-        'آرڈر ڈسٹری بیوٹر کو جاتا ہے — ادائیگی آپ کے بزنس رولز کے مطابق ہوتی ہے۔ اگر “Collect Payment” فعال ہو تو وہ “Order Menu” سے کھولیں۔',
-    tagsUr: ['ادائیگی', 'ان وائس', 'کلیکٹ', 'پیمنٹ'],
-  ),
-  FaqItem(
-    id: 'pay_02',
-    categoryEn: 'Payments',
-    questionEn: 'Payment screen says not allowed.',
-    answerEn:
-        'You may not have invoice rights. Ask your admin to enable “markInvoices”.',
-    tagsEn: ['not allowed', 'rights', 'invoices', 'permission'],
-    categoryUr: 'ادائیگیاں',
-    questionUr: 'پیمنٹ اسکرین میں “اجازت نہیں” آ رہا ہے۔',
-    answerUr:
-        'ممکن ہے آپ کے پاس ان وائس کی اجازت نہیں۔ ایڈمن سے “markInvoices” فعال کرنے کا کہیں۔',
-    tagsUr: ['اجازت', 'رائٹس', 'ان وائس', 'پرمیژن'],
-  ),
-
-  // App
-  FaqItem(
-    id: 'app_01',
-    categoryEn: 'App',
-    questionEn: 'How do I reset my password?',
-    answerEn:
-        'Go to “Profile → Change Password”. Enter new and confirm passwords to update.',
-    tagsEn: ['password', 'reset', 'change', 'forgot'],
-    categoryUr: 'ایپ',
-    questionUr: 'پاس ورڈ ری سیٹ کیسے کروں؟',
-    answerUr:
-        '“Profile → Change Password” پر جائیں۔ نیا اور کنفرم پاس ورڈ درج کر کے اپڈیٹ کریں۔',
-    tagsUr: ['پاس ورڈ', 'ری سیٹ', 'تبدیلی', 'بھول گیا'],
-  ),
-  FaqItem(
-    id: 'app_02',
+    id: 'not_syncing',
     categoryEn: 'App',
     questionEn: 'The app isn’t syncing my actions.',
     answerEn:
@@ -266,7 +304,7 @@ const _faqs = <FaqItem>[
   ),
 ];
 
-// ---------- SYNONYMS ----------
+// ---------- SYNONYMS (expanded for your domain) ----------
 const Map<String, List<String>> _synEn = {
   'buy': ['purchase', 'order', 'checkout', 'confirm', 'send'],
   'order': ['buy', 'purchase', 'cart', 'bag', 'list'],
@@ -277,10 +315,14 @@ const Map<String, List<String>> _synEn = {
   'checkout': ['check out', 'check-out', 'leave'],
   'gps': ['location', 'map', 'blue dot'],
   'error': ['fail', 'failure', 'issue', 'problem'],
+  'route': ['journey', 'trip', 'path'],
+  'end route': ['finish route', 'close route', 'complete route'],
+  'area': ['region', 'zone', 'locality', 'nearby'],
+  'brand': ['line', 'label', 'company'],
 };
 
 const Map<String, List<String>> _synUr = {
-  'آرڈر': ['خرید', 'آرڈر', 'سبمٹ', 'کنفرم', 'سینڈ', 'کارٹ', 'بیگ', 'فہرست'],
+  'آرڈر': ['خرید', 'سبمٹ', 'کنفرم', 'سینڈ', 'کارٹ', 'بیگ', 'فہرست'],
   'کارٹ': ['بیگ', 'فہرست'],
   'ریکارڈز': ['ہسٹری', 'پرانے آرڈر'],
   'ادائیگی': ['پیمنٹ', 'بل', 'ان وائس', 'کلیکٹ'],
@@ -290,6 +332,10 @@ const Map<String, List<String>> _synUr = {
   'خرابی': ['مسئلہ', 'ناکامی'],
   'ہولڈ': ['وقفہ', 'عارضی روک'],
   'نو وزٹ': ['کوئی وزٹ نہیں', 'وزٹ نہیں'],
+  'روٹ': ['جرنی', 'سفر', 'راستہ'],
+  'اختتام': ['ختم', 'بند', 'مکمل'],
+  'ایریا': ['علاقہ', 'زون', 'قرب و جوار'],
+  'برانڈ': ['لائن', 'کمپنی', 'لیبل'],
 };
 
 // ---------- PREFS / STORE ----------
@@ -298,8 +344,7 @@ class FaqPrefs {
   FaqLang getLang() {
     final s = (_box.read('smartfaq_lang') as String?) ?? 'en';
     return s == 'ur' ? FaqLang.ur : FaqLang.en;
-  }
-
+    }
   Future<void> setLang(FaqLang l) => _box.write('smartfaq_lang', l.code);
 }
 
@@ -313,9 +358,7 @@ class FaqStore {
   String _histKey(FaqLang l) => 'smartfaq_history_${l.code}';
   String get _fbKey => 'smartfaq_feedback';
 
-  // feedback: map<faqId, {up:int, down:int}>
-  Map<String, dynamic> _fb() =>
-      _box.read(_fbKey) as Map<String, dynamic>? ?? {};
+  Map<String, dynamic> _fb() => _box.read(_fbKey) as Map<String, dynamic>? ?? {};
 
   void thumbUp(String id) {
     final fb = Map<String, dynamic>.from(_fb());
@@ -503,7 +546,7 @@ class FaqEngine {
   FaqLang get lang => _lang;
 }
 
-// ---------- LOCALIZATION STRINGS ----------
+// ---------- LOCALIZATION ----------
 class L10n {
   final FaqLang lang;
   const L10n(this.lang);
@@ -511,8 +554,8 @@ class L10n {
   String get appTitle => lang == FaqLang.en ? 'Smart FAQs' : 'سمارٹ سوالات';
   String get clearChat => lang == FaqLang.en ? 'Clear chat' : 'چیٹ صاف کریں';
   String get askHint => lang == FaqLang.en
-      ? 'Ask a question (e.g., “How do I place an order?”)'
-      : 'سوال پوچھیں (مثلاً: “آرڈر کیسے کریں؟”)';
+      ? 'Ask a question (e.g., “How do I take an order?”)'
+      : 'سوال پوچھیں (مثلاً: “آرڈر کیسے لوں؟”)';
   String get ask => lang == FaqLang.en ? 'Ask' : 'پوچھیں';
   String get welcome =>
       lang == FaqLang.en
@@ -697,6 +740,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
 
   Future<void> _switchLang(FaqLang lang) async {
     if (_lang == lang) return;
+    await _prefs.setLang(lang);
     setState(() {
       _lang = lang;
       _t = L10n(_lang);
@@ -766,8 +810,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
                           selected: sel,
                           onSelected: (_) {
                             setState(() {
-                              _selectedCategory =
-                                  (i == 0) ? null : label;
+                              _selectedCategory = (i == 0) ? null : label;
                             });
                           },
                           selectedColor: _kAccent,
