@@ -1,6 +1,9 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:motives_new_ui_conversion/Offline/sync_service.dart';
+import 'package:motives_new_ui_conversion/Service/getDeviceId.dart' as PlatformDeviceId;
 import 'package:motives_new_ui_conversion/home_screen.dart';
 import 'package:motives_new_ui_conversion/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +14,14 @@ import 'package:location/location.dart' as loc;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:uuid/uuid.dart';
 
+import 'dart:io' show Platform;
+import 'package:android_id/android_id.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
+import 'package:flutter/foundation.dart';
 
 
 class AppBlocObserver extends BlocObserver {
@@ -27,11 +37,47 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
+const _store = FlutterSecureStorage();
+const _kKey = 'app_device_id';
+
+/// Returns a stable ID:
+/// - Android: Settings.Secure.ANDROID_ID (via android_id)
+/// - iOS: identifierForVendor
+/// - Else: a generated UUID persisted in secure storage
+Future<String> getDeviceId() async {
+  // 1) OS IDs
+  try {
+    if (Platform.isAndroid) {
+      final id = await  AndroidId().getId(); // ANDROID_ID
+      if (id != null ) {
+        print("IDDD :: $id");
+        print("IDDD :: $id");
+        print("IDDD :: $id");
+        print("IDDD :: $id");
+        print("IDDD :: $id");
+        return id;
+      }
+    } 
+  } catch (e, st) {
+    debugPrint('getDeviceId() OS id error: $e\n$st');
+  }
+
+  // 2) Persistent app-scoped fallback
+  final saved = await _store.read(key: _kKey);
+  if (saved != null && saved.isNotEmpty) return saved;
+
+  final gen = const Uuid().v4();
+  await _store.write(key: _kKey, value: gen);
+  return gen;
+}
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Local key-value store ready BEFORE any reads
   await GetStorage.init();
+ await  getDeviceId();
 
   // Safe to ignore if not present
   try {
