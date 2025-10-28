@@ -1091,13 +1091,13 @@ class _ChatBubble extends StatelessWidget {
               children: [
                 if (onCopy != null)
                   _MiniIconButton(icon: Icons.copy_rounded, label: 'Copy', onTap: onCopy!),
-                if (onShare != null) const SizedBox(width: 6),
+                if (onShare != null) const SizedBox(width: 3),
                 if (onShare != null)
                   _MiniIconButton(icon: Icons.ios_share_rounded, label: 'Share', onTap: onShare!),
-                if (onThumbUp != null || onThumbDown != null) const SizedBox(width: 6),
+                if (onThumbUp != null || onThumbDown != null) const SizedBox(width: 3),
                 if (onThumbUp != null)
                   _MiniIconButton(icon: Icons.thumb_up_outlined, label: 'Helpful', onTap: onThumbUp!),
-                if (onThumbDown != null) const SizedBox(width: 6),
+                if (onThumbDown != null) const SizedBox(width: 3),
                 if (onThumbDown != null)
                   _MiniIconButton(icon: Icons.thumb_down_outlined, label: 'Not helpful', onTap: onThumbDown!),
               ],
