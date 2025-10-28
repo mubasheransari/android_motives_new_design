@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Constants/constants.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
+import 'package:motives_new_ui_conversion/journey_plan_area_markers.dart';
 import 'package:motives_new_ui_conversion/journey_plan_screen.dart';
 import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
@@ -293,7 +294,8 @@ floatingActionButton: Padding(
         setState(() => _faqBtnScale = 1);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const SmartFaqChatBilingual()),
+          MaterialPageRoute(builder: (_) => const AreaMarkersFromJourneyPlanMap() //SmartFaqChatBilingual()
+          ),
         );
       },
       child: Stack(
