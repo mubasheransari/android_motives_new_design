@@ -13,18 +13,22 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 
 
 
-/// One marker per JourneyPlan row using `areaName`.
-/// - Skips entries where areaName == "Pakistan" (case-insensitive)
-/// - After loading, camera auto-fits to show ALL markers.
-/// - “My location” button lets you jump back to yourself anytime.
+
+
+
 class AreaMarkersFromJourneyPlanMap extends StatefulWidget {
   const AreaMarkersFromJourneyPlanMap({
     super.key,
-    this.countryHint = 'Pakistan',
+    this.cityHint = 'Karachi',
+    this.regionHint = 'Sindh',
+    this.country = 'Pakistan',
     this.autoFitAfterLoad = true,
   });
 
-  final String? countryHint;
+  /// We bias geocoding to this city/region/country.
+  final String cityHint;
+  final String regionHint;
+  final String country;
   final bool autoFitAfterLoad;
 
   @override
@@ -46,22 +50,36 @@ class _AreaMarkersFromJourneyPlanMapState
   int _geocodeOk = 0;
   int _geocodeFail = 0;
 
+  _Selected? _selected;
+
+  /// Karachi approx bounds (loose but excludes Lahore, etc.)
+  static const _KARACHI_MIN_LAT = 24.75;
+  static const _KARACHI_MAX_LAT = 25.10;
+  static const _KARACHI_MIN_LNG = 66.65;
+  static const _KARACHI_MAX_LNG = 67.45;
+
+  static const _karachiCenter = LatLng(24.8607, 67.0011);
+
   static const _fallbackCamera = CameraPosition(
-    target: LatLng(24.8607, 67.0011), // fallback if no location/markers
+    target: _karachiCenter,
     zoom: 12,
   );
+
+  final List<_FailureRow> _failures = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _ensureMyLocation();   // get blue dot
-      await _loadAndPlaceAll();    // place markers (one per row)
-      // IMPORTANT: after loading, fit markers (don’t override with my location)
-      if (_markers.isNotEmpty && widget.autoFitAfterLoad) {
+      await _ensureMyLocation();   // acquire GPS to start on user
+      await _loadAndPlaceAll();    // place markers
+      // Start view: prefer my location; otherwise fit all; else Karachi
+      if (_myLoc != null) {
+        await _centerOnMyLocation(initial: true);
+      } else if (_markers.isNotEmpty && widget.autoFitAfterLoad) {
         await _fitAllMarkers();
       } else {
-        await _centerOnMyLocation();
+        await _centerOnKarachi();
       }
     });
   }
@@ -81,27 +99,30 @@ class _AreaMarkersFromJourneyPlanMapState
         svc = await _loc.requestService();
         if (!svc) return;
       }
-
       final l = await _loc.getLocation();
       if (l.latitude != null && l.longitude != null) {
         setState(() => _myLoc = LatLng(l.latitude!, l.longitude!));
       }
-    } catch (_) {}
+    } catch (_) {/* ignore */}
   }
 
-  Future<void> _centerOnMyLocation() async {
+  Future<void> _centerOnMyLocation({bool initial = false}) async {
     final ctl = await _mapCtl.future;
-    final target = _myLoc ?? _fallbackCamera.target;
+    final target = _myLoc ?? _karachiCenter;
     await ctl.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(target: target, zoom: _myLoc == null ? 12 : 15.5),
+      CameraPosition(target: target, zoom: initial ? 16 : 15.5),
     ));
   }
 
-  // -------------------- Geocoding helpers --------------------
+  Future<void> _centerOnKarachi() async {
+    final ctl = await _mapCtl.future;
+    await ctl.animateCamera(CameraUpdate.newCameraPosition(
+      const CameraPosition(target: _karachiCenter, zoom: 12.5),
+    ));
+  }
 
-  String _cacheKey(String area) => 'geo_area_${area.trim().toLowerCase()}';
+  // -------------------- Helpers from JourneyPlan --------------------
 
-  /// Safely reads `areaName` from typed object or Map.
   String _areaOf(dynamic plan) {
     try {
       final v = (plan as dynamic).areaName;
@@ -114,16 +135,69 @@ class _AreaMarkersFromJourneyPlanMapState
     return '';
   }
 
-  Future<LatLng?> _geocodeArea(String areaName) async {
-    // Skip country-level "Pakistan" entries completely
-    if (areaName.trim().toLowerCase() == 'pakistan') return null;
+  String _shopOf(dynamic plan) {
+    final tryKeys = ['partyName', 'shopName', 'name', 'outlet', 'customerName'];
+    try {
+      final v = (plan as dynamic).partyName;
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+    } catch (_) {}
+    if (plan is Map) {
+      for (final k in tryKeys) {
+        final v = plan[k];
+        if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+      }
+    }
+    return 'Shop';
+  }
 
-    final key = _cacheKey(areaName);
+  String _ownerOf(dynamic plan) {
+    final tryKeys = [
+      'ownerName',
+      'owner',
+      'proprietor',
+      'contactPerson',
+      'contact_name',
+      'personName',
+      'custOwner',
+      'shopOwner'
+    ];
+    try {
+      final v = (plan as dynamic).ownerName;
+      if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+    } catch (_) {}
+    if (plan is Map) {
+      for (final k in tryKeys) {
+        final v = plan[k];
+        if (v != null && v.toString().trim().isNotEmpty) return v.toString();
+      }
+    }
+    return '—';
+  }
 
-    // memory cache
+  // -------------------- Geocoding with Karachi bias --------------------
+
+  bool _inKarachi(LatLng p) {
+    return p.latitude >= _KARACHI_MIN_LAT &&
+        p.latitude <= _KARACHI_MAX_LAT &&
+        p.longitude >= _KARACHI_MIN_LNG &&
+        p.longitude <= _KARACHI_MAX_LNG;
+  }
+
+  String _cacheKey(String area) =>
+      'geo_area_${area.trim().toLowerCase()}__${widget.cityHint.toLowerCase()}';
+
+  Future<LatLng?> _geocodeAreaKarachiBiased(String areaName) async {
+    // Treat bad/ambiguous area names as failure
+    final a = areaName.trim();
+    if (a.isEmpty) return null;
+    if (a.toLowerCase() == widget.country.toLowerCase()) return null; // too broad
+
+    final key = _cacheKey(a);
+
+    // memory
     if (_memCache.containsKey(key)) return _memCache[key];
 
-    // persistent cache
+    // disk
     final cached = _box.read(key);
     if (cached is String && cached.contains(',')) {
       final parts = cached.split(',');
@@ -136,25 +210,47 @@ class _AreaMarkersFromJourneyPlanMapState
       }
     }
 
-    // geocode
-    try {
-      final query = (widget.countryHint == null || widget.countryHint!.isEmpty)
-          ? areaName
-          : '$areaName, ${widget.countryHint}';
-      final hits = await geo.locationFromAddress(query);
-      if (hits.isNotEmpty) {
-        final pos = LatLng(hits.first.latitude, hits.first.longitude);
+    // Try strict → loose
+    final candidates = <String>[
+      '$a, ${widget.cityHint}, ${widget.regionHint}, ${widget.country}', // strict Karachi
+      '$a, ${widget.cityHint}, ${widget.country}',                       // Karachi + PK
+      '$a, ${widget.country}',                                           // PK only
+      a,                                                                 // plain
+    ];
+
+    for (final q in candidates) {
+      try {
+        final hits = await geo.locationFromAddress(q);
+        if (hits.isEmpty) continue;
+        // choose first within Karachi bounds if possible
+        geo.Location? picked;
+        for (final h in hits) {
+          final pos = LatLng(h.latitude, h.longitude);
+          if (_inKarachi(pos)) {
+            picked = h;
+            break;
+          }
+        }
+        picked ??= hits.first;
+        final pos = LatLng(picked.latitude, picked.longitude);
+
+        // If still outside Karachi after strict queries, treat as fail
+        if (!_inKarachi(pos)) {
+          continue;
+        }
+
         _memCache[key] = pos;
         await _box.write(key, '${pos.latitude},${pos.longitude}');
         return pos;
+      } catch (_) {
+        // try next candidate
       }
-    } catch (_) {}
+    }
     return null;
   }
 
-  // -------------------- Marker creation --------------------
+  // -------------------- Marker creation & placement --------------------
 
-  /// Small circular jitter when many markers land at the same coords.
   LatLng _withJitter(LatLng base, int indexOnSamePoint) {
     if (indexOnSamePoint <= 0) return base;
     const step = 0.0002; // ~22m
@@ -172,48 +268,67 @@ class _AreaMarkersFromJourneyPlanMapState
       _loading = true;
       _geocodeOk = 0;
       _geocodeFail = 0;
+      _failures.clear();
+      _selected = null;
     });
 
     final model = context.read<GlobalBloc>().state.loginModel;
     final List<dynamic> plans =
         (model?.journeyPlan as List?) ?? const <dynamic>[];
 
-    // NO DEDUPE; skip blank & "Pakistan"
-    final List<String> areas = plans
-        .map(_areaOf)
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty && s.toLowerCase() != 'pakistan')
+    final rows = plans
+        .map((p) => (
+              area: _areaOf(p).trim(),
+              shop: _shopOf(p).trim(),
+              owner: _ownerOf(p).trim(),
+              raw: p
+            ))
         .toList();
 
-    // Geocode in parallel
-    final futures = <Future<_GeoResult>>[];
-    for (int i = 0; i < areas.length; i++) {
-      futures.add(_geocodeOne(areas[i], i));
+    // Geocode all rows
+    final futures = <Future<_GeoRow>>[];
+    for (int i = 0; i < rows.length; i++) {
+      futures.add(_geocodeRow(rows[i], i));
     }
     final results = await Future.wait(futures);
 
-    // Separate identical coordinates
+    // Prevent overlap for identical coords
     final samePosCounter = <String, int>{}; // "lat,lng" -> count
     final newMarkers = <Marker>{};
 
     for (final r in results) {
-      if (r.pos == null) continue;
+      if (r.pos == null) {
+        _geocodeFail++;
+        _failures.add(_FailureRow(
+          area: r.area,
+          shop: r.shop,
+          reason: r.reason ?? 'Unable to mark this location.',
+        ));
+        continue;
+      }
 
+      _geocodeOk++;
       final roundedKey =
           '${r.pos!.latitude.toStringAsFixed(5)},${r.pos!.longitude.toStringAsFixed(5)}';
       final idxOnSame =
           samePosCounter.update(roundedKey, (v) => v + 1, ifAbsent: () => 0);
 
       final effectivePos = _withJitter(r.pos!, idxOnSame);
-      final markerId = '${r.area}#${r.index}'; // unique id
+      final markerId = 'shop_${r.index}_${r.area}_${r.shop}';
 
       newMarkers.add(
         Marker(
           markerId: MarkerId(markerId),
           position: effectivePos,
           infoWindow: InfoWindow(
-            title: r.area,
-            snippet: 'Entry #${r.index + 1}',
+            title: r.shop.isEmpty ? 'Shop' : r.shop,
+            snippet: r.owner.isNotEmpty ? 'Owner: ${r.owner}' : r.area,
+          ),
+          onTap: () => _onMarkerTap(
+            shop: r.shop.isEmpty ? 'Shop' : r.shop,
+            owner: r.owner.isEmpty ? '—' : r.owner,
+            area: r.area,
+            pos: effectivePos,
           ),
         ),
       );
@@ -227,15 +342,73 @@ class _AreaMarkersFromJourneyPlanMapState
     });
   }
 
-  Future<_GeoResult> _geocodeOne(String area, int index) async {
-    final pos = await _geocodeArea(area);
-    if (pos == null) {
-      _geocodeFail++;
-    } else {
-      _geocodeOk++;
+  Future<_GeoRow> _geocodeRow(
+      ({String area, String shop, String owner, dynamic raw}) row,
+      int index) async {
+    if (row.area.isEmpty) {
+      return _GeoRow(
+        area: row.area,
+        shop: row.shop,
+        owner: row.owner,
+        index: index,
+        pos: null,
+        reason: 'Missing area name.',
+      );
     }
-    return _GeoResult(area: area, index: index, pos: pos);
+    if (row.area.toLowerCase() == widget.country.toLowerCase()) {
+      return _GeoRow(
+        area: row.area,
+        shop: row.shop,
+        owner: row.owner,
+        index: index,
+        pos: null,
+        reason: 'Area is too broad (“${widget.country}”).',
+      );
+    }
+
+    final pos = await _geocodeAreaKarachiBiased(row.area);
+    return _GeoRow(
+      area: row.area,
+      shop: row.shop,
+      owner: row.owner,
+      index: index,
+      pos: pos,
+      reason: pos == null
+          ? 'Could not geocode within ${widget.cityHint}.'
+          : null,
+    );
   }
+
+  // -------------------- Marker tap: distance & info card --------------------
+
+  void _onMarkerTap({
+    required String shop,
+    required String owner,
+    required String area,
+    required LatLng pos,
+  }) {
+    final km = (_myLoc == null) ? null : _distanceKm(_myLoc!, pos);
+    setState(() {
+      _selected = _Selected(shop: shop, owner: owner, area: area, pos: pos, km: km);
+    });
+  }
+
+  double _distanceKm(LatLng a, LatLng b) {
+    const R = 6371.0; // km
+    final dLat = _deg2rad(b.latitude - a.latitude);
+    final dLng = _deg2rad(b.longitude - a.longitude);
+    final la1 = _deg2rad(a.latitude);
+    final la2 = _deg2rad(b.latitude);
+
+    final h = sin(dLat / 2) * sin(dLat / 2) +
+        sin(dLng / 2) * sin(dLng / 2) * cos(la1) * cos(la2);
+    final c = 2 * atan2(sqrt(h), sqrt(1 - h));
+    return R * c;
+  }
+
+  double _deg2rad(double d) => d * (pi / 180.0);
+
+  // -------------------- Fit all markers --------------------------------------
 
   Future<void> _fitAllMarkers() async {
     if (_markers.isEmpty) return;
@@ -262,20 +435,40 @@ class _AreaMarkersFromJourneyPlanMapState
     await c.animateCamera(CameraUpdate.newLatLngBounds(bounds, 72));
   }
 
-  // -------------------- UI --------------------
+  // -------------------- UI ---------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Journey Areas'),
+        title: const Text('Journey Plan — Shop Markers (Karachi)'),
         actions: [
+          IconButton(
+            tooltip: 'Clear geocode cache',
+            icon: const Icon(Icons.delete_sweep_rounded),
+            onPressed: () async {
+              // Clear only our keys to avoid nuking other storage
+              final keys = _box.getKeys().where((k) => k.toString().startsWith('geo_area_')).toList();
+              for (final k in keys) {
+                await _box.remove(k);
+              }
+              _memCache.clear();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Geocode cache cleared')),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Reload markers',
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () async {
               await _loadAndPlaceAll();
-              if (_markers.isNotEmpty) await _fitAllMarkers();
+              if (_myLoc != null) {
+                await _centerOnMyLocation();
+              } else if (_markers.isNotEmpty) {
+                await _fitAllMarkers();
+              }
             },
           ),
           IconButton(
@@ -294,13 +487,65 @@ class _AreaMarkersFromJourneyPlanMapState
         children: [
           GoogleMap(
             initialCameraPosition: _fallbackCamera,
-            onMapCreated: (c) => _mapCtl.complete(c),
+            onMapCreated: (c) async {
+              _mapCtl.complete(c);
+              // If we already have a GPS fix when the map comes up, center immediately
+              if (_myLoc != null) {
+                await _centerOnMyLocation(initial: true);
+              }
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             compassEnabled: true,
             markers: _markers,
           ),
+
+          // status chip (OK/Fail) with viewer
+          if (!_loading)
+            Positioned(
+              top: 12,
+              left: 12,
+              child: InkWell(
+                onTap: _failures.isEmpty ? null : _showFailuresSheet,
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x14000000),
+                        blurRadius: 10,
+                        offset: Offset(0, 6),
+                      ),
+                    ],
+                    border: Border.all(color: const Color(0xFFEAEAEA)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.place_rounded, size: 16, color: Color(0xFF1F2937)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Markers: $_geocodeOk  •  Failed: $_geocodeFail',
+                        style: const TextStyle(
+                          color: Color(0xFF1F2937),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (_failures.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        const Icon(Icons.expand_more_rounded, size: 18, color: Color(0xFF6B7280)),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          // Loading pill
           if (_loading)
             Align(
               alignment: Alignment.topCenter,
@@ -330,53 +575,25 @@ class _AreaMarkersFromJourneyPlanMapState
                 ),
               ),
             ),
-          if (!_loading && _markers.isEmpty)
+
+          // Bottom info card for tapped marker
+          if (_selected != null)
             Positioned(
-              top: 12,
               left: 12,
               right: 12,
-              child: Material(
-                color: Colors.white,
-                elevation: 3,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Text(
-                    'No markers found. Make sure JourneyPlan.areaName has values other than "Pakistan".',
-                    style: const TextStyle(
-                      color: Color(0xFF1F2937),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          if (!_loading && _markers.isNotEmpty)
-            Positioned(
-              top: 12,
-              left: 12,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(999),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x14000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  'Markers: $_geocodeOk  •  Failed: $_geocodeFail   (tap ⛶ to view all)',
-                  style: const TextStyle(
-                    color: Color(0xFF1F2937),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              bottom: 16,
+              child: _BottomInfoCard(
+                selected: _selected!,
+                onClose: () => setState(() => _selected = null),
+                onCenterHere: () async {
+                  final ctl = await _mapCtl.future;
+                  await ctl.animateCamera(
+                    CameraUpdate.newCameraPosition(CameraPosition(
+                      target: _selected!.pos,
+                      zoom: 17,
+                    )),
+                  );
+                },
               ),
             ),
         ],
@@ -389,13 +606,212 @@ class _AreaMarkersFromJourneyPlanMapState
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
+
+  void _showFailuresSheet() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Unable to mark these locations',
+                style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _failures.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, i) {
+                    final f = _failures[i];
+                    return ListTile(
+                      leading: const Icon(Icons.error_outline_rounded, color: Colors.redAccent),
+                      title: Text(f.shop.isEmpty ? 'Shop' : f.shop,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: Text(
+                        '${f.area.isEmpty ? '(no area)' : f.area} • ${f.reason}',
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _GeoResult {
+// -------------------- Helper widgets / models --------------------
+
+class _BottomInfoCard extends StatelessWidget {
+  const _BottomInfoCard({
+    required this.selected,
+    required this.onClose,
+    required this.onCenterHere,
+  });
+
+  final _Selected selected;
+  final VoidCallback onClose;
+  final VoidCallback onCenterHere;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Material(
+      elevation: 10,
+      borderRadius: BorderRadius.circular(14),
+      color: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFEAEAEA)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 14,
+              offset: Offset(0, 8),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            // icon
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.store_rounded, color: Color(0xFFEA7A3B)),
+            ),
+            const SizedBox(width: 10),
+            // text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(selected.shop,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1F2937),
+                      )),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 16, color: Color(0xFF6B7280)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          selected.owner,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.place_rounded, size: 16, color: Color(0xFF6B7280)),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          selected.area,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.straighten_rounded, size: 16, color: Color(0xFF6B7280)),
+                      const SizedBox(width: 4),
+                      Text(
+                        selected.km == null
+                            ? '—'
+                            : (selected.km! < 1
+                                ? '${(selected.km! * 1000).toStringAsFixed(0)} m'
+                                : '${selected.km!.toStringAsFixed(1)} km'),
+                        style: t.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFEA7A3B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // actions
+            IconButton(
+              tooltip: 'Center here',
+              icon: const Icon(Icons.center_focus_strong_rounded),
+              onPressed: onCenterHere,
+            ),
+            IconButton(
+              tooltip: 'Close',
+              icon: const Icon(Icons.close_rounded),
+              onPressed: onClose,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GeoRow {
   final String area;
+  final String shop;
+  final String owner;
   final int index;
   final LatLng? pos;
-  _GeoResult({required this.area, required this.index, required this.pos});
+  final String? reason;
+  _GeoRow({
+    required this.area,
+    required this.shop,
+    required this.owner,
+    required this.index,
+    required this.pos,
+    this.reason,
+  });
+}
+
+class _FailureRow {
+  final String area;
+  final String shop;
+  final String reason;
+  _FailureRow({required this.area, required this.shop, required this.reason});
+}
+
+class _Selected {
+  final String shop;
+  final String owner;
+  final String area;
+  final LatLng pos;
+  final double? km; // null if my location unknown
+  _Selected({
+    required this.shop,
+    required this.owner,
+    required this.area,
+    required this.pos,
+    required this.km,
+  });
 }
 
 
