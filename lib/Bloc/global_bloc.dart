@@ -80,7 +80,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
 
     emit(state.copyWith(markAttendanceStatus: MarkAttendanceStatus.loading));
     try {
-      final response = await repo.attendance(event.type, event.userId, event.lat, event.lng, event.action);
+      final response = await repo.attendance(event.type, event.userId, event.lat, event.lng, event.action,state.loginModel!.userinfo!.disid.toString());
       if (response.statusCode == 200) {
         final m = markAttendenceModelFromJson(response.body);
         if ((m.status ?? '0') == '1') {

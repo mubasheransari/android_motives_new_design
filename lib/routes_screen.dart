@@ -77,7 +77,7 @@ class _RouteScreenState extends State<RouteScreen> {
 
   Future<void> _endRoute(BuildContext context, String userId,String disid) async {
     final currentLocation = await location.getLocation();
-
+//I/flutter (29413): ➡️ /routeStart body: {request: {"type":"4","user_id":"2443","latitude":"24.8762438","longitude":"67.1789777","device_id":"e95a9ab3bba86f821","act_type":"ROUTE","action":"OUT","att_time":"19:49:52","att_date":"28-Oct-2025","misc":"0","dist_id":"11084","app_version":"1.0.1"}}
     
     context.read<GlobalBloc>().add(MarkAttendanceEvent(
       action: 'OUT',
@@ -86,6 +86,10 @@ class _RouteScreenState extends State<RouteScreen> {
       type: '0',
       userId: userId,
     ));
+
+
+  //  I/flutter (29413): ➡️ /attendance body: {request: {"type":"0","user_id":"2443","latitude":"24.8762438","longitude":"67.1789777","device_id":"e95a9ab3bba86f821","act_type":"ATTENDANCE","action":"OUT","att_time":"19:49:52","att_date":"28-Oct-2025","misc":"0","dist_id":"0","app_version":"1.0.1"}}
+//I/flutter (29413): ⬅️ /attendance 200: {"status":"0","message":"Action Unsuccess !"}
     context.read<GlobalBloc>().add(
           StartRouteEvent(
             disid: disid,

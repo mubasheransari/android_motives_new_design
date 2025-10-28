@@ -120,7 +120,7 @@ class SyncService {
     switch (job.kind) {
       case QueueKind.attendance: {
         final f = job.fields;
-        final res = await repo.attendance(f['type'], f['userId'], f['lat'], f['lng'], f['action']);
+        final res = await repo.attendance(f['type'], f['userId'], f['lat'], f['lng'], f['action'],f['dist_id']);
         return res.statusCode == 200;
       }
       case QueueKind.startRoute: {

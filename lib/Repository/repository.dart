@@ -85,6 +85,7 @@ class Repository {
     String lat,
     String lng,
     String action,
+    String distributionId
   ) async {
     final now = DateTime.now();
     final currentDate = DateFormat("dd-MMM-yyyy").format(now);
@@ -101,7 +102,7 @@ class Repository {
       "att_time": currentTime,
       "att_date": currentDate,
       "misc": "0",
-      "dist_id": "0",
+      "dist_id": distributionId,
       "app_version": "1.0.1",
     };
 

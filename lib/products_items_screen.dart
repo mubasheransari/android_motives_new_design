@@ -796,7 +796,7 @@ if (result.success) {
 }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+   // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
 
     if (!result.success) return;
 
@@ -819,7 +819,7 @@ if (result.success) {
       lat: lat,
       lng: lng,
       act_type: 'ORDER',
-      action: 'Order placed',
+      action: 'ORDER PLACED',
       misc: widget.shopId,    // miscid
       dist_id: distId,
     ));
