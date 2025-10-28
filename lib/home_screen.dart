@@ -654,7 +654,7 @@ floatingActionButton: Padding(
 
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
                       child: _Enter(
                         delayMs: 500,
                         child: Row(
