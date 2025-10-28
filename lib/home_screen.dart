@@ -11,6 +11,7 @@ import 'package:motives_new_ui_conversion/mark_attendance.dart';
 import 'package:motives_new_ui_conversion/peofile_screen.dart';
 import 'package:motives_new_ui_conversion/records_history_screen.dart';
 import 'package:motives_new_ui_conversion/routes_screen.dart';
+import 'package:motives_new_ui_conversion/smart_faqs.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 import 'dart:ui';
 import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
@@ -256,6 +257,9 @@ class _HomeUpdatedState extends State<HomeUpdated> {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(onPressed: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context)=> SmartFaqChatScreen()));
+        },child: Container(height: 100,width: 300,child: Text('FAQS'),),),
         backgroundColor: HomeUpdated.cBg,
         body: Stack(
           children: [
