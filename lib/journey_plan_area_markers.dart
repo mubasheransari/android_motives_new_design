@@ -8,25 +8,24 @@ import 'package:geocoding/geocoding.dart' as geo;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Constants/constants.dart';
 
 
 
 
 
 
+// DROP-IN REPLACEMENT: only this widget changed.
 
 
 class AreaMarkersFromJourneyPlanMap extends StatefulWidget {
   const AreaMarkersFromJourneyPlanMap({
     super.key,
-    this.cityHint = 'Karachi',
     this.regionHint = 'Sindh',
     this.country = 'Pakistan',
     this.autoFitAfterLoad = true,
   });
 
-  /// We bias geocoding to this city/region/country.
-  final String cityHint;
   final String regionHint;
   final String country;
   final bool autoFitAfterLoad;
@@ -49,43 +48,38 @@ class _AreaMarkersFromJourneyPlanMapState
 
   int _geocodeOk = 0;
   int _geocodeFail = 0;
+  int _dupSkipped = 0;
 
   _Selected? _selected;
 
-  /// Karachi approx bounds (loose but excludes Lahore, etc.)
-  static const _KARACHI_MIN_LAT = 24.75;
-  static const _KARACHI_MAX_LAT = 25.10;
-  static const _KARACHI_MIN_LNG = 66.65;
-  static const _KARACHI_MAX_LNG = 67.45;
-
-  static const _karachiCenter = LatLng(24.8607, 67.0011);
+  // Neutral Pakistan center (only for initial fallback camera)
+  static const _pkCenter = LatLng(30.3753, 69.3451);
 
   static const _fallbackCamera = CameraPosition(
-    target: _karachiCenter,
-    zoom: 12,
+    target: _pkCenter,
+    zoom: 5.5,
   );
 
   final List<_FailureRow> _failures = [];
+  final List<_DupRow> _dups = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _ensureMyLocation();   // acquire GPS to start on user
-      await _loadAndPlaceAll();    // place markers
-      // Start view: prefer my location; otherwise fit all; else Karachi
+      await _ensureMyLocation();
+      await _loadAndPlaceAll();
+
+      // Prefer centering on current location if we have it
       if (_myLoc != null) {
         await _centerOnMyLocation(initial: true);
       } else if (_markers.isNotEmpty && widget.autoFitAfterLoad) {
         await _fitAllMarkers();
-      } else {
-        await _centerOnKarachi();
       }
     });
   }
 
   // -------------------- Current location --------------------
-
   Future<void> _ensureMyLocation() async {
     try {
       final perm = await _loc.hasPermission();
@@ -108,21 +102,13 @@ class _AreaMarkersFromJourneyPlanMapState
 
   Future<void> _centerOnMyLocation({bool initial = false}) async {
     final ctl = await _mapCtl.future;
-    final target = _myLoc ?? _karachiCenter;
+    final target = _myLoc ?? _pkCenter;
     await ctl.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(target: target, zoom: initial ? 16 : 15.5),
     ));
   }
 
-  Future<void> _centerOnKarachi() async {
-    final ctl = await _mapCtl.future;
-    await ctl.animateCamera(CameraUpdate.newCameraPosition(
-      const CameraPosition(target: _karachiCenter, zoom: 12.5),
-    ));
-  }
-
-  // -------------------- Helpers from JourneyPlan --------------------
-
+  // -------------------- Field extractors --------------------
   String _areaOf(dynamic plan) {
     try {
       final v = (plan as dynamic).areaName;
@@ -152,14 +138,8 @@ class _AreaMarkersFromJourneyPlanMapState
 
   String _ownerOf(dynamic plan) {
     final tryKeys = [
-      'ownerName',
-      'owner',
-      'proprietor',
-      'contactPerson',
-      'contact_name',
-      'personName',
-      'custOwner',
-      'shopOwner'
+      'ownerName','owner','proprietor','contactPerson','contact_name',
+      'personName','custOwner','shopOwner'
     ];
     try {
       final v = (plan as dynamic).ownerName;
@@ -174,30 +154,42 @@ class _AreaMarkersFromJourneyPlanMapState
     return '—';
   }
 
-  // -------------------- Geocoding with Karachi bias --------------------
-
-  bool _inKarachi(LatLng p) {
-    return p.latitude >= _KARACHI_MIN_LAT &&
-        p.latitude <= _KARACHI_MAX_LAT &&
-        p.longitude >= _KARACHI_MIN_LNG &&
-        p.longitude <= _KARACHI_MAX_LNG;
+  String _journeyIdOf(dynamic plan) {
+    const keys = [
+      'journeyId','JourneyId','journyId','journeyid',
+      'jpId','jp_id','JPId','jid','JID',
+      'routeId','route_id','journey_id','planId','PlanId',
+    ];
+    if (plan is Map) {
+      for (final k in keys) {
+        final v = plan[k];
+        if (v != null && v.toString().trim().isNotEmpty) return v.toString().trim();
+      }
+    }
+    try {
+      final tryDyn = [
+        (plan as dynamic).journeyId, (plan as dynamic).JourneyId,
+        (plan as dynamic).journyId, (plan as dynamic).jpId,
+        (plan as dynamic).jid, (plan as dynamic).routeId,
+        (plan as dynamic).journey_id, (plan as dynamic).planId,
+      ];
+      for (final v in tryDyn) {
+        if (v != null && v.toString().trim().isNotEmpty) return v.toString().trim();
+      }
+    } catch (_) {}
+    return '';
   }
 
-  String _cacheKey(String area) =>
-      'geo_area_${area.trim().toLowerCase()}__${widget.cityHint.toLowerCase()}';
+  // -------------------- Geocoding by AREA ONLY --------------------
+  String _cacheKey(String area) => 'geo_area_only_${area.trim().toLowerCase()}';
 
-  Future<LatLng?> _geocodeAreaKarachiBiased(String areaName) async {
-    // Treat bad/ambiguous area names as failure
+  Future<LatLng?> _geocodeAreaOnly(String areaName) async {
     final a = areaName.trim();
     if (a.isEmpty) return null;
-    if (a.toLowerCase() == widget.country.toLowerCase()) return null; // too broad
 
+    // cache
     final key = _cacheKey(a);
-
-    // memory
     if (_memCache.containsKey(key)) return _memCache[key];
-
-    // disk
     final cached = _box.read(key);
     if (cached is String && cached.contains(',')) {
       final parts = cached.split(',');
@@ -210,47 +202,28 @@ class _AreaMarkersFromJourneyPlanMapState
       }
     }
 
-    // Try strict → loose
+    // Try area alone first (no city), then country-scoped fallbacks.
     final candidates = <String>[
-      '$a, ${widget.cityHint}, ${widget.regionHint}, ${widget.country}', // strict Karachi
-      '$a, ${widget.cityHint}, ${widget.country}',                       // Karachi + PK
-      '$a, ${widget.country}',                                           // PK only
-      a,                                                                 // plain
+      a,
+      '$a, ${widget.country}',
+      '$a, ${widget.regionHint}, ${widget.country}',
     ];
 
     for (final q in candidates) {
       try {
         final hits = await geo.locationFromAddress(q);
         if (hits.isEmpty) continue;
-        // choose first within Karachi bounds if possible
-        geo.Location? picked;
-        for (final h in hits) {
-          final pos = LatLng(h.latitude, h.longitude);
-          if (_inKarachi(pos)) {
-            picked = h;
-            break;
-          }
-        }
-        picked ??= hits.first;
-        final pos = LatLng(picked.latitude, picked.longitude);
-
-        // If still outside Karachi after strict queries, treat as fail
-        if (!_inKarachi(pos)) {
-          continue;
-        }
-
+        final h = hits.first; // accept first hit (no city filtering)
+        final pos = LatLng(h.latitude, h.longitude);
         _memCache[key] = pos;
         await _box.write(key, '${pos.latitude},${pos.longitude}');
         return pos;
-      } catch (_) {
-        // try next candidate
-      }
+      } catch (_) {/* try next */}
     }
     return null;
   }
 
   // -------------------- Marker creation & placement --------------------
-
   LatLng _withJitter(LatLng base, int indexOnSamePoint) {
     if (indexOnSamePoint <= 0) return base;
     const step = 0.0002; // ~22m
@@ -268,7 +241,9 @@ class _AreaMarkersFromJourneyPlanMapState
       _loading = true;
       _geocodeOk = 0;
       _geocodeFail = 0;
+      _dupSkipped = 0;
       _failures.clear();
+      _dups.clear();
       _selected = null;
     });
 
@@ -276,24 +251,40 @@ class _AreaMarkersFromJourneyPlanMapState
     final List<dynamic> plans =
         (model?.journeyPlan as List?) ?? const <dynamic>[];
 
-    final rows = plans
+    // Dedup by journeyId (if present)
+    final rawRows = plans
         .map((p) => (
               area: _areaOf(p).trim(),
               shop: _shopOf(p).trim(),
               owner: _ownerOf(p).trim(),
+              jid: _journeyIdOf(p).trim(),
               raw: p
             ))
         .toList();
 
-    // Geocode all rows
+    final seenJid = <String>{};
+    final rows = <({String area, String shop, String owner, String jid, dynamic raw})>[];
+
+    for (final r in rawRows) {
+      if (r.jid.isNotEmpty) {
+        if (seenJid.contains(r.jid)) {
+          _dupSkipped++;
+          _dups.add(_DupRow(jid: r.jid, area: r.area, shop: r.shop, owner: r.owner));
+          continue;
+        }
+        seenJid.add(r.jid);
+      }
+      rows.add(r);
+    }
+
+    // Geocode & place markers (post-dedup)
     final futures = <Future<_GeoRow>>[];
     for (int i = 0; i < rows.length; i++) {
       futures.add(_geocodeRow(rows[i], i));
     }
     final results = await Future.wait(futures);
 
-    // Prevent overlap for identical coords
-    final samePosCounter = <String, int>{}; // "lat,lng" -> count
+    final samePosCounter = <String, int>{};
     final newMarkers = <Marker>{};
 
     for (final r in results) {
@@ -302,7 +293,7 @@ class _AreaMarkersFromJourneyPlanMapState
         _failures.add(_FailureRow(
           area: r.area,
           shop: r.shop,
-          reason: r.reason ?? 'Unable to mark this location.',
+          reason: r.reason ?? 'Unable to resolve this area to a location.',
         ));
         continue;
       }
@@ -343,7 +334,7 @@ class _AreaMarkersFromJourneyPlanMapState
   }
 
   Future<_GeoRow> _geocodeRow(
-      ({String area, String shop, String owner, dynamic raw}) row,
+      ({String area, String shop, String owner, String jid, dynamic raw}) row,
       int index) async {
     if (row.area.isEmpty) {
       return _GeoRow(
@@ -355,32 +346,19 @@ class _AreaMarkersFromJourneyPlanMapState
         reason: 'Missing area name.',
       );
     }
-    if (row.area.toLowerCase() == widget.country.toLowerCase()) {
-      return _GeoRow(
-        area: row.area,
-        shop: row.shop,
-        owner: row.owner,
-        index: index,
-        pos: null,
-        reason: 'Area is too broad (“${widget.country}”).',
-      );
-    }
 
-    final pos = await _geocodeAreaKarachiBiased(row.area);
+    final pos = await _geocodeAreaOnly(row.area);
     return _GeoRow(
       area: row.area,
       shop: row.shop,
       owner: row.owner,
       index: index,
       pos: pos,
-      reason: pos == null
-          ? 'Could not geocode within ${widget.cityHint}.'
-          : null,
+      reason: pos == null ? 'Could not geocode from area name only.' : null,
     );
   }
 
   // -------------------- Marker tap: distance & info card --------------------
-
   void _onMarkerTap({
     required String shop,
     required String owner,
@@ -409,7 +387,6 @@ class _AreaMarkersFromJourneyPlanMapState
   double _deg2rad(double d) => d * (pi / 180.0);
 
   // -------------------- Fit all markers --------------------------------------
-
   Future<void> _fitAllMarkers() async {
     if (_markers.isEmpty) return;
     final c = await _mapCtl.future;
@@ -436,19 +413,19 @@ class _AreaMarkersFromJourneyPlanMapState
   }
 
   // -------------------- UI ---------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Journey Plan — Shop Markers (Karachi)'),
+        title: const Text('Journey Plan — Area Markers'),
         actions: [
           IconButton(
             tooltip: 'Clear geocode cache',
             icon: const Icon(Icons.delete_sweep_rounded),
             onPressed: () async {
-              // Clear only our keys to avoid nuking other storage
-              final keys = _box.getKeys().where((k) => k.toString().startsWith('geo_area_')).toList();
+              final keys = _box.getKeys()
+                  .where((k) => k.toString().startsWith('geo_area_only_'))
+                  .toList();
               for (final k in keys) {
                 await _box.remove(k);
               }
@@ -489,7 +466,6 @@ class _AreaMarkersFromJourneyPlanMapState
             initialCameraPosition: _fallbackCamera,
             onMapCreated: (c) async {
               _mapCtl.complete(c);
-              // If we already have a GPS fix when the map comes up, center immediately
               if (_myLoc != null) {
                 await _centerOnMyLocation(initial: true);
               }
@@ -501,97 +477,62 @@ class _AreaMarkersFromJourneyPlanMapState
             markers: _markers,
           ),
 
-          // status chip (OK/Fail) with viewer
           if (!_loading)
             Positioned(
-              top: 12,
-              left: 12,
+              top: 12, left: 12,
               child: InkWell(
-                onTap: _failures.isEmpty ? null : _showFailuresSheet,
+                onTap: (_failures.isEmpty && _dups.isEmpty) ? null : _showStatusSheet,
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(999),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x14000000),
-                        blurRadius: 10,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
+                    boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 10, offset: Offset(0, 6))],
                     border: Border.all(color: const Color(0xFFEAEAEA)),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.place_rounded, size: 16, color: Color(0xFF1F2937)),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Markers: $_geocodeOk  •  Failed: $_geocodeFail',
-                        style: const TextStyle(
-                          color: Color(0xFF1F2937),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (_failures.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        const Icon(Icons.expand_more_rounded, size: 18, color: Color(0xFF6B7280)),
-                      ],
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.place_rounded, size: 16, color: Color(0xFF1F2937)),
+                    const SizedBox(width: 6),
+                    Text('Markers: $_geocodeOk  •  Failed: $_geocodeFail  •  Dups: $_dupSkipped',
+                        style: const TextStyle(color: Color(0xFF1F2937), fontWeight: FontWeight.w700)),
+                    if (_failures.isNotEmpty || _dups.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.expand_more_rounded, size: 18, color: Color(0xFF6B7280)),
                     ],
-                  ),
+                  ]),
                 ),
               ),
             ),
 
-          // Loading pill
           if (_loading)
             Align(
               alignment: Alignment.topCenter,
               child: Container(
                 margin: const EdgeInsets.only(top: 12),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(.55),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    SizedBox(
-                      height: 14,
-                      width: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text('Placing markers…',
-                        style: TextStyle(color: Colors.white)),
-                  ],
-                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                  SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                  SizedBox(width: 8),
+                  Text('Placing markers…', style: TextStyle(color: Colors.white)),
+                ]),
               ),
             ),
 
-          // Bottom info card for tapped marker
           if (_selected != null)
             Positioned(
-              left: 12,
-              right: 12,
-              bottom: 16,
+              left: 12, right: 12, bottom: 16,
               child: _BottomInfoCard(
                 selected: _selected!,
                 onClose: () => setState(() => _selected = null),
                 onCenterHere: () async {
                   final ctl = await _mapCtl.future;
                   await ctl.animateCamera(
-                    CameraUpdate.newCameraPosition(CameraPosition(
-                      target: _selected!.pos,
-                      zoom: 17,
-                    )),
+                    CameraUpdate.newCameraPosition(CameraPosition(target: _selected!.pos, zoom: 17)),
                   );
                 },
               ),
@@ -607,7 +548,7 @@ class _AreaMarkersFromJourneyPlanMapState
     );
   }
 
-  void _showFailuresSheet() {
+  void _showStatusSheet() {
     showModalBottomSheet(
       context: context,
       showDragHandle: true,
@@ -615,35 +556,58 @@ class _AreaMarkersFromJourneyPlanMapState
       builder: (_) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Unable to mark these locations',
-                style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Flexible(
-                child: ListView.separated(
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Text('Placement report', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+
+              if (_dups.isNotEmpty) ...[
+                Row(children: const [
+                  Icon(Icons.copy_rounded, color: Colors.amber), SizedBox(width: 6),
+                  Text('Skipped duplicates (same Journey ID)', style: TextStyle(fontWeight: FontWeight.w700)),
+                ]),
+                const SizedBox(height: 6),
+                ListView.separated(
                   shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _dups.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (_, i) {
+                    final d = _dups[i];
+                    return ListTile(
+                      leading: const Icon(Icons.remove_circle_outline, color: Colors.amber),
+                      title: Text(d.shop.isEmpty ? 'Shop' : d.shop,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: Text('JID: ${d.jid} • ${d.area.isEmpty ? "(no area)" : d.area} • ${d.owner}'),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              if (_failures.isNotEmpty) ...[
+                Row(children: const [
+                  Icon(Icons.error_outline_rounded, color: Colors.redAccent), SizedBox(width: 6),
+                  Text('Unable to mark these locations', style: TextStyle(fontWeight: FontWeight.w700)),
+                ]),
+                const SizedBox(height: 6),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: _failures.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {
                     final f = _failures[i];
                     return ListTile(
-                      leading: const Icon(Icons.error_outline_rounded, color: Colors.redAccent),
+                      leading: const Icon(Icons.place_outlined, color: Colors.redAccent),
                       title: Text(f.shop.isEmpty ? 'Shop' : f.shop,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
-                      subtitle: Text(
-                        '${f.area.isEmpty ? '(no area)' : f.area} • ${f.reason}',
-                      ),
+                      subtitle: Text('${f.area.isEmpty ? "(no area)" : f.area} • ${f.reason}'),
                     );
                   },
                 ),
-              ),
-            ],
+              ],
+            ]),
           ),
         ),
       ),
@@ -676,98 +640,56 @@ class _BottomInfoCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFEAEAEA)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x14000000),
-              blurRadius: 14,
-              offset: Offset(0, 8),
-            )
-          ],
+          boxShadow: const [BoxShadow(color: Color(0x14000000), blurRadius: 14, offset: Offset(0, 8))],
         ),
         child: Row(
           children: [
-            // icon
             Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F7),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              width: 44, height: 44,
+              decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(12)),
               child: const Icon(Icons.store_rounded, color: Color(0xFFEA7A3B)),
             ),
             const SizedBox(width: 10),
-            // text
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(selected.shop,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1F2937),
-                      )),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 16, color: Color(0xFF6B7280)),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          selected.owner,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)),
-                        ),
-                      ),
-                    ],
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(selected.shop,
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: t.titleMedium?.copyWith(fontWeight: FontWeight.w800, color: const Color(0xFF1F2937))),
+                const SizedBox(height: 2),
+                Row(children: [
+                  const Icon(Icons.person, size: 16, color: Color(0xFF6B7280)),
+                  const SizedBox(width: 4),
+                  Flexible(child: Text(selected.owner,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)))),
+                ]),
+                const SizedBox(height: 2),
+                Row(children: [
+                  const Icon(Icons.place_rounded, size: 16, color: Color(0xFF6B7280)),
+                  const SizedBox(width: 4),
+                  Flexible(child: Text(selected.area,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)))),
+                  const SizedBox(width: 10),
+                  const Icon(Icons.straighten_rounded, size: 16, color: Color(0xFF6B7280)),
+                  const SizedBox(width: 4),
+                  Text(
+                    selected.km == null
+                        ? '—'
+                        : (selected.km! < 1
+                            ? '${(selected.km! * 1000).toStringAsFixed(0)} m'
+                            : '${selected.km!.toStringAsFixed(1)} km'),
+                    style: t.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFEA7A3B),
+                    ),
                   ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_rounded, size: 16, color: Color(0xFF6B7280)),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          selected.area,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodySmall?.copyWith(color: const Color(0xFF6B7280)),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Icon(Icons.straighten_rounded, size: 16, color: Color(0xFF6B7280)),
-                      const SizedBox(width: 4),
-                      Text(
-                        selected.km == null
-                            ? '—'
-                            : (selected.km! < 1
-                                ? '${(selected.km! * 1000).toStringAsFixed(0)} m'
-                                : '${selected.km!.toStringAsFixed(1)} km'),
-                        style: t.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFEA7A3B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ]),
+              ]),
             ),
             const SizedBox(width: 8),
-            // actions
-            IconButton(
-              tooltip: 'Center here',
-              icon: const Icon(Icons.center_focus_strong_rounded),
-              onPressed: onCenterHere,
-            ),
-            IconButton(
-              tooltip: 'Close',
-              icon: const Icon(Icons.close_rounded),
-              onPressed: onClose,
-            ),
+            IconButton(tooltip: 'Center here', icon: const Icon(Icons.center_focus_strong_rounded), onPressed: onCenterHere),
+            IconButton(tooltip: 'Close', icon: const Icon(Icons.close_rounded), onPressed: onClose),
           ],
         ),
       ),
@@ -782,14 +704,7 @@ class _GeoRow {
   final int index;
   final LatLng? pos;
   final String? reason;
-  _GeoRow({
-    required this.area,
-    required this.shop,
-    required this.owner,
-    required this.index,
-    required this.pos,
-    this.reason,
-  });
+  _GeoRow({required this.area, required this.shop, required this.owner, required this.index, required this.pos, this.reason});
 }
 
 class _FailureRow {
@@ -799,307 +714,19 @@ class _FailureRow {
   _FailureRow({required this.area, required this.shop, required this.reason});
 }
 
+class _DupRow {
+  final String jid;
+  final String area;
+  final String shop;
+  final String owner;
+  _DupRow({required this.jid, required this.area, required this.shop, required this.owner});
+}
+
 class _Selected {
   final String shop;
   final String owner;
   final String area;
   final LatLng pos;
-  final double? km; // null if my location unknown
-  _Selected({
-    required this.shop,
-    required this.owner,
-    required this.area,
-    required this.pos,
-    required this.km,
-  });
+  final double? km;
+  _Selected({required this.shop, required this.owner, required this.area, required this.pos, required this.km});
 }
-
-
-// import 'dart:async';
-// import 'dart:math';
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:get_storage/get_storage.dart';
-// import 'package:geocoding/geocoding.dart' as geo;
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-// import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
-
-
-
-// /// Map screen that drops markers based on JourneyPlan.areaName (no lat/lng needed).
-// class AreaMarkersFromJourneyPlanMap extends StatefulWidget {
-//   const AreaMarkersFromJourneyPlanMap({
-//     super.key,
-//     this.countryHint = 'Pakistan', // improves geocoding accuracy
-//     this.autoFitAfterLoad = true,
-//   });
-
-//   /// Appended to area name when geocoding (e.g., "Gulshan-e-Iqbal, Pakistan").
-//   final String? countryHint;
-
-//   /// Fit camera to all markers after placing them.
-//   final bool autoFitAfterLoad;
-
-//   @override
-//   State<AreaMarkersFromJourneyPlanMap> createState() =>
-//       _AreaMarkersFromJourneyPlanMapState();
-// }
-
-// class _AreaMarkersFromJourneyPlanMapState
-//     extends State<AreaMarkersFromJourneyPlanMap> {
-//   final _box = GetStorage();
-//   final _memCache = <String, LatLng>{};
-//   final _markers = <Marker>{};
-//   final _mapCtl = Completer<GoogleMapController>();
-//   bool _loading = false;
-
-//   static const _initialCamera = CameraPosition(
-//     target: LatLng(24.8607, 67.0011), // Karachi fallback
-//     zoom: 11,
-//   );
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     // Small delay so context is fully ready
-//     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAndPlaceAll());
-//   }
-
-//   String _keyFor(String area) => 'geo_area_${area.trim().toLowerCase()}';
-
-//   Future<LatLng?> _resolveArea(String areaName) async {
-//     final norm = _keyFor(areaName);
-
-//     // 1) memory cache
-//     if (_memCache.containsKey(norm)) return _memCache[norm];
-
-//     // 2) persistent cache
-//     final cached = _box.read(norm);
-//     if (cached is String && cached.contains(',')) {
-//       final p = cached.split(',');
-//       final lat = double.tryParse(p[0]);
-//       final lng = double.tryParse(p[1]);
-//       if (lat != null && lng != null) {
-//         final pos = LatLng(lat, lng);
-//         _memCache[norm] = pos;
-//         return pos;
-//       }
-//     }
-
-//     // 3) device geocoding
-//     try {
-//       final query = widget.countryHint == null || widget.countryHint!.isEmpty
-//           ? areaName
-//           : '$areaName, ${widget.countryHint}';
-//       final hits = await geo.locationFromAddress(query);
-//       if (hits.isNotEmpty) {
-//         final pos = LatLng(hits.first.latitude, hits.first.longitude);
-//         _memCache[norm] = pos;
-//         await _box.write(norm, '${pos.latitude},${pos.longitude}');
-//         return pos;
-//       }
-//     } catch (_) {
-//       // swallow and return null
-//     }
-//     return null;
-//   }
-
-//   Future<void> _addMarkerForArea(String areaName,
-//       {bool moveCamera = false}) async {
-//     final pos = await _resolveArea(areaName);
-//     if (pos == null) return;
-
-//     setState(() {
-//       _markers.removeWhere((m) => m.markerId.value == areaName);
-//       _markers.add(
-//         Marker(
-//           markerId: MarkerId(areaName),
-//           position: pos,
-//           infoWindow: InfoWindow(title: areaName),
-//         ),
-//       );
-//     });
-
-//     if (moveCamera) {
-//       final c = await _mapCtl.future;
-//       await c.animateCamera(CameraUpdate.newLatLngZoom(pos, 14));
-//     }
-//   }
-
-//   Future<void> _loadAndPlaceAll() async {
-//     if (_loading) return;
-//     setState(() => _loading = true);
-
-//     // 1) read journey plan from bloc
-//     final model =
-//         context.read<GlobalBloc>().state.loginModel; // your existing state
-//     final plans = model?.journeyPlan ?? const <dynamic>[];
-
-//     // 2) extract unique, non-empty area names
-//     final areas = <String>{};
-//     for (final p in plans) {
-//       final raw = (p.areaName ?? '').toString().trim();
-//       if (raw.isNotEmpty) areas.add(raw);
-//     }
-//     final sorted = areas.toList()..sort();
-
-//     // 3) sequentially resolve & add markers (keeps UI responsive)
-//     for (final name in sorted) {
-//       await _addMarkerForArea(name, moveCamera: false);
-//     }
-
-//     setState(() => _loading = false);
-
-//     if (widget.autoFitAfterLoad) {
-//       await _fitAllMarkers();
-//     }
-//   }
-
-//   Future<void> _fitAllMarkers() async {
-//     if (_markers.isEmpty) return;
-//     final c = await _mapCtl.future;
-
-//     // build bounds
-//     double minLat = _markers.first.position.latitude;
-//     double maxLat = minLat;
-//     double minLng = _markers.first.position.longitude;
-//     double maxLng = minLng;
-
-//     for (final m in _markers) {
-//       final p = m.position;
-//       minLat = min(minLat, p.latitude);
-//       maxLat = max(maxLat, p.latitude);
-//       minLng = min(minLng, p.longitude);
-//       maxLng = max(maxLng, p.longitude);
-//     }
-
-//     final bounds = LatLngBounds(
-//       southwest: LatLng(minLat, minLng),
-//       northeast: LatLng(maxLat, maxLng),
-//     );
-
-//     await c.animateCamera(CameraUpdate.newLatLngBounds(bounds, 72));
-//   }
-
-//   Future<void> _clearAllMarkers() async {
-//     setState(() => _markers.clear());
-//   }
-
-//   Future<void> _clearGeoCache() async {
-//     // remove only area keys to be safe
-//     final keys = _box.getKeys().where((k) => k.toString().startsWith('geo_area_')).toList();
-//     for (final k in keys) {
-//       await _box.remove(k);
-//     }
-//     _memCache.clear();
-//     if (!mounted) return;
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(content: Text('Area geocode cache cleared')),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final t = Theme.of(context).textTheme;
-
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Journey Areas Map'),
-//         actions: [
-//           IconButton(
-//             tooltip: 'Refresh markers',
-//             icon: const Icon(Icons.refresh_rounded),
-//             onPressed: _loadAndPlaceAll,
-//           ),
-//           IconButton(
-//             tooltip: 'Fit all',
-//             icon: const Icon(Icons.fullscreen_rounded),
-//             onPressed: _fitAllMarkers,
-//           ),
-//           PopupMenuButton<String>(
-//             onSelected: (v) {
-//               if (v == 'clear_markers') _clearAllMarkers();
-//               if (v == 'clear_cache') _clearGeoCache();
-//             },
-//             itemBuilder: (_) => const [
-//               PopupMenuItem(value: 'clear_markers', child: Text('Clear markers')),
-//               PopupMenuItem(value: 'clear_cache', child: Text('Clear geocode cache')),
-//             ],
-//           ),
-//         ],
-//       ),
-//       body: Stack(
-//         children: [
-//           GoogleMap(
-//             initialCameraPosition: _initialCamera,
-//             markers: _markers,
-//             onMapCreated: (c) => _mapCtl.complete(c),
-//             myLocationEnabled: false,
-//             myLocationButtonEnabled: false,
-//             zoomControlsEnabled: false,
-//           ),
-
-//           // loading banner
-//           if (_loading)
-//             Align(
-//               alignment: Alignment.topCenter,
-//               child: Container(
-//                 margin: const EdgeInsets.only(top: 12),
-//                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                 decoration: BoxDecoration(
-//                   color: Colors.black.withOpacity(.55),
-//                   borderRadius: BorderRadius.circular(999),
-//                 ),
-//                 child: Row(
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: const [
-//                     SizedBox(
-//                       height: 14, width: 14,
-//                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-//                     ),
-//                     SizedBox(width: 8),
-//                     Text('Placing markers…', style: TextStyle(color: Colors.white)),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//         ],
-//       ),
-
-//       // Bottom action bar
-//       bottomNavigationBar: SafeArea(
-//         child: Padding(
-//           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-//           child: Row(
-//             children: [
-//               Expanded(
-//                 child: ElevatedButton.icon(
-//                   style: ElevatedButton.styleFrom(
-//                     padding: const EdgeInsets.symmetric(vertical: 14),
-//                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//                     backgroundColor: const Color(0xFFEA7A3B),
-//                     foregroundColor: Colors.white,
-//                   ),
-//                   onPressed: _loadAndPlaceAll,
-//                   icon: const Icon(Icons.place_rounded),
-//                   label: const Text('Mark Journey Areas'),
-//                 ),
-//               ),
-//               const SizedBox(width: 10),
-//               IconButton(
-//                 tooltip: 'Fit',
-//                 style: IconButton.styleFrom(
-//                   backgroundColor: const Color(0xFFF3F4F6),
-//                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-//                 ),
-//                 onPressed: _fitAllMarkers,
-//                 icon: const Icon(Icons.center_focus_strong_rounded, color: Color(0xFF1F2937)),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
