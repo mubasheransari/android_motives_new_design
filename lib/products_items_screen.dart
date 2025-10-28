@@ -361,6 +361,31 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
   final result = await Navigator.of(context).push<Map<String, dynamic>>(
     MaterialPageRoute(
       builder: (_) => _MyListView(
+        shopId: _activeShopId ?? widget.shopId, // ⬅️ pass shop id
+        allItems: items,
+        cart: _cart,
+        onIncrement: _inc,
+        onDecrement: _dec,
+        getPayloadMeta: () => Tuple2(userId, distributorId),
+      ),
+    ),
+  );
+
+  if (result?['submitted'] == true) {
+    setState(() => _cart.clear());
+    await _storage.clear(_activeUserId, _activeShopId);
+    // ⬅️ bubble up to OrderMenuScreen
+    if (mounted) Navigator.pop(context, result);
+  } else {
+    setState(() {}); 
+  }
+},
+
+
+                 /* onPressed: () async {
+  final result = await Navigator.of(context).push<Map<String, dynamic>>(
+    MaterialPageRoute(
+      builder: (_) => _MyListView(
         shopId: widget.shopId,
         allItems: items,
         cart: _cart,
@@ -378,7 +403,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
   } else {
     setState(() {}); 
   }
-},
+},*/
                 ),
                 if (totalItems > 0)
                   Positioned(
@@ -743,7 +768,7 @@ class _MyListViewState extends State<_MyListView> {
       userId: userId,
       distId: distId,
       requestField: 'request',
-      navigateToRecordsOnSuccess: true,
+      navigateToRecordsOnSuccess: false,
     );
 
     debugPrint('✅ success=${result.success}  status=${result.statusCode}');
@@ -753,9 +778,22 @@ class _MyListViewState extends State<_MyListView> {
       debugPrint('🧩 response (raw): ${result.rawBody}');
     }
 
-    final msg = result.success
-        ? (result.serverMessage ?? 'Order submitted successfully')
-        : (result.serverMessage ?? 'Order submit failed');
+   final msg = result.success
+    ? (result.serverMessage ?? 'Order submitted successfully')
+    : (result.serverMessage ?? 'Order submit failed');
+
+if (!mounted) return;
+ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+if (result.success) {
+  widget.cart.clear();
+  // ⬅️ propagate to parent screens with the shop id and status
+  Navigator.pop<Map<String, dynamic>>(context, {
+    'submitted': true,
+    'miscid': widget.shopId,
+    'reason': 'Order placed',
+  });
+}
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));

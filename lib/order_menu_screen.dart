@@ -998,25 +998,69 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                       ),
                     ),
 
-                    // TAKE ORDER
                     _TapScale(
-                      onTap: () => _guardRequireCheckIn(() async {
-                        if (_orderStatus != "1") {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      MeezanTeaCatalog(shopId: widget.miscid)));
-                          return;
-                        }
-                        _toast('Take Order tapped'); // TODO: Navigate
-                      }),
-                      child: const _CategoryCard(
-                        icon: Icons.playlist_add_check_rounded,
-                        title: 'Take Order',
-                        subtitle: 'Orders',
-                      ),
-                    ),
+  onTap: () => _guardRequireCheckIn(() async {
+    final res = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (_) => MeezanTeaCatalog(shopId: widget.miscid)),
+    );
+
+    if (res is Map &&
+        res!['miscid'] == widget.miscid &&
+        (res['reason'] ?? '') == 'Order placed') {
+      // mark reason locally
+      await _saveReason('Order placed');
+      await _saveStatus(checkedIn: false, last: VisitLast.none, holdUi: false);
+      checkInText = "Check In";
+      _hasReasonSelected = true;
+
+      // ✅ also fire Shop CHECK-OUT (type 6) here, then go back to Journey Plan
+      await _getLocation();
+      context.read<GlobalBloc>().add(
+        CheckinCheckoutEvent(
+          type: '6',
+          userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
+          lat: lat,
+          lng: lng,
+          act_type: "SHOP_CHECK",
+          action: "OUT",
+          misc: widget.miscid,
+          dist_id: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
+        ),
+      );
+
+      if (mounted) {
+        Navigator.pop(context, res); // ⬅️ back to Journey Plan with status
+      }
+    }
+  }),
+  child: const _CategoryCard(
+    icon: Icons.playlist_add_check_rounded,
+    title: 'Take Order',
+    subtitle: 'Orders',
+  ),
+),
+
+
+                    // TAKE ORDER
+                    // _TapScale(
+                    //   onTap: () => _guardRequireCheckIn(() async {
+                    //     if (_orderStatus != "1") {
+                    //       Navigator.push(
+                    //           context,
+                    //           MaterialPageRoute(
+                    //               builder: (_) =>
+                    //                   MeezanTeaCatalog(shopId: widget.miscid)));
+                    //       return;
+                    //     }
+                    //     _toast('Take Order tapped'); // TODO: Navigate
+                    //   }),
+                    //   child: const _CategoryCard(
+                    //     icon: Icons.playlist_add_check_rounded,
+                    //     title: 'Take Order',
+                    //     subtitle: 'Orders',
+                    //   ),
+                    // ),
 
                     // HOLD / UNHOLD
                     _TapScale(
