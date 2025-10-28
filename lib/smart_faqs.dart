@@ -1,11 +1,7 @@
 // lib/features/smart_faq/smart_faq_chat_bilingual.dart
 //
 // Bilingual (English/Urdu) Smart FAQ chat — offline, no AI calls.
-// - Language toggle (EN / اردو) with full UI + content switching
-// - Separate chat history per language (GetStorage)
-// - RTL layout when Urdu selected
-// - Suggestion chips, fuzzy search, synonyms (both languages)
-// - Thumbs up/down feedback stored locally
+// ⬇️ UI update: Watermark background applied via Stack + WatermarkTiledSmall.
 //
 // Requirements in pubspec.yaml:
 //   get_storage: ^2.1.1
@@ -16,18 +12,15 @@
 //     await GetStorage.init();
 //     runApp(const MyApp());
 //   }
-//
-// Open:
-//   Navigator.push(context,
-//     MaterialPageRoute(builder: (_) => const SmartFaqChatBilingual()),
-//   );
 
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 
 // ---------- THEME ----------
 const _kBg = Color(0xFFF7F8FA);
@@ -35,7 +28,6 @@ const _kCard = Colors.white;
 const _kText = Color(0xFF1E1E1E);
 const _kMuted = Color(0xFF6C7580);
 const _kAccent = Color(0xFFEA7A3B);
-const _kAccentLite = Color(0xFFFFB07A);
 
 // ---------- LANG ----------
 enum FaqLang { en, ur }
@@ -112,9 +104,8 @@ class FaqItem {
   List<String> tags(FaqLang l) => l == FaqLang.en ? tagsEn : tagsUr;
 }
 
-// ---------- DATA (UPDATED with your domain Q&As) ----------
+// ---------- DATA (domain Q&As) ----------
 const _faqs = <FaqItem>[
-  // Overview
   FaqItem(
     id: 'ov_what_is_motives',
     categoryEn: 'Overview',
@@ -128,8 +119,6 @@ const _faqs = <FaqItem>[
         'موٹیوز ڈسٹری بیوٹرز کے لئے فیلڈ سیلز ایپ ہے جس سے جرنی پلان کے مطابق دکانوں کے آرڈر لیے جاتے ہیں۔ رائیڈر حاضری لگاتا ہے، روٹ شروع کرتا ہے، پھر دکان پر چیک اِن، آرڈر، پیمنٹ، نو وِزٹ (وجہ کے ساتھ) یا ہولڈ کرتا ہے۔ جرنی پلان مکمل ہونے سے پہلے روٹ ختم نہیں کیا جا سکتا۔',
     tagsUr: ['موٹیوز', 'جائزہ', 'کیا ہے', 'ڈسٹری بیوٹر', 'فیلڈ سیلز', 'روٹ'],
   ),
-
-  // Attendance & Route
   FaqItem(
     id: 'route_flow',
     categoryEn: 'Attendance & Route',
@@ -143,7 +132,6 @@ const _faqs = <FaqItem>[
         '1) حاضری لگائیں → 2) روٹ شروع کریں → 3) ترتیب کے مطابق دکانوں پر جائیں → 4) ہر دکان پر پہلے چیک اِن کریں، پھر ایکشن کریں (آرڈر / پیمنٹ / نو وِزٹ وجہ کے ساتھ / ہولڈ)۔ یہ عمل تب تک دہرائیں جب تک جرنی پلان مکمل نہ ہو۔',
     tagsUr: ['حاضری', 'روٹ شروع', 'طریقہ', 'روزانہ', 'وزٹ ترتیب'],
   ),
-
   FaqItem(
     id: 'cant_end_route',
     categoryEn: 'Attendance & Route',
@@ -157,8 +145,6 @@ const _faqs = <FaqItem>[
         'جب تک مکمل جرنی پلان کور نہ ہو، روٹ ختم نہیں کیا جا سکتا۔ موجودہ پلان کی ہر دکان پر ایکشن مکمل کریں (آرڈر ڈن، نو وِزٹ وجہ کے ساتھ، یا ہولڈ) اور آخری وزٹ کی دکان سے چیک آؤٹ یقینی بنائیں۔',
     tagsUr: ['روٹ ختم', 'اختتام نہیں', 'جرنی پلان مکمل', 'بلاک'],
   ),
-
-  // Visits & Reasons
   FaqItem(
     id: 'checkin_first',
     categoryEn: 'Visits & Reasons',
@@ -172,7 +158,6 @@ const _faqs = <FaqItem>[
         'جی ہاں۔ آرڈر لینے، پیمنٹ جمع کرنے یا وجوہات (نو وِزٹ/ہولڈ) منتخب کرنے سے پہلے چیک اِن لازمی ہے۔',
     tagsUr: ['چیک اِن', 'ضروری', 'وزٹ', 'وجہ', 'ہولڈ', 'نو وزٹ'],
   ),
-
   FaqItem(
     id: 'hold_shop',
     categoryEn: 'Visits & Reasons',
@@ -186,7 +171,6 @@ const _faqs = <FaqItem>[
         'جب مالک موجود نہ ہو یا دکان عارضی طور پر بند ہو تو ہولڈ کریں۔ آپ اگلی دکان پر جا سکتے ہیں اور بعد میں واپس آ سکتے ہیں۔',
     tagsUr: ['ہولڈ', 'غیر موجود', 'بند', 'وجہ', 'وقفہ'],
   ),
-
   FaqItem(
     id: 'no_visit_reason',
     categoryEn: 'Visits & Reasons',
@@ -200,8 +184,6 @@ const _faqs = <FaqItem>[
         'چیک اِن کے بعد نو وِزٹ منتخب کریں اور فہرست میں سے موزوں وجہ چنیں، پھر اگلی دکان پر جائیں۔',
     tagsUr: ['نو وزٹ', 'وجہ', 'وزٹ', 'اسکپ'],
   ),
-
-  // Orders
   FaqItem(
     id: 'place_order',
     categoryEn: 'Orders',
@@ -215,7 +197,6 @@ const _faqs = <FaqItem>[
         'آرڈر مینو سے “Products” کھولیں، آئٹمز شامل کریں، پھر “My List” میں “Confirm & Send” دبائیں۔ کامیابی پر دکان “Order Done” ہو جاتی ہے، مقامی طور پر چیک آؤٹ ہو جاتا ہے اور کورڈ روٹس کی گنتی بڑھتی ہے۔',
     tagsUr: ['آرڈر', 'پروڈکٹس', 'کنفرم سینڈ', 'آرڈر ڈن'],
   ),
-
   FaqItem(
     id: 'brand_filter',
     categoryEn: 'Orders',
@@ -229,8 +210,6 @@ const _faqs = <FaqItem>[
         'جی ہاں۔ کیٹلاگ کے اوپر برانڈ چپس اور سرچ استعمال کریں تاکہ آئٹمز تیزی سے شارٹ لسٹ ہوں۔',
     tagsUr: ['برانڈ', 'فلٹر', 'کیٹلاگ', 'چپس', 'سرچ'],
   ),
-
-  // Payments
   FaqItem(
     id: 'collect_payment',
     categoryEn: 'Payments',
@@ -244,8 +223,6 @@ const _faqs = <FaqItem>[
         'اگر آپ کے اکاؤنٹ میں ان وائس/کلیکشن کی اجازت ہے تو “Order Menu” سے “Collect Payment” کھولیں اور ہدایات پر عمل کریں۔',
     tagsUr: ['پیمنٹ', 'کلیکٹ', 'ان وائس', 'رائٹس', 'چیک اِن'],
   ),
-
-  // Journey Plan & Area efficiency
   FaqItem(
     id: 'area_based_plan',
     categoryEn: 'Journey Plan',
@@ -259,7 +236,6 @@ const _faqs = <FaqItem>[
         'دکانیں ایریا کے لحاظ سے گروپ ہوتی ہیں تاکہ ایک ہی وزٹ میں قریبی جگہیں کور ہو جائیں۔ جرنی پلان میں ایریا فلٹر استعمال کریں اور کام جلد مکمل کریں۔',
     tagsUr: ['جرنی پلان', 'ایریا', 'فلٹر', 'موثر', 'قریب'],
   ),
-
   FaqItem(
     id: 'after_success_order',
     categoryEn: 'Journey Plan',
@@ -273,8 +249,6 @@ const _faqs = <FaqItem>[
         'دکان “Order Done” ہو جاتی ہے، مقامی چیک آؤٹ ہو جاتا ہے، اور کورڈ روٹس/وزٹڈ کاؤنٹ بڑھ جاتا ہے تاکہ آپ اگلی دکان پر چل سکیں۔',
     tagsUr: ['آرڈر ڈن', 'وزٹڈ', 'کورڈ روٹس', 'چیک آؤٹ'],
   ),
-
-  // Troubleshooting / Generic app
   FaqItem(
     id: 'order_fail',
     categoryEn: 'Troubleshooting',
@@ -288,7 +262,6 @@ const _faqs = <FaqItem>[
         'عام وجوہات: انٹرنیٹ نہیں، یوزر/ڈسٹری بیوٹر کی معلومات نہیں، یا سرور مینٹیننس۔ نیٹ چیک کریں اور دوبارہ کوشش کریں۔ مسئلہ برقرار رہے تو سپورٹ سے رابطہ کریں۔',
     tagsUr: ['خرابی', 'ناکام', 'نیٹ ورک', 'سرور', 'سبمٹ'],
   ),
-
   FaqItem(
     id: 'not_syncing',
     categoryEn: 'App',
@@ -304,7 +277,7 @@ const _faqs = <FaqItem>[
   ),
 ];
 
-// ---------- SYNONYMS (expanded for your domain) ----------
+// ---------- SYNONYMS ----------
 const Map<String, List<String>> _synEn = {
   'buy': ['purchase', 'order', 'checkout', 'confirm', 'send'],
   'order': ['buy', 'purchase', 'cart', 'bag', 'list'],
@@ -344,7 +317,7 @@ class FaqPrefs {
   FaqLang getLang() {
     final s = (_box.read('smartfaq_lang') as String?) ?? 'en';
     return s == 'ur' ? FaqLang.ur : FaqLang.en;
-    }
+  }
   Future<void> setLang(FaqLang l) => _box.write('smartfaq_lang', l.code);
 }
 
@@ -399,7 +372,7 @@ class FaqStore {
 class FaqEngine {
   final List<FaqItem> data;
   FaqLang _lang;
-  final Map<String, int> _df = {}; // document frequency
+  final Map<String, int> _df = {};
   late int _n;
 
   FaqEngine(this.data, this._lang) {
@@ -428,7 +401,6 @@ class FaqEngine {
   }
 
   String _norm(String s) {
-    // Keep EN word chars, digits, spaces AND Urdu range U+0600..U+06FF
     final cleaned = s
         .toLowerCase()
         .replaceAll(RegExp(r'[^\w\s\u0600-\u06FF]'), ' ')
@@ -762,6 +734,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
     return Directionality(
       textDirection: _lang.dir,
       child: Scaffold(
+        // keep scaffold background so app still looks consistent outside body
         backgroundColor: _kBg,
         appBar: AppBar(
           backgroundColor: _kCard,
@@ -783,175 +756,182 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
             ),
           ],
         ),
-        body: Column(
+        // ✅ UI-only update: watermark behind the chat content
+        body: Stack(
           children: [
-            // Category filter + suggestion chips
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-              color: _kCard,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 40,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      reverse: _lang == FaqLang.ur, // better RTL experience
-                      itemCount: cats.length + 1,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final label = (i == 0)
-                            ? (_lang == FaqLang.en ? 'All' : 'تمام')
-                            : cats[i - 1];
-                        final sel = (i == 0 && _selectedCategory == null) ||
-                            (i > 0 && _selectedCategory == label);
-                        return ChoiceChip(
-                          label: Text(label, overflow: TextOverflow.ellipsis),
-                          selected: sel,
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedCategory = (i == 0) ? null : label;
-                            });
-                          },
-                          selectedColor: _kAccent,
-                          labelStyle: TextStyle(
-                            color: sel ? Colors.white : _kText,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          backgroundColor: Colors.white,
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: sel ? Colors.transparent : const Color(0xFFEDEFF2),
-                            ),
-                          ),
-                          elevation: sel ? 1 : 0,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 34,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      reverse: _lang == FaqLang.ur,
-                      itemCount: catSuggestions.length.clamp(0, 12),
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final q = catSuggestions[i];
-                        return ActionChip(
-                          label: Text(q, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          onPressed: () => _onTapSuggestion(q),
-                          backgroundColor: Colors.white,
-                          side: const BorderSide(color: Color(0xFFEDEFF2)),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+             WatermarkTiledSmall(tileScale: 3.0),
 
-            // Chat list
-            Expanded(
-              child: ListView.builder(
-                controller: _scroll,
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                reverse: false,
-                itemCount: _messages.length + (_typing ? 1 : 0),
-                itemBuilder: (_, i) {
-                  if (_typing && i == _messages.length) {
-                    return const _TypingBubble();
-                  }
-                  final m = _messages[i];
-                  final isUser = m.role == ChatRole.user;
-                  return Column(
-                    crossAxisAlignment:
-                        isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            // Foreground content (unchanged logic)
+            Column(
+              children: [
+                // Category filter + suggestion chips (opaque so watermark peeks around)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                  color: _kCard,
+                  child: Column(
                     children: [
-                      Align(
-                        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                        child: _ChatBubble(
-                          isUser: isUser,
-                          text: m.text,
-                          onCopy: () => Clipboard.setData(ClipboardData(text: m.text)),
-                          onShare: () => _share(context, m.text),
-                          onThumbUp: isUser ? null : () => _onThumbUp(m),
-                          onThumbDown: isUser ? null : () => _onThumbDown(m),
-                          textDirection: _lang.dir,
+                      SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          reverse: _lang == FaqLang.ur,
+                          itemCount: cats.length + 1,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (_, i) {
+                            final label = (i == 0)
+                                ? (_lang == FaqLang.en ? 'All' : 'تمام')
+                                : cats[i - 1];
+                            final sel = (i == 0 && _selectedCategory == null) ||
+                                (i > 0 && _selectedCategory == label);
+                            return ChoiceChip(
+                              label: Text(label, overflow: TextOverflow.ellipsis),
+                              selected: sel,
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedCategory = (i == 0) ? null : label;
+                                });
+                              },
+                              selectedColor: _kAccent,
+                              labelStyle: TextStyle(
+                                color: sel ? Colors.white : _kText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              backgroundColor: Colors.white,
+                              shape: StadiumBorder(
+                                side: BorderSide(
+                                  color: sel ? Colors.transparent : const Color(0xFFEDEFF2),
+                                ),
+                              ),
+                              elevation: sel ? 1 : 0,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            );
+                          },
                         ),
                       ),
-                      if (!isUser && m.suggestions.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          alignment: _lang == FaqLang.ur ? WrapAlignment.end : WrapAlignment.start,
-                          children: m.suggestions.take(6).map((s) {
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 34,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          reverse: _lang == FaqLang.ur,
+                          itemCount: catSuggestions.length.clamp(0, 12),
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (_, i) {
+                            final q = catSuggestions[i];
                             return ActionChip(
-                              label: Text(
-                                s,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              onPressed: () => _onTapSuggestion(s),
+                              label: Text(q, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              onPressed: () => _onTapSuggestion(q),
                               backgroundColor: Colors.white,
                               side: const BorderSide(color: Color(0xFFEDEFF2)),
                             );
-                          }).toList(),
+                          },
                         ),
-                      ],
-                      const SizedBox(height: 10),
+                      ),
                     ],
-                  );
-                },
-              ),
-            ),
+                  ),
+                ),
 
-            // Composer
-            Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              decoration: const BoxDecoration(
-                color: _kCard,
-                boxShadow: [BoxShadow(color: Color(0x11000000), blurRadius: 8, offset: Offset(0, -2))],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: const Color(0xFFEDEFF2)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: TextField(
-                        controller: _ctl,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: _onSend,
-                        textDirection: _lang.dir,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: _t.askHint,
+                // Chat list (transparent to show watermark in the canvas area)
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scroll,
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                    itemCount: _messages.length + (_typing ? 1 : 0),
+                    itemBuilder: (_, i) {
+                      if (_typing && i == _messages.length) {
+                        return const _TypingBubble();
+                      }
+                      final m = _messages[i];
+                      final isUser = m.role == ChatRole.user;
+                      return Column(
+                        crossAxisAlignment:
+                            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                            child: _ChatBubble(
+                              isUser: isUser,
+                              text: m.text,
+                              onCopy: () => Clipboard.setData(ClipboardData(text: m.text)),
+                              onShare: () => _share(context, m.text),
+                              onThumbUp: isUser ? null : () => _onThumbUp(m),
+                              onThumbDown: isUser ? null : () => _onThumbDown(m),
+                              textDirection: _lang.dir,
+                            ),
+                          ),
+                          if (!isUser && m.suggestions.isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              alignment: _lang == FaqLang.ur ? WrapAlignment.end : WrapAlignment.start,
+                              children: m.suggestions.take(6).map((s) {
+                                return ActionChip(
+                                  label: Text(
+                                    s,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  onPressed: () => _onTapSuggestion(s),
+                                  backgroundColor: Colors.white,
+                                  side: const BorderSide(color: Color(0xFFEDEFF2)),
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                          const SizedBox(height: 10),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                // Composer (opaque white strip; watermark stays behind)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  decoration: const BoxDecoration(
+                    color: _kCard,
+                    boxShadow: [BoxShadow(color: Color(0x11000000), blurRadius: 8, offset: Offset(0, -2))],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: const Color(0xFFEDEFF2)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TextField(
+                            controller: _ctl,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: _onSend,
+                            textDirection: _lang.dir,
+                            decoration: InputDecoration(
+                              border: InputBorder.none,
+                              hintText: _t.askHint,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _kAccent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                        onPressed: () => _onSend(_ctl.text),
+                        icon: const Icon(Icons.send_rounded, size: 18),
+                        label: Text(_t.ask),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _kAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    ),
-                    onPressed: () => _onSend(_ctl.text),
-                    icon: const Icon(Icons.send_rounded, size: 18),
-                    label: Text(_t.ask),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1176,3 +1156,135 @@ class _DotsState extends State<_Dots> with SingleTickerProviderStateMixin {
     );
   }
 }
+
+// -----------------------------------------------------------------------------
+// WATERMARK (UI-only helper)
+// If your app already defines WatermarkTiledSmall, delete this class.
+// -----------------------------------------------------------------------------
+// class WatermarkTiledSmall extends StatelessWidget {
+//   const WatermarkTiledSmall({
+//     super.key,
+//     this.tileScale = 3.0,
+//     this.opacity = 0.06,
+//     this.angleDegrees = -22.0,
+//     this.label = 'MOTIVES',
+//     this.fontSize = 44,
+//   });
+
+//   final double tileScale;   // bigger = larger tiles
+//   final double opacity;     // 0.0..1.0, keep subtle (0.04..0.08)
+//   final double angleDegrees;
+//   final String label;       // watermark text
+//   final double fontSize;    // base font size for watermark
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return CustomPaint(
+//       painter: _WatermarkPainter(
+//         label: label,
+//         opacity: opacity,
+//         angle: angleDegrees * pi / 180.0,
+//         baseFontSize: fontSize,
+//         tileScale: tileScale,
+//         color: const Color(0xFF1E1E1E), // dark text at low opacity looks clean
+//       ),
+//     );
+//   }
+// }
+
+// class _WatermarkPainter extends CustomPainter {
+//   _WatermarkPainter({
+//     required this.label,
+//     required this.opacity,
+//     required this.angle,
+//     required this.baseFontSize,
+//     required this.tileScale,
+//     required this.color,
+//   });
+
+//   final String label;
+//   final double opacity;
+//   final double angle;
+//   final double baseFontSize;
+//   final double tileScale;
+//   final Color color;
+
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final paint = Paint()..isAntiAlias = true;
+//     final textStyle = TextStyle(
+//       fontSize: baseFontSize,
+//       fontWeight: FontWeight.w700,
+//       letterSpacing: 1.2,
+//       color: color.withOpacity(opacity),
+//     );
+
+//     final tp = TextPainter(
+//       textDirection: TextDirection.ltr,
+//       textAlign: TextAlign.center,
+//     );
+
+//     // Determine tile spacing
+//     // Base tile ~ 240x160; scaled by tileScale
+//     final dx = 240.0 * tileScale;
+//     final dy = 160.0 * tileScale;
+
+//     // slight offset to avoid perfectly aligned grid feeling
+//     const jitter = 22.0;
+
+//     // rotate the whole canvas once
+//     canvas.save();
+//     // rotate around center
+//     canvas.translate(size.width / 2, size.height / 2);
+//     canvas.rotate(angle);
+//     canvas.translate(-size.width / 2, -size.height / 2);
+
+//     // draw in a grid large enough to cover rotated bounds
+//     final cols = (size.width / dx).ceil() + 2;
+//     final rows = (size.height / dy).ceil() + 2;
+
+//     for (int r = -1; r < rows; r++) {
+//       for (int c = -1; c < cols; c++) {
+//         final x = c * dx + ((r % 2 == 0) ? 0 : dx * .35);
+//         final y = r * dy;
+//         final pos = Offset(x + jitter, y + jitter);
+
+//         tp.text = TextSpan(text: label, style: textStyle);
+//         tp.layout();
+//         final textOffset = pos - Offset(tp.width / 2, tp.height / 2);
+
+//         // a soft underline bar for a nicer watermark style (optional)
+//         final rectW = tp.width * .72;
+//         final rectH = 6.0;
+//         final rect = Rect.fromLTWH(
+//           pos.dx - rectW / 2,
+//           pos.dy + tp.height * .35,
+//           rectW,
+//           rectH,
+//         );
+
+//         // underbar
+//         paint.color = color.withOpacity(opacity * 0.20);
+//         canvas.drawRRect(
+//           RRect.fromRectAndRadius(rect, const Radius.circular(999)),
+//           paint,
+//         );
+
+//         // text
+//         tp.paint(canvas, textOffset);
+//       }
+//     }
+
+//     canvas.restore();
+//   }
+
+  // @override
+  // bool shouldRepaint(covariant _WatermarkPainter oldDelegate) {
+  //   return oldDelegate.label != label ||
+  //       oldDelegate.opacity != opacity ||
+  //       oldDelegate.angle != angle ||
+  //       oldDelegate.baseFontSize != baseFontSize ||
+  //       oldDelegate.tileScale != tileScale ||
+  //       oldDelegate.color != color;
+  // }
+

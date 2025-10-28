@@ -17,6 +17,23 @@ import 'dart:ui';
 import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 import 'main.dart';
 
+class _SmartIconBox extends StatelessWidget {
+  const _SmartIconBox();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 30, width: 30,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(.22),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(.22)),
+      ),
+      child: const Icon(Icons.chat_bubble_rounded, color: Colors.white, size: 18),
+    );
+  }
+}
+
 class _LiveDateTimeBar extends StatefulWidget {
   const _LiveDateTimeBar();
 
@@ -250,6 +267,8 @@ class _HomeUpdatedState extends State<HomeUpdated> {
     );
 
     final routeCompleted = (jpCount == _coveredRoutesCount);
+    double _faqBtnScale = 1.0;
+    
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -257,13 +276,97 @@ class _HomeUpdatedState extends State<HomeUpdated> {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=> SmartFaqChatBilingual()));
-        },child: Container(height: 100,width: 300,child: Text('FAQS'),),),
+     // 1) In your State class (e.g., _HomeUpdatedState), add this small field:
+
+
+// 2) Use THIS as your button (e.g., in Scaffold.floatingActionButton):
+floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+floatingActionButton: Padding(
+  padding: const EdgeInsets.only(bottom: 10),
+  child: AnimatedScale(
+    scale: _faqBtnScale,
+    duration: const Duration(milliseconds: 110),
+    child: GestureDetector(
+      onTapDown: (_) => setState(() => _faqBtnScale = .98),
+      onTapCancel: () => setState(() => _faqBtnScale = 1),
+      onTapUp: (_) {
+        setState(() => _faqBtnScale = 1);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SmartFaqChatBilingual()),
+        );
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // soft glow
+          Container(
+            height: 58,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              // boxShadow: [
+              //   BoxShadow(
+              //     color: const Color(0xFFEA7A3B).withOpacity(.38),
+              //     blurRadius: 26,
+              //     spreadRadius: 2,
+              //   ),
+              // ],
+            ),
+          ),
+          // gradient pill
+          Container(
+            constraints: const BoxConstraints(minWidth: 230),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment(-0.9, -1),
+                end: Alignment(0.9, 1),
+                colors: [
+                  Color(0xFFFFB07A), // soft
+                  Color(0xFFEA7A3B), // primary
+                ],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withOpacity(.22)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                // icon box
+                _SmartIconBox(),
+                SizedBox(width: 10),
+                // bilingual label
+                Flexible(
+                  child: Text(
+                    'Smart FAQs • سمارٹ سوالات',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .2,
+                      fontSize: 15.5,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
+// 3) Put this tiny helper right below the same file (no reuse elsewhere, just for the icon box look):
+
+
         backgroundColor: HomeUpdated.cBg,
         body: Stack(
           children: [
-            const WatermarkTiledSmall(tileScale: 3.0),
+             WatermarkTiledSmall(tileScale: 3.0),
 
             SafeArea(
               child: CustomScrollView(
