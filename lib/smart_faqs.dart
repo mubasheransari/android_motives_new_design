@@ -934,7 +934,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
 
                 // Composer (opaque white strip; watermark stays behind)
                 Container(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 52),
                   decoration: const BoxDecoration(
                     color: _kCard,
                     boxShadow: [BoxShadow(color: Color(0x11000000), blurRadius: 8, offset: Offset(0, -2))],
