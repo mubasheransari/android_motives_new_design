@@ -2,6 +2,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:motives_new_ui_conversion/Offline/sync_progress_portal.dart';
 import 'package:motives_new_ui_conversion/Offline/sync_service.dart';
 import 'package:motives_new_ui_conversion/Service/getDeviceId.dart' as PlatformDeviceId;
 import 'package:motives_new_ui_conversion/home_screen.dart';
@@ -24,6 +25,291 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/foundation.dart';
 
 
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
+import 'package:android_id/android_id.dart';
+import 'package:workmanager/workmanager.dart';
+
+ // provides SyncService + taskoonSyncDispatcher
+// import your own bloc/screens as you already do, e.g.:
+// import 'Bloc/global_bloc.dart';
+// import 'Screens/splash_screen.dart';
+
+// main.dart
+
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
+import 'package:android_id/android_id.dart';
+import 'package:workmanager/workmanager.dart';
+
+// ⬇️ Your own project imports (adjust paths if different)
+import 'Bloc/global_bloc.dart';
+
+
+// lib/main.dart
+import 'dart:io' show Platform;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:uuid/uuid.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:android_id/android_id.dart';
+
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:workmanager/workmanager.dart';
+
+
+class AppBlocObserver extends BlocObserver {
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    super.onError(bloc, error, stackTrace);
+  }
+}
+
+@pragma('vm:entry-point')
+void taskoonSyncDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+      await GetStorage.init();                 // storage for outbox
+      await SyncService.instance.trySync();    // flush queued jobs
+      return Future.value(true);
+    } catch (e, st) {
+      debugPrint('BG sync error: $e\n$st');
+      return Future.value(false);
+    }
+  });
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await GetStorage.init();
+
+  // Light status bar over splash/login
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+  ));
+
+  // Workmanager
+  if (Platform.isAndroid) {
+    await Workmanager().initialize(
+      taskoonSyncDispatcher,
+      isInDebugMode: false,
+    );
+  }
+
+  // Foreground sync hooks + periodic background
+  await SyncService.instance.init();
+  if (Platform.isAndroid) {
+    await SyncService.instance.registerBackgroundJobs();
+  }
+
+  Bloc.observer = AppBlocObserver();
+
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<GlobalBloc>(
+          create: (_) => GlobalBloc()            ..add(Activity(activity: 'App Opens'))
+            ..add(const HydrateLoginFromCache()),
+        ),
+      ],
+          child: SyncProgressPortal(
+      child: const MyApp(),
+    ),
+
+     // child: const MyApp(),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Motives-T',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEA7A3B)),
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const SplashScreen() //replace with your SplashScreen if needed
+    );
+  }
+}
+
+class _BlankHome extends StatelessWidget {
+  const _BlankHome();
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: SizedBox.shrink());
+}
+
+
+
+
+/* ------------------------------ Bloc Observer ------------------------------ */
+
+// class AppBlocObserver extends BlocObserver {
+//   @override
+//   void onChange(BlocBase bloc, Change change) {
+//     super.onChange(bloc, change);
+//   }
+
+//   @override
+//   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+//     super.onError(bloc, error, stackTrace);
+//     // debugPrint('Bloc error in ${bloc.runtimeType}: $error');
+//   }
+// }
+
+// /* ------------------------------ Device ID helper --------------------------- */
+
+// const _store = FlutterSecureStorage();
+// const _kKey = 'app_device_id';
+
+// /// Returns a stable ID:
+// /// - Android: Settings.Secure.ANDROID_ID (via android_id)
+// /// - iOS: identifierForVendor (via a persisted UUID fallback here)
+// /// - Else: a generated UUID persisted in secure storage
+// Future<String> getDeviceId() async {
+//   try {
+//     if (Platform.isAndroid) {
+//       final id = await const AndroidId().getId(); // ANDROID_ID
+//       if (id != null && id.isNotEmpty) {
+//         // debugPrint('ANDROID_ID: $id');
+//         return id;
+//       }
+//     }
+//   } catch (e, st) {
+//     debugPrint('getDeviceId() OS id error: $e\n$st');
+//   }
+
+//   // App-scoped fallback
+//   final saved = await _store.read(key: _kKey);
+//   if (saved != null && saved.isNotEmpty) return saved;
+
+//   final gen = const Uuid().v4();
+//   await _store.write(key: _kKey, value: gen);
+//   return gen;
+// }
+
+// /* ----------------------- Workmanager Background Dispatcher ------------------ */
+
+// @pragma('vm:entry-point')
+// void taskoonSyncDispatcher() {
+//   Workmanager().executeTask((task, inputData) async {
+//     try {
+//       WidgetsFlutterBinding.ensureInitialized();
+//       await GetStorage.init();               // storage for the outbox
+//       await SyncService.instance.trySync();  // flush queued jobs
+//       return Future.value(true);
+//     } catch (e, st) {
+//       debugPrint('BG sync error: $e\n$st');
+//       return Future.value(false);
+//     }
+//   });
+// }
+
+// /* ----------------------------------- main ---------------------------------- */
+
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   // Local key-value store ready BEFORE any reads
+//   await GetStorage.init();
+//   await getDeviceId();
+
+//   // Foreground sync bootstrap (connectivity listener + first try)
+//   await SyncService.instance.init();
+
+//   // Android background worker init + schedule periodic sync
+//   if (Platform.isAndroid) {
+//     await Workmanager().initialize(
+//       taskoonSyncDispatcher,   // top-level dispatcher (see above)
+//       isInDebugMode: false,
+//     );
+//     await SyncService.instance.registerBackgroundJobs(); // uses ExistingPeriodicWorkPolicy.keep
+//   }
+
+//   // Safe to ignore if not present
+//   try {
+//     // Nothing else needed here because SyncService.init() already sets listeners
+//   } catch (_) { /* ignore */ }
+
+//   // Light status bar for splash/login
+//   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+//     statusBarColor: Colors.transparent,
+//     statusBarIconBrightness: Brightness.dark,
+//   ));
+
+//   Bloc.observer = AppBlocObserver();
+
+//   // ✅ Single runApp with providers ABOVE the whole app.
+//   runApp(
+//     MultiBlocProvider(
+//       providers: [
+//         BlocProvider<GlobalBloc>(
+//           create: (_) => GlobalBloc()
+            // ..add(Activity(activity: 'App Opens'))
+            // ..add(const HydrateLoginFromCache()),
+//         ),
+//       ],
+//       child: const MyApp(),
+//     ),
+//   );
+// }
+
+// /* ---------------------------------- App ------------------------------------ */
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Motives-T',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         useMaterial3: true,
+//         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEA7A3B)),
+//         scaffoldBackgroundColor: Colors.white,
+//       ),
+//       home: const SplashScreen(), // Splash handles auth/navigation flow
+//     );
+//   }
+// }
+
+
+
+/*
 class AppBlocObserver extends BlocObserver {
   @override
   void onChange(BlocBase bloc, Change change) {
@@ -48,8 +334,8 @@ Future<String> getDeviceId() async {
   // 1) OS IDs
   try {
     if (Platform.isAndroid) {
-      final id = await  AndroidId().getId(); // ANDROID_ID
-      if (id != null ) {
+      final id = await AndroidId().getId(); // ANDROID_ID
+      if (id != null) {
         print("IDDD :: $id");
         print("IDDD :: $id");
         print("IDDD :: $id");
@@ -57,7 +343,7 @@ Future<String> getDeviceId() async {
         print("IDDD :: $id");
         return id;
       }
-    } 
+    }
   } catch (e, st) {
     debugPrint('getDeviceId() OS id error: $e\n$st');
   }
@@ -71,17 +357,28 @@ Future<String> getDeviceId() async {
   return gen;
 }
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Local key-value store ready BEFORE any reads
   await GetStorage.init();
- await  getDeviceId();
+  await getDeviceId();
+
+  // Android background worker init (kept minimal)
+  if (Platform.isAndroid) {
+    await Workmanager().initialize(
+      taskoonSyncDispatcher, // top-level dispatcher from offline_sync.dart
+      isInDebugMode: false,
+    );
+  }
 
   // Safe to ignore if not present
   try {
     await SyncService.instance.init();
+    // Schedule periodic background sync (Android only)
+    if (Platform.isAndroid) {
+      await SyncService.instance.registerBackgroundJobs();
+    }
   } catch (_) { /* ignore */ }
 
   // Light status bar for splash/login
@@ -124,6 +421,109 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+*/
+
+// class AppBlocObserver extends BlocObserver {
+//   @override
+//   void onChange(BlocBase bloc, Change change) {
+//     super.onChange(bloc, change);
+//   }
+
+//   @override
+//   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+//     super.onError(bloc, error, stackTrace);
+//     // debugPrint('Bloc error in ${bloc.runtimeType}: $error');
+//   }
+// }
+
+// const _store = FlutterSecureStorage();
+// const _kKey = 'app_device_id';
+
+// /// Returns a stable ID:
+// /// - Android: Settings.Secure.ANDROID_ID (via android_id)
+// /// - iOS: identifierForVendor
+// /// - Else: a generated UUID persisted in secure storage
+// Future<String> getDeviceId() async {
+//   // 1) OS IDs
+//   try {
+//     if (Platform.isAndroid) {
+//       final id = await  AndroidId().getId(); // ANDROID_ID
+//       if (id != null ) {
+//         print("IDDD :: $id");
+//         print("IDDD :: $id");
+//         print("IDDD :: $id");
+//         print("IDDD :: $id");
+//         print("IDDD :: $id");
+//         return id;
+//       }
+//     } 
+//   } catch (e, st) {
+//     debugPrint('getDeviceId() OS id error: $e\n$st');
+//   }
+
+//   // 2) Persistent app-scoped fallback
+//   final saved = await _store.read(key: _kKey);
+//   if (saved != null && saved.isNotEmpty) return saved;
+
+//   final gen = const Uuid().v4();
+//   await _store.write(key: _kKey, value: gen);
+//   return gen;
+// }
+
+
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   // Local key-value store ready BEFORE any reads
+//   await GetStorage.init();
+//  await  getDeviceId();
+
+//   // Safe to ignore if not present
+//   try {
+//     await SyncService.instance.init();
+//   } catch (_) { /* ignore */ }
+
+//   // Light status bar for splash/login
+//   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+//     statusBarColor: Colors.transparent,
+//     statusBarIconBrightness: Brightness.dark,
+//   ));
+
+//   Bloc.observer = AppBlocObserver();
+
+//   // ✅ Single runApp with providers ABOVE the whole app.
+//   runApp(
+//     MultiBlocProvider(
+//       providers: [
+//         BlocProvider<GlobalBloc>(
+//           create: (_) => GlobalBloc()
+//             ..add(Activity(activity: 'App Opens'))
+//             ..add(const HydrateLoginFromCache()),
+//         ),
+//       ],
+//       child: const MyApp(),
+//     ),
+//   );
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Motives-T',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         useMaterial3: true,
+//         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEA7A3B)),
+//         scaffoldBackgroundColor: Colors.white,
+//       ),
+//       home: const SplashScreen(), // Splash handles auth/navigation flow
+//     );
+//   }
+// }
 
 
 /*

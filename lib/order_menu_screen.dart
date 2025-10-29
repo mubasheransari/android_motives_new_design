@@ -724,28 +724,61 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
     return BlocListener<GlobalBloc, GlobalState>(
       listenWhen: (prev, curr) =>
           prev.checkinCheckoutStatus != curr.checkinCheckoutStatus,
-      listener: (ctx, state) {
-        switch (state.checkinCheckoutStatus) {
-          case CheckinCheckoutStatus.loading:
-            // _showBlockingLoader(ctx);
-            break;
-          case CheckinCheckoutStatus.success:
-            _hideBlockingLoader(ctx);
-            ScaffoldMessenger.of(ctx).showSnackBar(
-              const SnackBar(content: Text('Synced ✅')),
-            );
-            break;
-          case CheckinCheckoutStatus.failure:
-            _hideBlockingLoader(ctx);
-            ScaffoldMessenger.of(ctx).showSnackBar(
-              const SnackBar(content: Text('Something went wrong')),
-            );
-            break;
-          case CheckinCheckoutStatus.initial:
-          default:
-            break;
-        }
-      },
+          listener: (ctx, state) {
+  switch (state.checkinCheckoutStatus) {
+    case CheckinCheckoutStatus.loading:
+      // _showBlockingLoader(ctx);
+      break;
+
+    case CheckinCheckoutStatus.success:
+      _hideBlockingLoader(ctx);
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(content: Text('Synced ✅')),
+      );
+      break;
+
+    case CheckinCheckoutStatus.queued: // ← NEW
+      _hideBlockingLoader(ctx);
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(content: Text('Saved offline. Will sync when online 🔄')),
+      );
+      break;
+
+    case CheckinCheckoutStatus.failure:
+      _hideBlockingLoader(ctx);
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(content: Text('Something went wrong')),
+      );
+      break;
+
+    case CheckinCheckoutStatus.initial:
+    default:
+      break;
+  }
+},
+
+      // listener: (ctx, state) {
+      //   switch (state.checkinCheckoutStatus) {
+      //     case CheckinCheckoutStatus.loading:
+      //       // _showBlockingLoader(ctx);
+      //       break;
+      //     case CheckinCheckoutStatus.success:
+      //       _hideBlockingLoader(ctx);
+      //       ScaffoldMessenger.of(ctx).showSnackBar(
+      //         const SnackBar(content: Text('Synced ✅')),
+      //       );
+      //       break;
+      //     case CheckinCheckoutStatus.failure:
+      //       _hideBlockingLoader(ctx);
+      //       ScaffoldMessenger.of(ctx).showSnackBar(
+      //         const SnackBar(content: Text('Something went wrong')),
+      //       );
+      //       break;
+      //     case CheckinCheckoutStatus.initial:
+      //     default:
+      //       break;
+      //   }
+      // },
       child: WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(

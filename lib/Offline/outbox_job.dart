@@ -18,8 +18,13 @@ class OutboxJob {
     this.attempts = 0,
   });
 
-  OutboxJob copyWith({int? attempts}) =>
-      OutboxJob(id: id, kind: kind, fields: fields, createdAt: createdAt, attempts: attempts ?? this.attempts);
+  OutboxJob copyWith({int? attempts}) => OutboxJob(
+        id: id,
+        kind: kind,
+        fields: fields,
+        createdAt: createdAt,
+        attempts: attempts ?? this.attempts,
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,

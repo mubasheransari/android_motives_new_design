@@ -3,6 +3,9 @@ import 'package:get_storage/get_storage.dart';
 import 'outbox_job.dart';
 
 
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
+import 'outbox_job.dart';
 
 class OutboxStorage {
   static const _k = 'outbox_v1';
@@ -12,8 +15,18 @@ class OutboxStorage {
     final raw = _box.read(_k);
     if (raw == null) return [];
     try {
-      final list = (jsonDecode(raw) as List).cast<Map>();
-      return list.map((m) => OutboxJob.fromJson(Map<String, dynamic>.from(m))).toList();
+      if (raw is String) {
+        final list = (jsonDecode(raw) as List).cast<Map>();
+        return list
+            .map((m) => OutboxJob.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+      } else if (raw is List) {
+        return raw
+            .cast<Map>()
+            .map((m) => OutboxJob.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+      }
+      return [];
     } catch (_) {
       return [];
     }
