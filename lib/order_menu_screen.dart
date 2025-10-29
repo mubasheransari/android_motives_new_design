@@ -1040,9 +1040,9 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
     if (res is Map &&
         res!['miscid'] == widget.miscid &&
-        (res['reason'] ?? '') == 'Order placed') {
+        (res['reason'] ?? '') == 'ORDER PLACED') {
       // mark reason locally
-      await _saveReason('Order placed');
+      await _saveReason('ORDER PLACED');
       await _saveStatus(checkedIn: false, last: VisitLast.none, holdUi: false);
       checkInText = "Check In";
       _hasReasonSelected = true;

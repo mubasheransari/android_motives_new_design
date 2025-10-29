@@ -889,7 +889,7 @@ if (result.success) {
   Navigator.pop<Map<String, dynamic>>(context, {
     'submitted': true,
     'miscid': widget.shopId,
-    'reason': 'Order placed',
+    'reason': 'ORDER PLACED',
   });
 }
 
@@ -934,14 +934,14 @@ if (result.success) {
       dist_id: distId,
     ));
 
-    // Persist "Order placed" against this shop id
+    // Persist "ORDER PLACED" against this shop id
     final box = GetStorage();
     final raw = box.read('journey_reasons');
     final reasons = <String, String>{};
     if (raw is Map) {
       raw.forEach((k, v) => reasons[k.toString()] = v.toString());
     }
-    reasons[widget.shopId] = 'Order placed';
+    reasons[widget.shopId] = 'ORDER PLACED';
     await box.write('journey_reasons', reasons);
 
     // optional (keep status consistent)
@@ -956,7 +956,7 @@ if (result.success) {
     Navigator.pop<Map<String, dynamic>>(context, {
       'submitted': true,
       'miscid': widget.shopId,
-      'reason': 'Order placed',
+      'reason': 'ORDER PLACED',
     });
   }
 
