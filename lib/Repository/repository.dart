@@ -34,6 +34,31 @@ class Repository {
 
   /* -------------------------------- Login -------------------------------- */
 
+  Future<http.Response> postLegacyFormEncoded({
+  required String url,
+  required Map<String, dynamic> payload,
+  String requestField = 'request',
+  Map<String, String>? extraHeaders,
+  Duration timeout = const Duration(seconds: 45),
+}) async {
+  final uri = Uri.parse(url);
+  final headers = <String, String>{...?(extraHeaders ?? const {})};
+  headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+  headers['Accept'] = headers['Accept'] ?? 'application/json';
+  headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+  final body = <String, String>{ requestField: jsonEncode(payload) };
+
+  debugPrint('➡️ POST $uri');
+  debugPrint('➡️ headers: $headers');
+  debugPrint('➡️ fields:  $body');
+
+  final res = await http.post(uri, headers: headers, body: body).timeout(timeout);
+  debugPrint('⬅️ $uri ${res.statusCode}: ${res.body}');
+  return res;
+}
+
+
   Future<http.Response> login(String email, String password) async {
     final now = DateTime.now();
     final currentDate = DateFormat("dd-MMM-yyyy").format(now);

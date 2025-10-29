@@ -120,6 +120,33 @@ class SyncService {
     }
   }
 
+  Future<void> enqueueOrder({
+  required String endpoint,
+  required Map<String, dynamic> payload,
+  required String requestField,
+  Map<String, String>? headers,
+  required String userId,
+  required String distId,
+  required String orderId, // for linking to OrdersStorage entries
+}) async {
+  await _store.add(OutboxJob(
+    id: _uuid.v4(),
+    kind: QueueKind.order,
+    fields: {
+      'endpoint': endpoint,
+      'payload': payload,
+      'requestField': requestField,
+      'headers': headers ?? <String, String>{},
+      'userId': userId,
+      'distId': distId,
+      'orderId': orderId,
+    },
+    createdAt: DateTime.now(),
+  ));
+  _refreshPendingCount(emitIdle: true);
+}
+
+
   // ---------- Enqueue APIs ----------
   Future<void> enqueueAttendance({
     required String type,
@@ -261,6 +288,31 @@ class SyncService {
   Future<bool> _sendJob(Repository repo, OutboxJob job) async {
     try {
       switch (job.kind) {
+
+         case QueueKind.order: {
+        final f = job.fields;
+
+        // cast headers safely
+        Map<String, String>? _hdrs;
+        final h = f['headers'];
+        if (h is Map) {
+          _hdrs = h.map((k, v) => MapEntry(k.toString(), v.toString()));
+        }
+
+        final res = await repo.postLegacyFormEncoded(
+          url: f['endpoint'] as String,
+          payload: Map<String, dynamic>.from(f['payload'] as Map),
+          requestField: (f['requestField'] as String?) ?? 'request',
+          extraHeaders: _hdrs,
+        );
+
+        final ok = res.statusCode == 200;
+
+        // Optional: if success, you can also mark/update OrdersStorage status here
+        // using f['userId'], f['orderId'] etc., if you want to flip "Queued" → "Success"
+
+        return ok;
+      }
         case QueueKind.attendance:
           {
             final f = job.fields;

@@ -5,7 +5,9 @@ import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Models/order_storage.dart';
 import 'package:motives_new_ui_conversion/Models/order_sumbitted_model.dart';
+import 'package:motives_new_ui_conversion/Offline/sync_service.dart';
 import 'package:motives_new_ui_conversion/records_history_screen.dart';
+import 'package:uuid/uuid.dart';
 import 'Models/lagecy_payload.dart';
 import 'Models/login_model.dart';
 import 'dart:convert';
@@ -130,6 +132,60 @@ Future<OrderSubmitResult> sendCartToApi({
   String requestField = 'request',             // {"request":"<json>"}
   bool navigateToRecordsOnSuccess = true,
 }) async {
+  // give every order a stable id (fallback to uuid)
+  final String orderId = (legacyPayload['unique']?.toString()?.trim().isNotEmpty ?? false)
+      ? legacyPayload['unique'].toString()
+      : const Uuid().v4();
+
+  // common: store a queued record & navigate helper
+  Future<OrderSubmitResult> _returnQueued(String msg) async {
+    final rec = OrderRecord(
+      id: orderId,
+      userId: userId,
+      distId: distId,
+      dateStr: (legacyPayload['date'] ?? '').toString(),
+      status: 'Queued (Offline)',
+      payload: legacyPayload,
+      httpStatus: 0,
+      serverBody: '',
+      createdAt: DateTime.now(),
+    );
+    await OrdersStorage().addOrder(userId, rec);
+
+    if (navigateToRecordsOnSuccess && context.mounted) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
+    }
+
+    return OrderSubmitResult(
+      success: true,               // treat queued as success for UX
+      statusCode: 0,
+      rawBody: '',
+      json: const {'queued': true},
+      serverMessage: msg,
+    );
+  }
+
+  // 1) If offline → enqueue & return immediately
+  final online = await SyncService.instance.isOnlineNow();
+  if (!online) {
+    await SyncService.instance.enqueueOrder(
+      endpoint: endpoint,
+      payload: legacyPayload,
+      requestField: requestField,
+      headers: extraHeaders,
+      userId: userId,
+      distId: distId,
+      orderId: orderId,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved offline. Will sync when online 🔄')),
+      );
+    }
+    return _returnQueued('Saved offline. Will sync when online.');
+  }
+
+  // 2) Online → try real API first; on failure fallback to queue
   final uri = Uri.parse(endpoint);
 
   // enforce form encoding
@@ -140,8 +196,32 @@ Future<OrderSubmitResult> sendCartToApi({
   // {"request":"<json>"}
   final Map<String, String> body = { requestField: jsonEncode(legacyPayload) };
 
+  debugPrint('➡️ /order headers: $headers');
   debugPrint('➡️ /order body: $body');
-  final res = await http.post(uri, headers: headers, body: body);
+
+  http.Response res;
+  try {
+    res = await http.post(uri, headers: headers, body: body)
+                    .timeout(const Duration(seconds: 45));
+  } catch (e) {
+    // network exception → queue for later
+    await SyncService.instance.enqueueOrder(
+      endpoint: endpoint,
+      payload: legacyPayload,
+      requestField: requestField,
+      headers: extraHeaders,
+      userId: userId,
+      distId: distId,
+      orderId: orderId,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved offline (network). Will sync later 🔄')),
+      );
+    }
+    return _returnQueued('Saved offline (network). Will sync later.');
+  }
+
   debugPrint('⬅️ /order ${res.statusCode}: ${res.body}');
 
   Map<String, dynamic>? parsed;
@@ -152,47 +232,65 @@ Future<OrderSubmitResult> sendCartToApi({
     final d = jsonDecode(res.body);
     if (d is Map<String, dynamic>) {
       parsed = d;
-      // common message fields your API might use
+      // common message fields
       message = (d['message'] ?? d['msg'] ?? d['error'] ?? d['status'] ?? '').toString();
       if (d.containsKey('isSuccess')) ok = ok && (d['isSuccess'] == true);
-      // if your API returns success flags differently, add here
       if (d.containsKey('success') && d['success'] is bool) ok = ok && d['success'] == true;
     }
   } catch (_) {
-    // leave parsed=null, ok stays as HTTP success
+    // keep ok on HTTP success
   }
 
-  // Persist on success
-  if (ok) {
-    final rec = OrderRecord(
-      id: (legacyPayload['unique'] ?? '').toString(),
+  // 3) If server not OK → queue it to avoid data loss
+  if (!ok) {
+    await SyncService.instance.enqueueOrder(
+      endpoint: endpoint,
+      payload: legacyPayload,
+      requestField: requestField,
+      headers: extraHeaders,
       userId: userId,
       distId: distId,
-      dateStr: (legacyPayload['date'] ?? '').toString(),
-      status: 'Success',
-      payload: legacyPayload,
-      httpStatus: res.statusCode,
-      serverBody: res.body,
-      createdAt: DateTime.now(),
+      orderId: orderId,
     );
-    await OrdersStorage().addOrder(userId, rec);
-
-    if (navigateToRecordsOnSuccess && context.mounted) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const RecordsScreen()),
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message?.isNotEmpty == true
+            ? 'Saved offline: $message'
+            : 'Saved offline. Will retry.')),
       );
     }
+    return _returnQueued(message?.isNotEmpty == true
+        ? 'Saved offline: $message'
+        : 'Saved offline. Will retry.');
+  }
+
+  // 4) Persist as successful record
+  final rec = OrderRecord(
+    id: orderId,
+    userId: userId,
+    distId: distId,
+    dateStr: (legacyPayload['date'] ?? '').toString(),
+    status: 'Success',
+    payload: legacyPayload,
+    httpStatus: res.statusCode,
+    serverBody: res.body,
+    createdAt: DateTime.now(),
+  );
+  await OrdersStorage().addOrder(userId, rec);
+
+  if (navigateToRecordsOnSuccess && context.mounted) {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
   }
 
   return OrderSubmitResult(
-    success: ok,
+    success: true,
     statusCode: res.statusCode,
     rawBody: res.body,
     json: parsed,
     serverMessage: (message?.isEmpty ?? true) ? null : message,
   );
 }
+
 
 
 class CartStorage {
@@ -262,7 +360,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
           ? login!.distributors.first.id
           : null;
 
-      _activeShopId = widget.shopId; // per-shop scope
+      _activeShopId = widget.shopId;
 
       final saved = _storage.load(_activeUserId, _activeShopId);
       setState(() {

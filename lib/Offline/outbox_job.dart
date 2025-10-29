@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 
-enum QueueKind { attendance, startRoute, routeAction }
+enum QueueKind { attendance, startRoute, routeAction, order }
 
 class OutboxJob {
   final String id;
