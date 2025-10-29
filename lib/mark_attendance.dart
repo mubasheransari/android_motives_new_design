@@ -326,67 +326,86 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
                           ),
                         ),
                         onPressed: () async {
-                          if (context
-                                  .read<GlobalBloc>()
-                                  .state
-                                  .loginModel!
-                                  .journeyPlan!
-                                  .length !=
-                              0) {
-                            if (context
-                                    .read<GlobalBloc>()
-                                    .state
-                                    .loginModel!
-                                    .reasons
-                                    .length !=
-                                context
-                                    .read<GlobalBloc>()
-                                    .state
-                                    .loginModel!
-                                    .journeyPlan
-                                    .length) {
-                              toastWidget(
+                        if(  context.read<GlobalBloc>().state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1"){
+
+                                                   toastWidget(
                                 'Complete your journey plan first',
                                 Colors.red,
                               );
-                            } else if (context
-                                    .read<GlobalBloc>()
-                                    .state
-                                    .loginModel!
-                                    .reasons!
-                                    .length ==
-                                context
-                                    .read<GlobalBloc>()
-                                    .state
-                                    .loginModel!
-                                    .journeyPlan!
-                                    .length) {
-                              final currentLocation = await location
-                                  .getLocation();
 
-                              // context.read<GlobalBloc>().add(
-                              //   MarkAttendanceEvent(
-                              //     lat: currentLocation.latitude.toString(),
-                              //     lng: currentLocation.longitude.toString(),
-                              //     type: '0',
-                              //     userId: context
-                              //         .read<GlobalBloc>()
-                              //         .state
-                              //         .loginModel!
-                              //         .userinfo!
-                              //         .userId
-                              //         .toString(),
-                              //   ),
-                              // );
-                            }
-                          } else {
-                            Navigator.push(
+                                  }
+                                  else{
+                                              Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => SelfieCaptureScreen(),
                               ),
                             );
-                          }
+
+                                  }
+                          // if (context
+                          //         .read<GlobalBloc>()
+                          //         .state
+                          //         .loginModel!
+                          //         .journeyPlan!
+                          //         .length !=
+                          //     0) {
+                          //   if (context
+                          //           .read<GlobalBloc>()
+                          //           .state
+                          //           .loginModel!
+                          //           .reasons
+                          //           .length !=
+                          //       context
+                          //           .read<GlobalBloc>()
+                          //           .state
+                          //           .loginModel!
+                          //           .journeyPlan
+                          //           .length) {
+                              // toastWidget(
+                              //   'Complete your journey plan first',
+                              //   Colors.red,
+                              // );
+                          //   } else if (context
+                          //           .read<GlobalBloc>()
+                          //           .state
+                          //           .loginModel!
+                          //           .reasons!
+                          //           .length ==
+                          //       context
+                          //           .read<GlobalBloc>()
+                          //           .state
+                          //           .loginModel!
+                          //           .journeyPlan!
+                          //           .length) {
+                          //     final currentLocation = await location
+                          //         .getLocation();
+
+                          //     // context.read<GlobalBloc>().add(
+                          //     //   MarkAttendanceEvent(
+                          //     //     lat: currentLocation.latitude.toString(),
+                          //     //     lng: currentLocation.longitude.toString(),
+                          //     //     type: '0',
+                          //     //     userId: context
+                          //     //         .read<GlobalBloc>()
+                          //     //         .state
+                          //     //         .loginModel!
+                          //     //         .userinfo!
+                          //     //         .userId
+                          //     //         .toString(),
+                          //     //   ),
+                          //     // );
+                          //   }
+                          // } else {
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => SelfieCaptureScreen(),
+                            //   ),
+                            // );
+                          // }
                         },
                         child: Text(
                           attendanceStatus,
