@@ -13,6 +13,8 @@ import 'Models/login_model.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
+import 'dart:io' show Platform;
+
 
 // ===== COLORS =====
 const kOrange = Color(0xFFEA7A3B);
@@ -124,27 +126,30 @@ Map<String, dynamic> buildCartRequest({
 
 Future<OrderSubmitResult> sendCartToApi({
   required BuildContext context,
-  required Map<String, dynamic> legacyPayload, // the ORDER payload
+  required Map<String, dynamic> legacyPayload,
   required String endpoint,
   required String userId,
   required String distId,
-  Map<String, String>? extraHeaders,          // optional: auth, accept, etc.
-  String requestField = 'request',             // {"request":"<json>"}
+  Map<String, String>? extraHeaders,
+  String requestField = 'request',
   bool navigateToRecordsOnSuccess = true,
-}) async {
-  // give every order a stable id (fallback to uuid)
-  final String orderId = (legacyPayload['unique']?.toString()?.trim().isNotEmpty ?? false)
-      ? legacyPayload['unique'].toString()
-      : const Uuid().v4();
 
-  // common: store a queued record & navigate helper
+  /// 👇 NEW: if true → send pure JSON as body
+  bool sendAsJson = false,
+}) async {
+  // generate client order id
+  final String orderId =
+      (legacyPayload['unique']?.toString().trim().isNotEmpty ?? false)
+          ? legacyPayload['unique'].toString()
+          : const Uuid().v4();
+
   Future<OrderSubmitResult> _returnQueued(String msg) async {
     final rec = OrderRecord(
       id: orderId,
       userId: userId,
       distId: distId,
       dateStr: (legacyPayload['date'] ?? '').toString(),
-      status:'Success', //'Queued (Offline)',
+      status: 'Queued (Offline)',
       payload: legacyPayload,
       httpStatus: 0,
       serverBody: '',
@@ -153,11 +158,14 @@ Future<OrderSubmitResult> sendCartToApi({
     await OrdersStorage().addOrder(userId, rec);
 
     if (navigateToRecordsOnSuccess && context.mounted) {
-      await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const RecordsScreen()),
+      );
     }
 
     return OrderSubmitResult(
-      success: true,               // treat queued as success for UX
+      success: true,
       statusCode: 0,
       rawBody: '',
       json: const {'queued': true},
@@ -165,7 +173,7 @@ Future<OrderSubmitResult> sendCartToApi({
     );
   }
 
-  // 1) If offline → enqueue & return immediately
+  // 1) offline → queue
   final online = await SyncService.instance.isOnlineNow();
   if (!online) {
     await SyncService.instance.enqueueOrder(
@@ -185,26 +193,34 @@ Future<OrderSubmitResult> sendCartToApi({
     return _returnQueued('Saved offline. Will sync when online.');
   }
 
-  // 2) Online → try real API first; on failure fallback to queue
   final uri = Uri.parse(endpoint);
-
-  // enforce form encoding
   final headers = {...?extraHeaders};
-  headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
-  headers['Content-Type'] = 'application/x-www-form-urlencoded';
-
-  // {"request":"<json>"}
-  final Map<String, String> body = { requestField: jsonEncode(legacyPayload) };
-
-  debugPrint('➡️ /order headers: $headers');
-  debugPrint('➡️ /order body: $body');
 
   http.Response res;
+
   try {
-    res = await http.post(uri, headers: headers, body: body)
-                    .timeout(const Duration(seconds: 45));
+    if (sendAsJson) {
+      // 👇 PURE JSON MODE
+      headers['Content-Type'] = 'application/json';
+      final body = jsonEncode(legacyPayload);
+      debugPrint('➡️ headers: $headers');
+      debugPrint('➡️ json body: $body');
+      res = await http
+          .post(uri, headers: headers, body: body)
+          .timeout(const Duration(seconds: 45));
+    } else {
+      // 👇 OLD PHP-FORM MODE
+      headers.removeWhere((k, _) => k.toLowerCase() == 'content-type');
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      final body = {requestField: jsonEncode(legacyPayload)};
+      debugPrint('➡️ headers: $headers');
+      debugPrint('➡️ form body: $body');
+      res = await http
+          .post(uri, headers: headers, body: body)
+          .timeout(const Duration(seconds: 45));
+    }
   } catch (e) {
-    // network exception → queue for later
+    // network fail → queue
     await SyncService.instance.enqueueOrder(
       endpoint: endpoint,
       payload: legacyPayload,
@@ -222,7 +238,8 @@ Future<OrderSubmitResult> sendCartToApi({
     return _returnQueued('Saved offline (network). Will sync later.');
   }
 
-  debugPrint('⬅️ /order ${res.statusCode}: ${res.body}');
+  debugPrint('⬅️ status ${res.statusCode}');
+  debugPrint('⬅️ body   ${res.body}');
 
   Map<String, dynamic>? parsed;
   String? message;
@@ -232,16 +249,16 @@ Future<OrderSubmitResult> sendCartToApi({
     final d = jsonDecode(res.body);
     if (d is Map<String, dynamic>) {
       parsed = d;
-      // common message fields
-      message = (d['message'] ?? d['msg'] ?? d['error'] ?? d['status'] ?? '').toString();
+      message = (d['message'] ?? d['msg'] ?? d['status'] ?? '').toString();
       if (d.containsKey('isSuccess')) ok = ok && (d['isSuccess'] == true);
-      if (d.containsKey('success') && d['success'] is bool) ok = ok && d['success'] == true;
+      if (d.containsKey('success') && d['success'] is bool) {
+        ok = ok && d['success'] == true;
+      }
     }
   } catch (_) {
-    // keep ok on HTTP success
+    // leave ok as is
   }
 
-  // 3) If server not OK → queue it to avoid data loss
   if (!ok) {
     await SyncService.instance.enqueueOrder(
       endpoint: endpoint,
@@ -254,17 +271,21 @@ Future<OrderSubmitResult> sendCartToApi({
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message?.isNotEmpty == true
-            ? 'Saved offline: $message'
-            : 'Saved offline. Will retry.')),
+        SnackBar(
+          content: Text(
+            message?.isNotEmpty == true
+                ? 'Saved offline: $message'
+                : 'Saved offline. Will retry.',
+          ),
+        ),
       );
     }
-    return _returnQueued(message?.isNotEmpty == true
-        ? 'Saved offline: $message'
-        : 'Saved offline. Will retry.');
+    return _returnQueued(
+      message?.isNotEmpty == true ? 'Saved offline: $message' : 'Saved offline. Will retry.',
+    );
   }
 
-  // 4) Persist as successful record
+  // success → store record
   final rec = OrderRecord(
     id: orderId,
     userId: userId,
@@ -279,7 +300,10 @@ Future<OrderSubmitResult> sendCartToApi({
   await OrdersStorage().addOrder(userId, rec);
 
   if (navigateToRecordsOnSuccess && context.mounted) {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => const RecordsScreen()));
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RecordsScreen()),
+    );
   }
 
   return OrderSubmitResult(
@@ -290,6 +314,9 @@ Future<OrderSubmitResult> sendCartToApi({
     serverMessage: (message?.isEmpty ?? true) ? null : message,
   );
 }
+
+
+
 
 
 
@@ -478,30 +505,6 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
     setState(() {}); 
   }
 },
-
-
-                 /* onPressed: () async {
-  final result = await Navigator.of(context).push<Map<String, dynamic>>(
-    MaterialPageRoute(
-      builder: (_) => _MyListView(
-        shopId: widget.shopId,
-        allItems: items,
-        cart: _cart,
-        onIncrement: _inc,
-        onDecrement: _dec,
-        getPayloadMeta: () => Tuple2(userId, distributorId),
-      ),
-    ),
-  );
-
-  // ✅ No API calls here. Only react to the result.
-  if (result?['submitted'] == true) {
-    setState(() => _cart.clear());
-    await _storage.clear(_activeUserId, _activeShopId);
-  } else {
-    setState(() {}); 
-  }
-},*/
                 ),
                 if (totalItems > 0)
                   Positioned(
@@ -833,7 +836,159 @@ class _MyListViewState extends State<_MyListView> {
 
   int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
 
-  Future<void> _submitOrder() async {
+Future<void> _submitOrder() async {
+  // 1) get login from global bloc
+  final login = context.read<GlobalBloc>().state.loginModel;
+
+  // required fields coming from login
+  final userId = (login?.userinfo?.userId ?? '').trim();
+  final distId = (login?.distributors.isNotEmpty == true
+          ? (login!.distributors.first.id ?? '')
+          : '')
+      .trim();
+
+  // these two we want to prefer from distributor; if empty, fallback to userinfo
+  final segmentId = (login?.distributors.isNotEmpty == true
+          ? (login!.distributors.first.segment ?? '')
+          : (login?.userinfo?.segment ?? ''))
+      .trim();
+
+  final compId = (login?.distributors.isNotEmpty == true
+          ? (login!.distributors.first.compid ?? '')
+          : (login?.userinfo?.compid ?? ''))
+      .trim();
+
+  // order booker → usually userinfo.obid in your login model
+  final orderBookerId = (login?.userinfo?.obid ?? '').trim();
+
+  // acc_code → in your flow this is the shop / customer you opened
+  // you said you don’t want to hardcode → so we take what UI passed to this screen
+  final accCode = widget.shopId.trim();
+
+  if (userId.isEmpty || distId.isEmpty) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('User or Distributor not found')),
+    );
+    return;
+  }
+
+  // 2) build legacy payload exactly like backend expects (no hardcodes inside)
+  final orderPayload = buildLegacyOrderPayloadFromTea(
+    allItems: widget.allItems,
+    cart: widget.cart,
+    userId: userId,
+    distId: distId,
+    accCode: accCode,
+    segmentId: segmentId.isNotEmpty ? segmentId : '11002',
+    compId: compId.isNotEmpty ? compId : '11',
+    orderBookerId: orderBookerId.isNotEmpty ? orderBookerId : userId,
+    paymentType: 'CR',          // you can make this dynamic later
+    headerOrderType: 'OR',
+    orderStatus: 'N',
+    appSource: 'flutter.motives',
+    deviceId: Platform.isAndroid
+        ? 'android-${DateTime.now().millisecondsSinceEpoch}'
+        : 'ios-${DateTime.now().millisecondsSinceEpoch}',
+  );
+
+  debugPrint('🧾 ORDER PAYLOAD:\n${const JsonEncoder.withIndent('  ').convert(orderPayload)}');
+
+  // 3) call your API
+  final result = await sendCartToApi(
+    context: context,
+    legacyPayload: orderPayload,
+    endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
+    userId: userId,
+    distId: distId,
+    requestField: 'request',
+    navigateToRecordsOnSuccess: false, // we stay on same screen
+    // extraHeaders: {'Cookie': 'PHPSESSID=...'}, // if your other app sends this
+    // sendAsJson: true, // toggle if backend accepts raw JSON
+  );
+
+  debugPrint('✅ success=${result.success}  status=${result.statusCode}');
+  if (result.json != null) {
+    debugPrint('🧩 response JSON:\n${const JsonEncoder.withIndent("  ").convert(result.json)}');
+  } else {
+    debugPrint('🧩 response RAW: ${result.rawBody}');
+  }
+
+  final msg = result.success
+      ? (result.serverMessage ?? 'Order submitted successfully')
+      : (result.serverMessage ?? 'Order submit failed');
+
+  if (!mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+  // if API failed → don’t clear cart, don’t fire events
+  if (!result.success) return;
+
+  // 4) on success → fire ORDER + CHECKOUT, persist journey status, clear cart
+  final gb = context.read<GlobalBloc>();
+
+  String lat = '0', lng = '0';
+  try {
+    final l = await loc.Location().getLocation();
+    lat = (l.latitude ?? 0).toString();
+    lng = (l.longitude ?? 0).toString();
+  } catch (_) {
+    // ignore
+  }
+
+  // ORDER
+  gb.add(CheckinCheckoutEvent(
+    type: '7',
+    userId: userId,
+    lat: lat,
+    lng: lng,
+    act_type: 'ORDER',
+    action: 'ORDER PLACED',
+    misc: widget.shopId, // miscid
+    dist_id: distId,
+  ));
+
+  // CHECKOUT
+  gb.add(CheckinCheckoutEvent(
+    type: '6',
+    userId: userId,
+    lat: lat,
+    lng: lng,
+    act_type: 'SHOP_CHECK',
+    action: 'OUT',
+    misc: widget.shopId,
+    dist_id: distId,
+  ));
+
+  // persist in storage
+  final box = GetStorage();
+  final raw = box.read('journey_reasons');
+  final reasons = <String, String>{};
+  if (raw is Map) {
+    raw.forEach((k, v) => reasons[k.toString()] = v.toString());
+  }
+  reasons[widget.shopId] = 'ORDER PLACED';
+  await box.write('journey_reasons', reasons);
+
+  final stRaw = box.read('journey_status');
+  final st = (stRaw is Map) ? Map<String, dynamic>.from(stRaw) : <String, dynamic>{};
+  st[widget.shopId] = {'checkedIn': false, 'last': 'none', 'holdUI': false};
+  await box.write('journey_status', st);
+
+  // clear cart in UI
+  widget.cart.clear();
+
+  if (!mounted) return;
+  Navigator.pop<Map<String, dynamic>>(context, {
+    'submitted': true,
+    'miscid': widget.shopId,
+    'reason': 'ORDER PLACED',
+  });
+}
+
+
+
+ /* Future<void> _submitOrder() async {
     final login = context.read<GlobalBloc>().state.loginModel;
 
     final userId = (login?.userinfo?.userId ?? '').trim();
@@ -859,15 +1014,32 @@ class _MyListViewState extends State<_MyListView> {
 
     debugPrint('🧾 ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
 
+
     final result = await sendCartToApi(
-      context: context,
-      legacyPayload: orderPayload,
-      endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
-      userId: userId,
-      distId: distId,
-      requestField: 'request',
-      navigateToRecordsOnSuccess: false,
-    );
+  context: context,
+  legacyPayload: orderPayload,
+  endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
+  userId: userId,
+  distId: distId,
+  requestField: 'request',
+  navigateToRecordsOnSuccess: false,
+  extraHeaders: {
+    // 👇 add whatever the working app sends
+    // 'Cookie': 'PHPSESSID=...; other=...',
+    // 'Authorization': 'Bearer ...',
+  },
+);
+
+
+    // final result = await sendCartToApi(
+    //   context: context,
+    //   legacyPayload: orderPayload,
+    //   endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
+    //   userId: userId,
+    //   distId: distId,
+    //   requestField: 'request',
+    //   navigateToRecordsOnSuccess: false,
+    // );
 
     debugPrint('✅ success=${result.success}  status=${result.statusCode}');
     if (result.json != null) {
@@ -898,9 +1070,7 @@ if (result.success) {
 
     if (!result.success) return;
 
-    // ─────────────────────────────────────────────────────────────────────
-    // ✅ On success: fire ORDER (type 7) + CHECKOUT (type 6) and persist reason
-    // ─────────────────────────────────────────────────────────────────────
+  
     final gb = context.read<GlobalBloc>();
 
     String lat = '0', lng = '0';
@@ -958,7 +1128,7 @@ if (result.success) {
       'miscid': widget.shopId,
       'reason': 'ORDER PLACED',
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -1101,250 +1271,7 @@ class _CartRow {
 }
 
 
-/*class _MyListView extends StatefulWidget {
-  final List<TeaItem> allItems;
-  final Map<String, int> cart; // live reference to parent cart
-  final void Function(TeaItem) onIncrement;
-  final void Function(TeaItem) onDecrement;
-  final Tuple2<String?, String?> Function()? getPayloadMeta;
 
-  const _MyListView({
-    required this.allItems,
-    required this.cart,
-    required this.onIncrement,
-    required this.onDecrement,
-    this.getPayloadMeta,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<_MyListView> createState() => _MyListViewState();
-}
-
-class _MyListViewState extends State<_MyListView> {
-  List<_CartRow> get _rows {
-    final rows = <_CartRow>[];
-    widget.cart.forEach((key, qty) {
-      final item = widget.allItems.firstWhere(
-        (e) => e.key == key,
-        orElse: () => TeaItem(
-          key: key, itemId: null, name: 'Unknown', desc: '', brand: 'Meezan'),
-      );
-      rows.add(_CartRow(item: item, qty: qty));
-    });
-    rows.sort((a, b) => a.item.name.compareTo(b.item.name));
-    return rows;
-  }
-
-  int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
-
-Future<void> _submitOrder() async {
-  final login = context.read<GlobalBloc>().state.loginModel;
-
-  final userId = (login?.userinfo?.userId ?? '').trim();
-  final distId = (login?.distributors.isNotEmpty == true ? (login!.distributors.first.id ?? '') : '').trim();
-  if (userId.isEmpty || distId.isEmpty) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('User or Distributor not found')),
-    );
-    return;
-  }
-
-  final orderPayload = buildLegacyOrderPayloadFromTea(
-    allItems: widget.allItems,
-    cart: widget.cart,
-    userId: userId,
-    distId: distId,
-    // override header fields if you have dynamic values
-  );
-
-  // Optional: pretty-print the outgoing payload
-  debugPrint('🧾 ORDER payload:\n${const JsonEncoder.withIndent("  ").convert(orderPayload)}');
-
-  final result = await sendCartToApi(
-    context: context,
-    legacyPayload: orderPayload,
-    endpoint: 'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',   // your order URL
-    userId: userId,
-    distId: distId,
-    // extraHeaders: {'Accept': 'application/json'}, // optional
-    requestField: 'request',
-    navigateToRecordsOnSuccess: true,
-  );
-
-  // 🔊 Print/log outcome
-  debugPrint('✅ success=${result.success}  status=${result.statusCode}');
-  if (result.json != null) {
-    debugPrint('🧩 response JSON:\n${const JsonEncoder.withIndent("  ").convert(result.json)}');
-  } else {
-    debugPrint('🧩 response (raw): ${result.rawBody}');
-  }
-
-  // Show a user-facing message
-  final msg = result.success
-      ? (result.serverMessage ?? 'Order submitted successfully')
-      : (result.serverMessage ?? 'Order submit failed');
-  if (!mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-
-  if (result.success) {
-    // Clear live cart and notify parent so it clears persisted cart too
-    widget.cart.clear();
-    Navigator.pop<Map<String, dynamic>>(context, {'submitted': true});
-  }
-}
-
-
-
-  @override
-  Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: kText),
-        title: Text('My List',
-            style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700)),
-      ),
-      body: Column(
-        children: [
-          // header
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [kOrange, Color(0xFFFFB07A)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))],
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.shopping_bag_rounded, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text('Items in your list: $_totalQty',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                ),
-              ],
-            ),
-          ),
-
-          if (_rows.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.local_grocery_store_outlined, size: 56, color: kMuted),
-                  const SizedBox(height: 8),
-                  Text('Your list is empty', style: t.titleMedium?.copyWith(color: kText)),
-                  const SizedBox(height: 4),
-                  Text('Add products from the catalog.', style: t.bodySmall?.copyWith(color: kMuted)),
-                ]),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-                itemCount: _rows.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, i) {
-                  final row = _rows[i];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: kCard,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: const [BoxShadow(color: kShadow, blurRadius: 12, offset: Offset(0, 6))],
-                      border: Border.all(color: const Color(0xFFEDEFF2)),
-                    ),
-                    padding: const EdgeInsets.all(14),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                              color: kField, borderRadius: BorderRadius.circular(14)),
-                          child: const Icon(Icons.local_cafe_rounded, color: kOrange),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _TagPill(text: row.item.brand),
-                              const SizedBox(height: 6),
-                              Text(row.item.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: t.titleMedium?.copyWith(
-                                      color: kText, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 2),
-                              Text(row.item.desc,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: t.bodySmall?.copyWith(color: kMuted)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        _QtyControls(
-                          qty: row.qty,
-                          onInc: () {
-                            widget.onIncrement(row.item);
-                            setState(() {});
-                          },
-                          onDec: () {
-                            widget.onDecrement(row.item);
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-
-          // ✅ Button now calls _submitOrder (not _returnPayload)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 52),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: kOrange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: _rows.isEmpty ? null : _submitOrder,
-                child: const Text('Confirm & Send',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16.5)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}*/
-
-// class _CartRow {
-//   final TeaItem item;
-//   final int qty;
-//   _CartRow({required this.item, required this.qty});
-// }
-
-// Tiny Tuple helper
 class Tuple2<T1, T2> {
   final T1 item1;
   final T2 item2;

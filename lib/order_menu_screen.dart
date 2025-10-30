@@ -1031,7 +1031,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
                       ),
                     ),
 
-                    _TapScale(
+                 /*   _TapScale(
   onTap: () => _guardRequireCheckIn(() async {
     final res = await Navigator.push<Map<String, dynamic>>(
       context,
@@ -1047,23 +1047,77 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       checkInText = "Check In";
       _hasReasonSelected = true;
 
-      // ✅ also fire Shop CHECK-OUT (type 6) here, then go back to Journey Plan
+      // 🔑 get ids from same place as other events on THIS screen
+      final gb = context.read<GlobalBloc>();
+      final login = gb.state.loginModel!;
+      final uid  = login.userinfo!.userId.toString();
+      final did  = login.userinfo!.disid.toString();
+
       await _getLocation();
-      context.read<GlobalBloc>().add(
-        CheckinCheckoutEvent(
-          type: '6',
-          userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
-          lat: lat,
-          lng: lng,
-          act_type: "SHOP_CHECK",
-          action: "OUT",
-          misc: widget.miscid,
-          dist_id: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
-        ),
-      );
+
+      // ✅ 1) ORDER event
+      gb.add(CheckinCheckoutEvent(
+        type: '7',
+        userId: uid,
+        lat: lat,
+        lng: lng,
+        act_type: 'ORDER',
+        action: 'ORDER PLACED',
+        misc: widget.miscid,
+        dist_id: did,
+      ));
+
+      // ✅ 2) CHECKOUT event
+      gb.add(CheckinCheckoutEvent(
+        type: '6',
+        userId: uid,
+        lat: lat,
+        lng: lng,
+        act_type: 'SHOP_CHECK',
+        action: 'OUT',
+        misc: widget.miscid,
+        dist_id: did,
+      ));
 
       if (mounted) {
-        Navigator.pop(context, res); // ⬅️ back to Journey Plan with status
+        Navigator.pop(context, res);
+      }
+    }
+  }),
+  child: const _CategoryCard(
+    icon: Icons.playlist_add_check_rounded,
+    title: 'Take Order',
+    subtitle: 'Orders',
+  ),
+),*/
+
+_TapScale(
+  onTap: () => _guardRequireCheckIn(() async {
+    final res = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MeezanTeaCatalog(shopId: widget.miscid),
+      ),
+    );
+
+    if (res is Map &&
+        res!['miscid'] == widget.miscid &&
+        (res['reason'] ?? '') == 'ORDER PLACED') {
+      // update local UI + storage
+      await _saveReason('ORDER PLACED');
+      await _saveStatus(
+        checkedIn: false,
+        last: VisitLast.none,
+        holdUi: false,
+      );
+      setState(() {
+        checkInText = 'Check In';
+        _hasReasonSelected = true;
+      });
+
+      // ⬅️ that's it – events are sent from the order screen (where we have order_id)
+      if (mounted) {
+        Navigator.pop(context, res);
       }
     }
   }),
@@ -1073,6 +1127,49 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
     subtitle: 'Orders',
   ),
 ),
+
+//                     _TapScale(
+//   onTap: () => _guardRequireCheckIn(() async {
+//     final res = await Navigator.push<Map<String, dynamic>>(
+//       context,
+//       MaterialPageRoute(builder: (_) => MeezanTeaCatalog(shopId: widget.miscid)),
+//     );
+
+//     if (res is Map &&
+//         res!['miscid'] == widget.miscid &&
+//         (res['reason'] ?? '') == 'ORDER PLACED') {
+//       // mark reason locally
+//       await _saveReason('ORDER PLACED');
+//       await _saveStatus(checkedIn: false, last: VisitLast.none, holdUi: false);
+//       checkInText = "Check In";
+//       _hasReasonSelected = true;
+
+//       // ✅ also fire Shop CHECK-OUT (type 6) here, then go back to Journey Plan
+//       await _getLocation();
+//       context.read<GlobalBloc>().add(
+//         CheckinCheckoutEvent(
+//           type: '6',
+//           userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
+//           lat: lat,
+//           lng: lng,
+//           act_type: "SHOP_CHECK",
+//           action: "OUT",
+//           misc: widget.miscid,
+//           dist_id: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
+//         ),
+//       );
+
+//       if (mounted) {
+//         Navigator.pop(context, res); // ⬅️ back to Journey Plan with status
+//       }
+//     }
+//   }),
+//   child: const _CategoryCard(
+//     icon: Icons.playlist_add_check_rounded,
+//     title: 'Take Order',
+//     subtitle: 'Orders',
+//   ),
+// ),
 
 
                     // TAKE ORDER

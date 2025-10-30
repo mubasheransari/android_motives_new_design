@@ -7,7 +7,6 @@ import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/order_menu_screen.dart';
 import 'dart:ui';
 
-
 const kOrange = Color(0xFFEA7A3B);
 const kOrangeLite = Color(0xFFFFB07A);
 const kText = Color(0xFF1E1E1E);
@@ -31,28 +30,30 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   final box = GetStorage();
 
   void _writeCoveredCount() {
-  final data = box.read('journey_reasons');
-  final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
-  box.write('covered_routes_count', lengthOfMarkedReasons);
-}
+    final data = box.read('journey_reasons');
+    final lengthOfMarkedReasons = (data is Map) ? data.length : 0;
+    box.write('covered_routes_count', lengthOfMarkedReasons);
+  }
 
-
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
 
     context.read<GlobalBloc>().add(Activity(activity: 'Journey Plan'));
 
-  // existing code that seeds _reasonsByMiscId...
-  final raw = box.read('journey_reasons');
-  if (raw is Map) {
-    raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
-  }
+    // existing code that seeds _reasonsByMiscId...
+    final raw = box.read('journey_reasons');
+    if (raw is Map) {
+      raw.forEach((k, v) => _reasonsByMiscId[k.toString()] = v.toString());
+    }
 
-  // ✅ NEW: seed & auto-update covered_routes_count whenever journey_reasons changes
-  _writeCoveredCount();                                // seed once
-  box.listenKey('journey_reasons', (_) => _writeCoveredCount()); // keep in sync
-}
+    // ✅ NEW: seed & auto-update covered_routes_count whenever journey_reasons changes
+    _writeCoveredCount(); // seed once
+    box.listenKey(
+      'journey_reasons',
+      (_) => _writeCoveredCount(),
+    ); // keep in sync
+  }
 
   @override
   void dispose() {
@@ -65,7 +66,9 @@ void initState() {
     return text
         .toLowerCase()
         .split(' ')
-        .map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '')
+        .map(
+          (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '',
+        )
         .join(' ');
   }
 
@@ -88,13 +91,12 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
-
-
     final t = Theme.of(context).textTheme;
 
     // Get raw plans from model, then remove duplicates (UI unchanged)
     final journeyPlansRaw =
-        context.watch<GlobalBloc>().state.loginModel?.journeyPlan ?? const <JourneyPlan>[];
+        context.watch<GlobalBloc>().state.loginModel?.journeyPlan ??
+        const <JourneyPlan>[];
     final journeyPlans = _dedupeJourneyPlans(journeyPlansRaw);
 
     // Address counts based on de-duplicated list
@@ -113,7 +115,8 @@ void initState() {
       final name = (plan.partyName).toLowerCase();
       final address = plan.custAddress;
       final matchesSearch = name.contains(q);
-      final matchesChip = _selectedAddress == null || address == _selectedAddress;
+      final matchesChip =
+          _selectedAddress == null || address == _selectedAddress;
       return matchesSearch && matchesChip;
     }).toList();
 
@@ -140,46 +143,64 @@ void initState() {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(.22),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.2),
+                      Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(.22),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.route_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
                           ),
-                          child: const Icon(Icons.route_rounded, color: Colors.white, size: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Journey Plan',
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Journey Plan',
                                   style: t.titleMedium?.copyWith(
-                                      color: Colors.white, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 2),
-                              Text('${journeyPlans.length} total customers',
-                                  style: t.bodySmall?.copyWith(color: Colors.white.withOpacity(.95))),
-                            ],
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${journeyPlans.length} total customers',
+                                  style: t.bodySmall?.copyWith(
+                                    color: Colors.white.withOpacity(.95),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ]),
+                        ],
+                      ),
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           _HeaderChip(
-                              icon: Icons.checklist_outlined,
-                              label: 'Filtered: ${filteredPlans.length}'),
+                            icon: Icons.checklist_outlined,
+                            label: 'Filtered: ${filteredPlans.length}',
+                          ),
                           const SizedBox(width: 8),
                           _HeaderChip(
                             icon: Icons.place_outlined,
                             label: _selectedAddress == null
                                 ? 'All Areas'
                                 : (_selectedAddress!.length > 24
-                                    ? '${_selectedAddress!.substring(0, 24)}…'
-                                    : _selectedAddress!),
+                                      ? '${_selectedAddress!.substring(0, 24)}…'
+                                      : _selectedAddress!),
                           ),
                         ],
                       ),
@@ -197,7 +218,13 @@ void initState() {
               decoration: BoxDecoration(
                 color: kCard,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: kShadow, blurRadius: 12, offset: Offset(0, 6))],
+                boxShadow: const [
+                  BoxShadow(
+                    color: kShadow,
+                    blurRadius: 12,
+                    offset: Offset(0, 6),
+                  ),
+                ],
                 border: Border.all(color: const Color(0xFFEDEFF2)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -235,8 +262,13 @@ void initState() {
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Filter Routes by Area',
-                    style: t.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: kText)),
+                child: Text(
+                  'Filter Routes by Area',
+                  style: t.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: kText,
+                  ),
+                ),
               ),
             ),
             SizedBox(
@@ -260,7 +292,9 @@ void initState() {
                       child: _FilterChoiceChip(
                         label: '$addr ($count)',
                         selected: selected,
-                        onSelected: () => setState(() => _selectedAddress = selected ? null : addr),
+                        onSelected: () => setState(
+                          () => _selectedAddress = selected ? null : addr,
+                        ),
                       ),
                     );
                   }),
@@ -274,7 +308,10 @@ void initState() {
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
             child: Row(
               children: [
-                Text('${filteredPlans.length} Customers', style: t.bodySmall?.copyWith(color: kMuted)),
+                Text(
+                  '${filteredPlans.length} Customers',
+                  style: t.bodySmall?.copyWith(color: kMuted),
+                ),
                 const Spacer(),
                 if (_selectedAddress != null)
                   TextButton.icon(
@@ -335,7 +372,10 @@ void initState() {
                       // Also refresh from storage
                       final jr = box.read('journey_reasons');
                       if (jr is Map && jr[miscid] is String) {
-                        setState(() => _reasonsByMiscId[miscid] = (jr[miscid] as String));
+                        setState(
+                          () =>
+                              _reasonsByMiscId[miscid] = (jr[miscid] as String),
+                        );
                       }
                     }
                   },
@@ -388,11 +428,21 @@ class _HeaderChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Colors.white.withOpacity(.45)),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 16, color: Colors.white),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
-      ]),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.white),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -414,10 +464,15 @@ class _FilterChoiceChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onSelected(),
       selectedColor: kOrange,
-      labelStyle: TextStyle(color: selected ? Colors.white : kText, fontWeight: FontWeight.w600),
+      labelStyle: TextStyle(
+        color: selected ? Colors.white : kText,
+        fontWeight: FontWeight.w600,
+      ),
       backgroundColor: Colors.white,
       shape: StadiumBorder(
-        side: BorderSide(color: selected ? Colors.transparent : const Color(0xFFEDEFF2)),
+        side: BorderSide(
+          color: selected ? Colors.transparent : const Color(0xFFEDEFF2),
+        ),
       ),
       elevation: selected ? 2 : 0,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -466,7 +521,9 @@ class _CustomerCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: kCard,
             borderRadius: BorderRadius.circular(14.4),
-            boxShadow: const [BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))],
+            boxShadow: const [
+              BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8)),
+            ],
           ),
           padding: const EdgeInsets.all(14),
           child: Column(
@@ -474,14 +531,21 @@ class _CustomerCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.store_mall_directory_rounded, size: 28, color: kOrange),
+                  const Icon(
+                    Icons.store_mall_directory_rounded,
+                    size: 28,
+                    color: kOrange,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.titleMedium?.copyWith(color: kText, fontWeight: FontWeight.w600),
+                      style: t.titleMedium?.copyWith(
+                        color: kText,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -496,7 +560,10 @@ class _CustomerCard extends StatelessWidget {
                       address,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.bodyMedium?.copyWith(color: kText, fontWeight: FontWeight.w300),
+                      style: t.bodyMedium?.copyWith(
+                        color: kText,
+                        fontWeight: FontWeight.w300,
+                      ),
                     ),
                   ),
                 ],
@@ -532,11 +599,13 @@ class _TagPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: kOrange.withOpacity(.25)),
       ),
-      child: Text(text, style: t.bodySmall?.copyWith(color: kText, fontWeight: FontWeight.w500)),
+      child: Text(
+        text,
+        style: t.bodySmall?.copyWith(color: kText, fontWeight: FontWeight.w500),
+      ),
     );
   }
 }
-
 
 // const kOrange = Color(0xFFEA7A3B);
 // const kText = Color(0xFF1E1E1E);
@@ -544,7 +613,6 @@ class _TagPill extends StatelessWidget {
 // const kField = Color(0xFFF2F3F5);
 // const kCard = Colors.white;
 // const kShadow = Color(0x14000000);
-
 
 // class JourneyPlanScreen extends StatefulWidget {
 //   const JourneyPlanScreen({super.key});
@@ -558,7 +626,7 @@ class _TagPill extends StatelessWidget {
 //   String? _selectedAddress;
 
 //   final Map<String, String> _reasonsByMiscId = {};
-  
+
 //   final box = GetStorage();
 
 //   @override
@@ -597,10 +665,7 @@ class _TagPill extends StatelessWidget {
 // print("JOURNEY PLAN LENGTH $data");
 // print("JOURNEY PLAN LENGTH $data");
 
-
-
 //     box.write('covered_routes_count',lengthOfMarkedReasons);
-
 
 //     final t = Theme.of(context).textTheme;
 
@@ -628,7 +693,6 @@ class _TagPill extends StatelessWidget {
 //   final matchesChip = _selectedAddress == null || address == _selectedAddress;
 //   return matchesSearch && matchesChip;
 // }).toList();
-
 
 //     return Scaffold(
 //       backgroundColor: Colors.white,
@@ -842,7 +906,7 @@ class _TagPill extends StatelessWidget {
 //                         (result['reason'] as String).trim().isNotEmpty) {
 //                       setState(() {
 //                         _reasonsByMiscId[miscid] = result['reason'] as String;
-//                       }); 
+//                       });
 //                       await box.write('journey_reasons', _reasonsByMiscId);
 //                     } else {
 //                       // Also refresh from storage
@@ -1050,10 +1114,6 @@ class _TagPill extends StatelessWidget {
 //     );
 //   }
 // }
-
-
-
-
 
 /*class JourneyPlanScreen extends StatefulWidget {
   const JourneyPlanScreen({super.key});
@@ -1807,7 +1867,6 @@ class _TagPill extends StatelessWidget {
 //   }
 // }
 
-
 // class _GlassHeader extends StatelessWidget {
 //   const _GlassHeader({required this.child});
 //   final Widget child;
@@ -2001,7 +2060,7 @@ class _TagPill extends StatelessWidget {
 //                                 ),
 //             ],
 //           ),
-          
+
 //        /*    Row(
 //             children: [
 //               // avatar
@@ -2091,7 +2150,6 @@ class _TagPill extends StatelessWidget {
 //   }
 // }
 
-
 // const kOrange = Color(0xFFEA7A3B);
 // const kText = Color(0xFF1E1E1E);
 // const kMuted = Color(0xFF707883);
@@ -2108,7 +2166,7 @@ class _TagPill extends StatelessWidget {
 
 // class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 //   final _search = TextEditingController();
-//   String? _selectedAddress; 
+//   String? _selectedAddress;
 
 //   @override
 //   void dispose() {
@@ -2116,19 +2174,19 @@ class _TagPill extends StatelessWidget {
 //     super.dispose();
 //   }
 
-  String formatTitleCase(String text) {
-    if (text.isEmpty) return text;
+String formatTitleCase(String text) {
+  if (text.isEmpty) return text;
 
-    return text
-        .toLowerCase()
-        .split(' ')
-        .map(
-          (word) => word.isNotEmpty
-              ? '${word[0].toUpperCase()}${word.substring(1)}'
-              : '',
-        )
-        .join(' ');
-  }
+  return text
+      .toLowerCase()
+      .split(' ')
+      .map(
+        (word) => word.isNotEmpty
+            ? '${word[0].toUpperCase()}${word.substring(1)}'
+            : '',
+      )
+      .join(' ');
+}
 
 //   @override
 //   Widget build(BuildContext context) {
