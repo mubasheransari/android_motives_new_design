@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:motives_new_ui_conversion/Models/order_payload.dart';
 import 'package:motives_new_ui_conversion/record_details_screen.dart';
 import '../../Bloc/global_bloc.dart';
 import 'Models/order_storage.dart';

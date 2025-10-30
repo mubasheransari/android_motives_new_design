@@ -619,7 +619,7 @@ floatingActionButton: Padding(
 
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
                       child: _Enter(
                         delayMs: 460,
                         child: Row(
@@ -637,50 +637,50 @@ floatingActionButton: Padding(
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _WideGlassTile(
-                                icon: Icons.upload,
-                                title: 'Sync Out',
-                                caption: 'Push updates',
-                                onTap: () {},
-                              ),
-                            ),
+                            // const SizedBox(width: 12),
+                            // Expanded(
+                            //   child: _WideGlassTile(
+                            //     icon: Icons.upload,
+                            //     title: 'Sync Out',
+                            //     caption: 'Push updates',
+                            //     onTap: () {},
+                            //   ),
+                            // ),
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
-                      child: _Enter(
-                        delayMs: 500,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _WideGlassTile(
-                                icon: Icons.download,
-                                title: 'Sync In',
-                                caption: 'Pull latest',
-                                onTap: () {},
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _WideGlassTile(
-                                icon: Icons.add_business_rounded,
-                                title: 'Add Shops',
-                                caption: 'Create outlet',
-                                onTap: () {},
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // SliverToBoxAdapter(
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.fromLTRB(16, 12, 16, 104),
+                  //     child: _Enter(
+                  //       delayMs: 500,
+                  //       child: Row(
+                  //         children: [
+                  //           Expanded(
+                  //             child: _WideGlassTile(
+                  //               icon: Icons.download,
+                  //               title: 'Sync In',
+                  //               caption: 'Pull latest',
+                  //               onTap: () {},
+                  //             ),
+                  //           ),
+                  //           const SizedBox(width: 12),
+                  //           Expanded(
+                  //             child: _WideGlassTile(
+                  //               icon: Icons.add_business_rounded,
+                  //               title: 'Add Shops',
+                  //               caption: 'Create outlet',
+                  //               onTap: () {},
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

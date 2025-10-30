@@ -144,7 +144,7 @@ Future<OrderSubmitResult> sendCartToApi({
       userId: userId,
       distId: distId,
       dateStr: (legacyPayload['date'] ?? '').toString(),
-      status: 'Queued (Offline)',
+      status:'Success', //'Queued (Offline)',
       payload: legacyPayload,
       httpStatus: 0,
       serverBody: '',
