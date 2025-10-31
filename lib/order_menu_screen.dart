@@ -54,6 +54,12 @@ class OrderMenuScreen extends StatefulWidget {
 
 class _OrderMenuScreenState extends State<OrderMenuScreen> {
 
+  bool get _isOrderPlaced => _statusForShop().ordered;
+
+bool get _allowCheckInAgain =>
+    !_isLockedNoVisit && !_isOrderPlaced; // 👈 block when ordered
+
+
 
   final box = GetStorage();
   final loc.Location location = loc.Location();
@@ -95,33 +101,67 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   }
 
   Future<void> _saveStatus({
-    required bool checkedIn,
-    required VisitLast last,
-    bool? holdUi,
-  }) async {
-    final map = _loadStatusMap();
-    map[widget.miscid] = {
-      'checkedIn': checkedIn,
-      'last': last == VisitLast.hold
-          ? 'hold'
-          : (last == VisitLast.noVisit ? 'no_visit' : 'none'),
-      'holdUI': holdUi ?? _holdToggleVisual,
-    };
-    await box.write('journey_status', map);
-  }
+  required bool checkedIn,
+  required VisitLast last,
+  bool? holdUi,
+  bool? ordered,
+}) async {
+  final map = _loadStatusMap();
+  map[widget.miscid] = {
+    'checkedIn': checkedIn,
+    'last': last == VisitLast.hold
+        ? 'hold'
+        : (last == VisitLast.noVisit ? 'no_visit' : 'none'),
+    'holdUI': holdUi ?? _holdToggleVisual,
+    'ordered': ordered ?? _statusForShop().ordered, // 👈 keep previous
+  };
+  await box.write('journey_status', map);
+}
 
-  ({bool checkedIn, VisitLast last, bool holdUi}) _statusForShop() {
-    final map = _loadStatusMap();
-    final s = map[widget.miscid];
-    if (s is Map) {
-      return (
-        checkedIn: (s['checkedIn'] == true),
-        last: _parseLast(s['last'] as String?),
-        holdUi: (s['holdUI'] == true),
-      );
-    }
-    return (checkedIn: false, last: VisitLast.none, holdUi: false);
+
+  // Future<void> _saveStatus({
+  //   required bool checkedIn,
+  //   required VisitLast last,
+  //   bool? holdUi,
+  // }) async {
+  //   final map = _loadStatusMap();
+  //   map[widget.miscid] = {
+  //     'checkedIn': checkedIn,
+  //     'last': last == VisitLast.hold
+  //         ? 'hold'
+  //         : (last == VisitLast.noVisit ? 'no_visit' : 'none'),
+  //     'holdUI': holdUi ?? _holdToggleVisual,
+  //   };
+  //   await box.write('journey_status', map);
+  // }
+
+  // ({bool checkedIn, VisitLast last, bool holdUi}) _statusForShop() {
+  //   final map = _loadStatusMap();
+  //   final s = map[widget.miscid];
+  //   if (s is Map) {
+  //     return (
+  //       checkedIn: (s['checkedIn'] == true),
+  //       last: _parseLast(s['last'] as String?),
+  //       holdUi: (s['holdUI'] == true),
+  //     );
+  //   }
+  //   return (checkedIn: false, last: VisitLast.none, holdUi: false);
+  // }
+
+  ({bool checkedIn, VisitLast last, bool holdUi, bool ordered}) _statusForShop() {
+  final map = _loadStatusMap();
+  final s = map[widget.miscid];
+  if (s is Map) {
+    return (
+      checkedIn: (s['checkedIn'] == true),
+      last: _parseLast(s['last'] as String?),
+      holdUi: (s['holdUI'] == true),
+      ordered: (s['ordered'] == true), // 👈 new
+    );
   }
+  return (checkedIn: false, last: VisitLast.none, holdUi: false, ordered: false);
+}
+
 
   Map<String, String> _loadReasonMap() {
     final raw = box.read('journey_reasons');
@@ -158,7 +198,7 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   bool get _isLockedNoVisit => _statusForShop().last == VisitLast.noVisit;
   bool get _isHoldActive =>
       _statusForShop().last == VisitLast.hold || _holdToggleVisual;
-  bool get _allowCheckInAgain => !_isLockedNoVisit;
+  // bool get _allowCheckInAgain => !_isLockedNoVisit;
 
   // Lock checkout until a reason is selected
   bool get _checkoutLocked => _isCheckedIn && !_hasReasonSelected;
@@ -984,15 +1024,25 @@ print('CHECK CREDIT LIMIT ${widget.checkCredit}');
                           return;
                         }
                         // Lock checkout until a reason is selected
-                        if (checkInText == "Check Out" && _checkoutLocked) {
-                          await _showThemedInfo(
-                            parentCtx: context,
-                            title: 'Reason Required',
-                            message:
-                                'Select a reason (Hold / No Visit) before checking out.',
-                          );
-                          return;
-                        }
+                           if (checkInText == "Check In" && !_allowCheckInAgain) {
+      await _showThemedInfo(
+        parentCtx: context,
+        title: 'Not Allowed',
+        message: _isOrderPlaced
+            ? 'Re-check in is not allowed (order already placed).'
+            : 'Re-check in is not allowed (No Visit selected earlier).',
+      );
+      return;
+    }
+                        // if (checkInText == "Check Out" && _checkoutLocked) {
+                        //   await _showThemedInfo(
+                        //     parentCtx: context,
+                        //     title: 'Reason Required',
+                        //     message:
+                        //         'Select a reason (Hold / No Visit) before checking out.',
+                        //   );
+                        //   return;
+                        // }
                         if (checkInText == "Check In" && !_allowCheckInAgain) {
                           await _showThemedInfo(
                               parentCtx: context,
@@ -1110,6 +1160,8 @@ print('CHECK CREDIT LIMIT ${widget.checkCredit}');
 
 _TapScale(
   onTap: () => _guardRequireCheckIn(() async {
+
+    
     final res = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
@@ -1118,25 +1170,49 @@ _TapScale(
     );
 
     if (res is Map &&
-        res!['miscid'] == widget.miscid &&
-        (res['reason'] ?? '') == 'ORDER PLACED') {
-      // update local UI + storage
-      await _saveReason('ORDER PLACED');
-      await _saveStatus(
-        checkedIn: false,
-        last: VisitLast.none,
-        holdUi: false,
-      );
-      setState(() {
-        checkInText = 'Check In';
-        _hasReasonSelected = true;
-      });
+    res!['miscid'] == widget.miscid &&
+    (res['reason'] ?? '') == 'ORDER PLACED') {
+  await _saveReason('ORDER PLACED');
+  await _saveStatus(
+    checkedIn: false,
+    last: VisitLast.none,
+    holdUi: false,
+    ordered: true,               // 👈 mark shop as ordered
+  );
+  setState(() {
+    checkInText = 'Check In';
+    _hasReasonSelected = true;
+  });
+  if (mounted) Navigator.pop(context, res);
+}
 
-      // ⬅️ that's it – events are sent from the order screen (where we have order_id)
-      if (mounted) {
-        Navigator.pop(context, res);
-      }
-    }
+    // final res = await Navigator.push<Map<String, dynamic>>(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => MeezanTeaCatalog(shopId: widget.miscid,creditBoolean: widget.checkCredit.toString()),
+    //   ),
+    // );
+
+    // if (res is Map &&
+    //     res!['miscid'] == widget.miscid &&
+    //     (res['reason'] ?? '') == 'ORDER PLACED') {
+    //   // update local UI + storage
+    //   await _saveReason('ORDER PLACED');
+    //   await _saveStatus(
+    //     checkedIn: false,
+    //     last: VisitLast.none,
+    //     holdUi: false,
+    //   );
+    //   setState(() {
+    //     checkInText = 'Check In';
+    //     _hasReasonSelected = true;
+    //   });
+
+    //   // ⬅️ that's it – events are sent from the order screen (where we have order_id)
+    //   if (mounted) {
+    //     Navigator.pop(context, res);
+    //   }
+    // }
   }),
   child: const _CategoryCard(
     icon: Icons.playlist_add_check_rounded,
