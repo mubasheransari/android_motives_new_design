@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -9,8 +10,10 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
-import 'package:motives_new_ui_conversion/capture_selfie.dart';
 import 'package:geocoding/geocoding.dart' as geo;
+import 'package:motives_new_ui_conversion/capture_selfie.dart';
+import 'package:motives_new_ui_conversion/home_screen.dart';
+import 'package:motives_new_ui_conversion/widgets/centered_customize_toast_widget.dart';
 import 'package:motives_new_ui_conversion/widgets/toast_widget.dart';
 
 class MarkAttendanceView extends StatefulWidget {
@@ -337,12 +340,81 @@ class _MarkAttendanceViewState extends State<MarkAttendanceView> {
 
                                   }
                                   else{
-                                              Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SelfieCaptureScreen(),
-                              ),
-                            );
+                           final current = await location.getLocation();
+      final lat = current.latitude;
+      final lng = current.longitude;
+      if (lat == null || lng == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not get your location')),
+        );
+        return;
+      }
+
+      final bloc = context.read<GlobalBloc>();
+      final userId = bloc.state.loginModel?.userinfo?.userId?.toString();
+      if (userId == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User session missing')),
+        );
+        return;
+      }
+
+      bloc.add(MarkAttendanceEvent(
+        action: 'IN',
+        lat: lat.toString(),
+        lng: lng.toString(),
+        type: '1',
+        userId: userId,
+      ));
+
+      final attendStatus = await bloc.stream
+          .map((s) => s.markAttendanceStatus)
+          .distinct()
+          .firstWhere((st) =>
+              st == MarkAttendanceStatus.success ||
+              st == MarkAttendanceStatus.failure);
+
+      if (attendStatus != MarkAttendanceStatus.success) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Attendance failed')),
+        );
+        return;
+      }
+
+      final box = GetStorage();
+      final email = box.read<String>("email");
+      final password = box.read<String>("password");
+      if (email != null && password != null) {
+        bloc.add(LoginEvent(email: email, password: password));
+        final loginStatus = await bloc.stream
+            .map((s) => s.status)
+            .distinct()
+            .firstWhere(
+                (st) => st == LoginStatus.success || st == LoginStatus.failure);
+
+        if (loginStatus != LoginStatus.success) {
+          if (!mounted) return;
+          final msg = bloc.state.loginModel?.message ?? 'Login refresh failed';
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(msg)));
+          return;
+        }
+      }
+
+      if (!mounted) return;
+
+      showCenteredToast(context, 'Attendance Marked Successfully');
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text('Attendance marked successfully')),
+      // );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeUpdated()),
+      );
 
                                   }
                           // if (context
