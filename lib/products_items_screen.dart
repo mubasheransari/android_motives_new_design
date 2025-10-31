@@ -358,9 +358,9 @@ class CartStorage {
 class MeezanTeaCatalog extends StatefulWidget {
   /// Pass the unique shop/store id here.
   /// If you don’t have a separate shop id, pass distributorId (or similar).
-  final String shopId;
+  final String shopId,creditBoolean;
 
-  const MeezanTeaCatalog({super.key, required this.shopId});
+  const MeezanTeaCatalog({super.key, required this.shopId,required this.creditBoolean});
 
   @override
   State<MeezanTeaCatalog> createState() => _MeezanTeaCatalogState();
@@ -486,6 +486,7 @@ class _MeezanTeaCatalogState extends State<MeezanTeaCatalog> {
   final result = await Navigator.of(context).push<Map<String, dynamic>>(
     MaterialPageRoute(
       builder: (_) => _MyListView(
+        creditLimit: widget.creditBoolean,
         shopId: _activeShopId ?? widget.shopId, // ⬅️ pass shop id
         allItems: items,
         cart: _cart,
@@ -795,6 +796,484 @@ class _QtyControls extends StatelessWidget {
 }
 
 
+
+class _MyListView extends StatefulWidget {
+  final List<TeaItem> allItems;
+  final Map<String, int> cart; // live reference to parent cart
+  final void Function(TeaItem) onIncrement;
+  final void Function(TeaItem) onDecrement;
+  final Tuple2<String?, String?> Function()? getPayloadMeta;
+
+  // ✅ needed to persist reason and send events
+  final String shopId,creditLimit; // miscid
+
+  const _MyListView({
+    required this.allItems,
+    required this.cart,
+    required this.onIncrement,
+    required this.onDecrement,
+    this.getPayloadMeta,
+    required this.shopId,
+    required this.creditLimit,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_MyListView> createState() => _MyListViewState();
+}
+
+class _MyListViewState extends State<_MyListView> {
+  // 👇 new
+  String _paymentType = 'CR'; // CR = credit, CS = cash
+
+  List<_CartRow> get _rows {
+    final rows = <_CartRow>[];
+    widget.cart.forEach((key, qty) {
+      final item = widget.allItems.firstWhere(
+        (e) => e.key == key,
+        orElse: () => TeaItem(
+          key: key,
+          itemId: null,
+          name: 'Unknown',
+          desc: '',
+          brand: 'Meezan',
+        ),
+      );
+      rows.add(_CartRow(item: item, qty: qty));
+    });
+    rows.sort((a, b) => a.item.name.compareTo(b.item.name));
+    return rows;
+  }
+
+  int get _totalQty => widget.cart.values.fold(0, (a, b) => a + b);
+
+  Future<void> _submitOrder() async {
+    final login = context.read<GlobalBloc>().state.loginModel;
+
+    // required fields coming from login
+    final userId = (login?.userinfo?.userId ?? '').trim();
+    final distId = (login?.distributors.isNotEmpty == true
+            ? (login!.distributors.first.id ?? '')
+            : '')
+        .trim();
+
+    // prefer from distributor → else userinfo
+    final segmentId = (login?.distributors.isNotEmpty == true
+            ? (login!.distributors.first.segment ?? '')
+            : (login?.userinfo?.segment ?? ''))
+        .trim();
+
+    final compId = (login?.distributors.isNotEmpty == true
+            ? (login!.distributors.first.compid ?? '')
+            : (login?.userinfo?.compid ?? ''))
+        .trim();
+
+    final orderBookerId = (login?.userinfo?.obid ?? '').trim();
+
+    final accCode = widget.shopId.trim();
+
+    if (userId.isEmpty || distId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User or Distributor not found')),
+      );
+      return;
+    }
+
+    // 👇 HERE: use selected payment
+    final orderPayload = buildLegacyOrderPayloadFromTea(
+      allItems: widget.allItems,
+      cart: widget.cart,
+      userId: userId,
+      distId: distId,
+      accCode: accCode,
+      segmentId: segmentId.isNotEmpty ? segmentId : '11002',
+      compId: compId.isNotEmpty ? compId : '11',
+      orderBookerId: orderBookerId.isNotEmpty ? orderBookerId : userId,
+      paymentType:   widget.creditLimit != "0"? _paymentType :"CS", // 👈 dynamic now
+      headerOrderType: 'OR',
+      orderStatus: 'N',
+      appSource: 'flutter.motives',
+      deviceId: Platform.isAndroid
+          ? 'android-${DateTime.now().millisecondsSinceEpoch}'
+          : 'ios-${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    debugPrint('🧾 ORDER PAYLOAD:\n${const JsonEncoder.withIndent('  ').convert(orderPayload)}');
+
+    final result = await sendCartToApi(
+      context: context,
+      legacyPayload: orderPayload,
+      endpoint:
+          'http://services.zankgroup.com/motivesteang/index.php?route=api/user/transaction',
+      userId: userId,
+      distId: distId,
+      requestField: 'request',
+      navigateToRecordsOnSuccess: false,
+    );
+
+    debugPrint('✅ success=${result.success}  status=${result.statusCode}');
+    if (result.json != null) {
+      debugPrint('🧩 response JSON:\n${const JsonEncoder.withIndent("  ").convert(result.json)}');
+    } else {
+      debugPrint('🧩 response RAW: ${result.rawBody}');
+    }
+
+    final msg = result.success
+        ? (result.serverMessage ?? 'Order submitted successfully')
+        : (result.serverMessage ?? 'Order submit failed');
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+    // if API failed → don’t clear cart, don’t fire events
+    if (!result.success) return;
+
+    // 4) on success → fire ORDER + CHECKOUT, persist journey status, clear cart
+    final gb = context.read<GlobalBloc>();
+
+    String lat = '0', lng = '0';
+    try {
+      final l = await loc.Location().getLocation();
+      lat = (l.latitude ?? 0).toString();
+      lng = (l.longitude ?? 0).toString();
+    } catch (_) {
+      // ignore
+    }
+
+    // ORDER
+    gb.add(CheckinCheckoutEvent(
+      type: '7',
+      userId: userId,
+      lat: lat,
+      lng: lng,
+      act_type: 'ORDER',
+      action: 'ORDER PLACED',
+      misc: widget.shopId, // miscid
+      dist_id: distId,
+    ));
+
+    // CHECKOUT
+    gb.add(CheckinCheckoutEvent(
+      type: '6',
+      userId: userId,
+      lat: lat,
+      lng: lng,
+      act_type: 'SHOP_CHECK',
+      action: 'OUT',
+      misc: widget.shopId,
+      dist_id: distId,
+    ));
+
+    // persist in storage
+    final box = GetStorage();
+    final raw = box.read('journey_reasons');
+    final reasons = <String, String>{};
+    if (raw is Map) {
+      raw.forEach((k, v) => reasons[k.toString()] = v.toString());
+    }
+    reasons[widget.shopId] = 'ORDER PLACED';
+    await box.write('journey_reasons', reasons);
+
+    final stRaw = box.read('journey_status');
+    final st =
+        (stRaw is Map) ? Map<String, dynamic>.from(stRaw) : <String, dynamic>{};
+    st[widget.shopId] = {'checkedIn': false, 'last': 'none', 'holdUI': false};
+    await box.write('journey_status', st);
+
+    // clear cart in UI
+    widget.cart.clear();
+
+    if (!mounted) return;
+    Navigator.pop<Map<String, dynamic>>(context, {
+      'submitted': true,
+      'miscid': widget.shopId,
+      'reason': 'ORDER PLACED',
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: kText),
+        title: Text(
+          'My List',
+          style: t.titleLarge?.copyWith(
+            color: kText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // header
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kOrange, Color(0xFFFFB07A)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [
+                BoxShadow(color: kShadow, blurRadius: 14, offset: Offset(0, 8))
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.shopping_bag_rounded, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Items in your list: $_totalQty',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (_rows.isEmpty)
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.local_grocery_store_outlined,
+                        size: 56, color: kMuted),
+                    const SizedBox(height: 8),
+                    Text('Your list is empty',
+                        style: t.titleMedium?.copyWith(color: kText)),
+                    const SizedBox(height: 4),
+                    Text('Add products from the catalog.',
+                        style: t.bodySmall?.copyWith(color: kMuted)),
+                  ],
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                itemCount: _rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) {
+                  final row = _rows[i];
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: kCard,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: kShadow,
+                            blurRadius: 12,
+                            offset: Offset(0, 6))
+                      ],
+                      border: Border.all(color: const Color(0xFFEDEFF2)),
+                    ),
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: kField,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(Icons.local_cafe_rounded,
+                              color: kOrange),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _TagPill(text: row.item.brand),
+                              const SizedBox(height: 6),
+                              Text(
+                                row.item.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.titleMedium?.copyWith(
+                                  color: kText,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                row.item.desc,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.bodySmall?.copyWith(color: kMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _QtyControls(
+                          qty: row.qty,
+                          onInc: () {
+                            widget.onIncrement(row.item);
+                            setState(() {});
+                          },
+                          onDec: () {
+                            widget.onDecrement(row.item);
+                            setState(() {});
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          // 👇 payment + button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 52),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Payment type',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: kText,
+                  ),
+                ),
+                const SizedBox(height: 10),
+     widget.creditLimit != "0"?                Row(
+                  children: [
+               Expanded(
+                      child: _PaymentChoiceTile(
+                        label: 'Credit',
+                        code: 'CR',
+                        selected: _paymentType == 'CR',
+                        onTap: () => setState(() => _paymentType = 'CR'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _PaymentChoiceTile(
+                        label: 'Cash',
+                        code: 'CS',
+                        selected: _paymentType == 'CS',
+                        onTap: () => setState(() => _paymentType = 'CS'),
+                      ),
+                    ),
+                  ],
+                ):SizedBox(),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kOrange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: _rows.isEmpty ? null : _submitOrder,
+                    child: const Text(
+                      'Confirm & Send',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/* ---------- helpers ---------- */
+
+class _CartRow {
+  final TeaItem item;
+  final int qty;
+  _CartRow({required this.item, required this.qty});
+}
+
+
+
+class _PaymentChoiceTile extends StatelessWidget {
+  final String label;
+  final String code;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _PaymentChoiceTile({
+    required this.label,
+    required this.code,
+    required this.selected,
+    required this.onTap,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: selected ? const Color(0xFFFFF1E6) : Colors.white,
+          border: Border.all(
+            color: selected ? kOrange : const Color(0xFFE5E7EB),
+            width: selected ? 1.5 : 1,
+          ),
+          boxShadow: const [
+            BoxShadow(color: kShadow, blurRadius: 10, offset: Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (selected)
+              const Icon(Icons.check_circle, size: 18, color: kOrange)
+            else
+              const Icon(Icons.radio_button_unchecked,
+                  size: 18, color: kMuted),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: selected ? kText : kMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/*
 class _MyListView extends StatefulWidget {
   final List<TeaItem> allItems;
   final Map<String, int> cart; // live reference to parent cart
@@ -1262,13 +1741,8 @@ if (result.success) {
       ),
     );
   }
-}
+}*/
 
-class _CartRow {
-  final TeaItem item;
-  final int qty;
-  _CartRow({required this.item, required this.qty});
-}
 
 
 

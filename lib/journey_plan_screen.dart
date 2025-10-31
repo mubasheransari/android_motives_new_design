@@ -351,6 +351,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => OrderMenuScreen(
+                          checkCredit: plan.crLimit,
                           miscid: miscid,
                           shopname: plan.partyName,
                           address: plan.custAddress.toString(),

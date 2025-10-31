@@ -59,6 +59,8 @@ class OrderMenuScreen extends StatefulWidget {
 }
 
 class _OrderMenuScreenState extends State<OrderMenuScreen> {
+
+
   final box = GetStorage();
   final loc.Location location = loc.Location();
 
@@ -442,7 +444,10 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
   @override
   void initState() {
     super.initState();
-
+print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+print('CHECK CREDIT LIMIT ${widget.checkCredit}');
     context
         .read<GlobalBloc>()
         .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
@@ -756,6 +761,8 @@ class _OrderMenuScreenState extends State<OrderMenuScreen> {
       break;
   }
 },
+
+
 
       // listener: (ctx, state) {
       //   switch (state.checkinCheckoutStatus) {
@@ -1096,7 +1103,7 @@ _TapScale(
     final res = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (_) => MeezanTeaCatalog(shopId: widget.miscid),
+        builder: (_) => MeezanTeaCatalog(shopId: widget.miscid,creditBoolean: widget.checkCredit.toString()),
       ),
     );
 
