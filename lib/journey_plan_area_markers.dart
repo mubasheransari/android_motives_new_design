@@ -794,6 +794,7 @@ class _AreaMarkersFromJourneyPlanMapState
                     itemBuilder: (_, i) {
                       final d = _dups[i];
                       return ListTile(
+                   
                         leading: const Icon(Icons.remove_circle_outline, color: Colors.amber),
                         title: Text(d.shop.isEmpty ? 'Shop' : d.shop,
                             style: const TextStyle(fontWeight: FontWeight.w700)),

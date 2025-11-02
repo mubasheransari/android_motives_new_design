@@ -238,7 +238,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                       onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         hintText: 'Search Customer Shops',
-                        hintStyle: TextStyle(color: kMuted),
+                        hintStyle: TextStyle(color: kMuted,fontSize: 14),
                         border: InputBorder.none,
                       ),
                     ),
@@ -347,6 +347,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                   seg: plan.segement,
                   reason: _reasonsByMiscId[miscid],
                   onTap: () async {
+                    print('SHOP ID $miscid');
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
