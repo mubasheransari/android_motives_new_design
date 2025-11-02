@@ -26,6 +26,7 @@ class Repository {
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/attendance";
   final String routeStartUrlZankGroup =
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/routestart";
+      final String getSalesHistory = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
 
   Map<String, String> get _formHeaders => const {
         "Accept": "application/json",

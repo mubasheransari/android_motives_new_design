@@ -1254,36 +1254,36 @@ _TapScale(
                     ),
 
                     // Collect Payment
-                    // _TapScale(
-                    //   onTap: () => _guardRequireCheckIn(() async {
-                    //     if (!_markInvoicesOn) {
-                    //       await _showThemedInfo(
-                    //           parentCtx: context,
-                    //           title: 'Not Allowed',
-                    //           message:
-                    //               "You don't have rights to view invoices!");
-                    //       return;
-                    //     }
-                    //     _toast('Invoices tapped'); // TODO: Navigate
-                    //   }),
-                    //   child: const _CategoryCard(
-                    //     icon: Icons.payments_rounded,
-                    //     title: 'Collect Payment',
-                    //     subtitle: 'Invoices',
-                    //   ),
-                    // ),
+                    _TapScale(
+                      onTap: () => _guardRequireCheckIn(() async {
+                        if (!_markInvoicesOn) {
+                          await _showThemedInfo(
+                              parentCtx: context,
+                              title: 'Not Allowed',
+                              message:
+                                  "You don't have rights to view invoices!");
+                          return;
+                        }
+                        _toast('Invoices tapped'); // TODO: Navigate
+                      }),
+                      child: const _CategoryCard(
+                        icon: Icons.payments_rounded,
+                        title: 'Collect Payment',
+                        subtitle: 'Invoices',
+                      ),
+                    ),
 
-                    // // Sale History
-                    // _TapScale(
-                    //   onTap: () => _guardRequireCheckIn(() {
-                    //     _toast('History tapped'); // TODO: Navigate
-                    //   }),
-                    //   child: const _CategoryCard(
-                    //     icon: Icons.history_rounded,
-                    //     title: 'Sale History',
-                    //     subtitle: 'History',
-                    //   ),
-                    // ),
+                    // Sale History
+                    _TapScale(
+                      onTap: () => _guardRequireCheckIn(() {
+                        _toast('History tapped'); // TODO: Navigate
+                      }),
+                      child: const _CategoryCard(
+                        icon: Icons.history_rounded,
+                        title: 'Sale History',
+                        subtitle: 'History',
+                      ),
+                    ),
                   ]),
                 ),
               ),
