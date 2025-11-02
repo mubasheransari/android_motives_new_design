@@ -528,7 +528,9 @@ floatingActionButton: Padding(
                           child: _GlassActionCard(
                             icon: Icons.access_time,
                             title: 'Mark / Review',
-                            subtitle: 'Attendance', // 'Mark / Review',
+                            subtitle:state.loginModel?.statusAttendance
+                                      .toString() ==
+                                  "1" ? 'Attendance Out':'Attendance In', 
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
