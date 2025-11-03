@@ -943,6 +943,8 @@ class _MyListViewState extends State<_MyListView> {
       // ignore
     }
 
+    gb.add(LoadShopInvoicesRequested(acode: widget.shopId, disid: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString()));
+
     // ORDER
     gb.add(CheckinCheckoutEvent(
       type: '7',
