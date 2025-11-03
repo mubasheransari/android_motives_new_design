@@ -93,3 +93,14 @@ class CoveredRoutesLength extends GlobalEvent {
   @override
   List<Object?> get props => [lenght];
 }
+
+
+class LoadShopInvoicesRequested extends GlobalEvent {
+  final String acode;
+  final String disid;
+  const LoadShopInvoicesRequested({required this.acode, required this.disid});
+  @override
+  List<Object?> get props => [acode, disid];
+}
+
+

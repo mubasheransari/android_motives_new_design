@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:motives_new_ui_conversion/Models/get_shop_invoices_model.dart';
 import 'package:motives_new_ui_conversion/Service/api_basehelper.dart';
 import 'package:http/http.dart' as http;
 
@@ -26,7 +27,10 @@ class Repository {
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/attendance";
   final String routeStartUrlZankGroup =
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/routestart";
-      final String getSalesHistory = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
+      final String getSalesHistoryUrl = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
+
+            final String getShopInvoicesUrl = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
+
 
   Map<String, String> get _formHeaders => const {
         "Accept": "application/json",
@@ -218,6 +222,63 @@ class Repository {
     debugPrint("⬅️ /checkin_checkout via routestart ${res.statusCode}: ${res.body}");
     return res;
   }
+
+
+  Future<http.Response> getShopInvoices({
+  required String acode,
+  required String disid,
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  final uri = Uri.parse(getShopInvoicesUrl);
+  // This endpoint expects regular form-data keys (NOT {"request": ...})
+  final res = await http
+      .post(
+        uri,
+        headers: _formHeaders, // application/x-www-form-urlencoded
+        body: {"acode": acode, "disid": disid},
+      )
+      .timeout(timeout);
+
+  debugPrint('⬅️ /getShopInvoices ${res.statusCode}: ${res.body}');
+  return res;
+}
+
+List<GetShopInvoicesModel> parseInvoicesBody(String body) {
+  final decoded = jsonDecode(body);
+
+  if (decoded is! List) return const <GetShopInvoicesModel>[];
+
+  // If it already matches the invoice shape:
+  final hasInvoiceKeys = decoded.isNotEmpty &&
+      decoded.first is Map &&
+      (decoded.first as Map).containsKey('invid');
+
+  if (hasInvoiceKeys) {
+    return GetShopInvoicesModel.listFromJson(
+        decoded.cast<Map<String, dynamic>>());
+  }
+
+  // Tolerate "order-lines" shape (your log shows ord_no, item_desc, ...).
+  // We map `ord_no` -> invno/invid so the UI can show something meaningful.
+  return decoded.map<GetShopInvoicesModel>((e) {
+    final m = (e as Map).cast<String, dynamic>();
+    final ordNo = (m['ord_no'] as String?)?.trim();
+
+    return GetShopInvoicesModel(
+      invid: ordNo,                 // map order number into invoice id
+      invno: ordNo,                 // show as invoice number
+      invDate: m['inv_date']        // if backend ever returns it
+          as String? ?? m['order_date'] as String?, // optional
+      acode: m['acode'] as String?,
+      cashCredit: m['cash_credit'] as String?,      // optional if present
+      invAmount: m['inv_amount'] as String?
+          ?? m['amount'] as String?,                // optional if present
+      ledAmount: m['led_amount'] as String?,        // likely missing
+      balAmount: m['bal_amount'] as String?,        // likely missing
+    );
+  }).toList();
+}
+
 }
 
 

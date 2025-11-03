@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/order_menu_screen.dart';
 import 'dart:ui';
@@ -346,7 +347,63 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                   area: plan.areaName,
                   seg: plan.segement,
                   reason: _reasonsByMiscId[miscid],
+
                   onTap: () async {
+  // 1) Fire invoices load only if not already loaded
+  final bloc = context.read<GlobalBloc>();
+  final s = bloc.state;
+
+  final acode = plan.accode;
+  final disid = s.loginModel?.userinfo?.disid?.toString() ?? '';
+  print("ACODE :::: $acode");
+  print("ACODE :::: $acode");
+  print("ACODE :::: $acode");
+  print("DIS ID :::: $disid");
+  print("DIS ID :::: $disid");
+  print("DIS ID :::: $disid");
+  print("DIS ID :::: $disid");
+
+  final invoicesAlreadyLoaded =
+      s.invoicesStatus == InvoicesStatus.success && s.invoices.isNotEmpty;
+
+  if (!invoicesAlreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
+    bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
+  }
+
+  // 2) Your existing navigation
+  print('SHOP ID $miscid');
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => OrderMenuScreen(
+        checkCredit: plan.crLimit,
+        miscid: miscid,
+        shopname: plan.partyName,
+        address: plan.custAddress.toString(),
+      ),
+    ),
+  );
+
+  if (!mounted) return;
+
+  // 3) Your existing post-return logic
+  if (result is Map &&
+      result['miscid'] == miscid &&
+      result['reason'] != null &&
+      (result['reason'] as String).trim().isNotEmpty) {
+    setState(() {
+      _reasonsByMiscId[miscid] = result['reason'] as String;
+    });
+    await box.write('journey_reasons', _reasonsByMiscId);
+  } else {
+    final jr = box.read('journey_reasons');
+    if (jr is Map && jr[miscid] is String) {
+      setState(() => _reasonsByMiscId[miscid] = (jr[miscid] as String));
+    }
+  }
+},
+
+               /*   onTap: () async {
                     print('SHOP ID $miscid');
                     final result = await Navigator.push(
                       context,
@@ -380,7 +437,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
                         );
                       }
                     }
-                  },
+                  },*/
                 );
               },
             ),

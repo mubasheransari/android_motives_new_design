@@ -7,6 +7,7 @@ import 'package:location/location.dart' as loc;
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
+import 'package:motives_new_ui_conversion/invoices_screen.dart';
 import 'package:motives_new_ui_conversion/products_items_screen.dart';
 
 
@@ -474,25 +475,73 @@ bool get _allowCheckInAgain =>
   }
 
   @override
-  void initState() {
-    super.initState();
-print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-    context
-        .read<GlobalBloc>()
-        .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
-    final st = _statusForShop();
-    final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
-    checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
-    _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
-    _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
+void initState() {
+  super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (_markLocationOn) await _getLocation();
-    });
-  }
+  // // your debug prints
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+
+  // // activity log
+  context
+      .read<GlobalBloc>()
+      .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
+
+  // your existing status logic
+  final st = _statusForShop();
+  final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
+  checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
+  _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
+  _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // location
+    if (_markLocationOn) await _getLocation();
+
+    // 🔽 Invoices: fire once only if not already loaded
+    final bloc = context.read<GlobalBloc>();
+    final state = bloc.state;
+
+    // Using shop id (miscid) as acode; adjust if your plan object has a dedicated acode
+    final acode = (widget.miscid).trim();
+    final disid = (state.loginModel?.userinfo?.disid?.toString() ?? '').trim();
+
+    final alreadyLoaded =
+        state.invoicesStatus == InvoicesStatus.success &&
+        state.invoices.isNotEmpty;
+
+    if (!alreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
+      debugPrint('➡️ Loading invoices for acode=$acode, disid=$disid');
+      bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
+    } else {
+      debugPrint('✅ Invoices already loaded or missing params. Skipping fetch.');
+    }
+  });
+}
+
+
+//   @override
+//   void initState() {
+//     super.initState();
+// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+//     context
+//         .read<GlobalBloc>()
+//         .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
+//     final st = _statusForShop();
+//     final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
+//     checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
+//     _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
+//     _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
+
+//     WidgetsBinding.instance.addPostFrameCallback((_) async {
+//       if (_markLocationOn) await _getLocation();
+//     });
+//   }
 
   Future<void> _pickHold() async {
   final parentCtx = context;
@@ -1255,17 +1304,24 @@ _TapScale(
 
                     // Collect Payment
                     _TapScale(
-                      onTap: () => _guardRequireCheckIn(() async {
-                        if (!_markInvoicesOn) {
-                          await _showThemedInfo(
-                              parentCtx: context,
-                              title: 'Not Allowed',
-                              message:
-                                  "You don't have rights to view invoices!");
-                          return;
-                        }
-                        _toast('Invoices tapped'); // TODO: Navigate
-                      }),
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context)=> InvoicesScreen
+                        (
+                          acode: widget.miscid,
+                          disid: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
+                        )));
+                      },
+                      // onTap: () => _guardRequireCheckIn(() async {
+                      //   if (!_markInvoicesOn) {
+                      //     await _showThemedInfo(
+                      //         parentCtx: context,
+                      //         title: 'Not Allowed',
+                      //         message:
+                      //             "You don't have rights to view invoices!");
+                      //     return;
+                      //   }
+                      //   _toast('Invoices tapped'); // TODO: Navigate
+                      // }),
                       child: const _CategoryCard(
                         icon: Icons.payments_rounded,
                         title: 'Collect Payment',

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart';
+import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
@@ -25,7 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 
 class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
-  GlobalBloc() : super(const GlobalState()) {
+  GlobalBloc() : super(GlobalState()) {
     on<HydrateLoginFromCache>(_hydrateFromCache);
     on<LoginEvent>(_login);
     on<MarkAttendanceEvent>(_markAttendance);
@@ -33,9 +34,67 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     on<CheckinCheckoutEvent>(_checkinCheckout);
     on<Activity>(activity);
     on<CoveredRoutesLength>(coveredRoutesLength);
+    on<LoadShopInvoicesRequested>(_onLoadShopInvoices);
   }
 
   final Repository repo = Repository();
+
+
+  // global_bloc.dart (add method)
+DateTime? _tryParseInvDate(String? s) {
+  if (s == null || s.trim().isEmpty) return null;
+  // API uses "16-DEC-19" → dd-MMM-yy
+  try {
+    return DateFormat("dd-MMM-yy").parse(s.toUpperCase());
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<void> _onLoadShopInvoices(
+  LoadShopInvoicesRequested e,
+  Emitter<GlobalState> emit,
+) async {
+  emit(state.copyWith(
+    invoicesStatus: InvoicesStatus.loading,
+    invoicesError: null,
+  ));
+
+  try {
+    final res = await repo.getShopInvoices(acode: e.acode, disid: e.disid);
+    if (res.statusCode == 200) {
+      final list = repo.parseInvoicesBody(res.body);
+
+      // Optional: sort by date desc (unknowns last)
+      final sorted = [...list]..sort((a, b) {
+        final ad = _tryParseInvDate(a.invDate);
+        final bd = _tryParseInvDate(b.invDate);
+        if (ad == null && bd == null) return 0;
+        if (ad == null) return 1;
+        if (bd == null) return -1;
+        return bd.compareTo(ad);
+      });
+
+      emit(state.copyWith(
+        invoicesStatus: InvoicesStatus.success,
+        invoices: sorted,
+        invoicesError: null,
+      ));
+    } else {
+      emit(state.copyWith(
+        invoicesStatus: InvoicesStatus.failure,
+        invoicesError: 'HTTP ${res.statusCode}',
+      ));
+    }
+  } catch (err, st) {
+    debugPrint('getShopInvoices error: $err\n$st');
+    emit(state.copyWith(
+      invoicesStatus: InvoicesStatus.failure,
+      invoicesError: '$err',
+    ));
+  }
+}
+
 
   Future<void> _hydrateFromCache(
       HydrateLoginFromCache event, Emitter<GlobalState> emit) async {
