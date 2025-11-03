@@ -29,7 +29,7 @@ class Repository {
       "http://services.zankgroup.com/motivesteang/index.php?route=api/user/routestart";
       final String getSalesHistoryUrl = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
 
-            final String getShopInvoicesUrl = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getSaleHistory";
+   final String getShopInvoicesUrl = "http://services.zankgroup.com/motivesteang/index.php?route=api/user/getShopInvoices";
 
 
   Map<String, String> get _formHeaders => const {
