@@ -38,6 +38,53 @@ class Repository {
       };
 
   /* -------------------------------- Login -------------------------------- */
+  Future<http.Response> getSalesHistory({
+    required String acode,
+    required String disid,
+    Duration timeout = const Duration(seconds: 45),
+  }) async {
+    final uri = Uri.parse(getSalesHistoryUrl);
+
+    // EXACTLY these two fields; no JSON, no "request=" wrapper
+    final fields = {
+      'acode': acode,
+      'disid': disid,
+    };
+
+    final res = await http
+        .post(uri, headers: _formHeaders, body: fields)
+        .timeout(timeout);
+
+    // Optional debug
+    // ignore: avoid_print
+    print('⬅️ getSaleHistory ${res.statusCode}: ${res.body}');
+    return res;
+  }
+  /*
+Future<http.Response> getSalesHistory({
+    required String acode,
+    required String disid,
+    Duration timeout = const Duration(seconds: 45),
+  }) async {
+    final uri = Uri.parse(getSalesHistoryUrl);
+
+    final req = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json'
+      ..fields['acode'] = acode
+      ..fields['disid'] = disid;
+
+    // If you ever need to add files later:
+    // req.files.add(await http.MultipartFile.fromPath('file', path));
+
+    final streamed = await req.send().timeout(timeout);
+    final res = await http.Response.fromStream(streamed);
+
+    // Debug (optional)
+    // ignore: avoid_print
+    print('⬅️ getSaleHistory ${res.statusCode}: ${res.body}');
+
+    return res;
+  }*/
 
   Future<http.Response> postLegacyFormEncoded({
   required String url,

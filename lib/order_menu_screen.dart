@@ -9,9 +9,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
 import 'package:motives_new_ui_conversion/invoices_screen.dart';
 import 'package:motives_new_ui_conversion/products_items_screen.dart';
-
-
-
+import 'package:motives_new_ui_conversion/sales_history_screen.dart';
 
 const kOrange = Color(0xFFFF7A3D);
 const kOrangeLite = Color(0xFFFFB07A);
@@ -22,6 +20,7 @@ const kCard = Colors.white;
 const kShadow = Color(0x1A0E1631);
 
 enum VisitLast { none, hold, noVisit }
+
 VisitLast _parseLast(String? s) {
   switch ((s ?? '').toLowerCase()) {
     case 'hold':
@@ -54,13 +53,10 @@ class OrderMenuScreen extends StatefulWidget {
 }
 
 class _OrderMenuScreenState extends State<OrderMenuScreen> {
-
   bool get _isOrderPlaced => _statusForShop().ordered;
 
-bool get _allowCheckInAgain =>
-    !_isLockedNoVisit && !_isOrderPlaced; // 👈 block when ordered
-
-
+  bool get _allowCheckInAgain =>
+      !_isLockedNoVisit && !_isOrderPlaced; // 👈 block when ordered
 
   final box = GetStorage();
   final loc.Location location = loc.Location();
@@ -102,23 +98,22 @@ bool get _allowCheckInAgain =>
   }
 
   Future<void> _saveStatus({
-  required bool checkedIn,
-  required VisitLast last,
-  bool? holdUi,
-  bool? ordered,
-}) async {
-  final map = _loadStatusMap();
-  map[widget.miscid] = {
-    'checkedIn': checkedIn,
-    'last': last == VisitLast.hold
-        ? 'hold'
-        : (last == VisitLast.noVisit ? 'no_visit' : 'none'),
-    'holdUI': holdUi ?? _holdToggleVisual,
-    'ordered': ordered ?? _statusForShop().ordered, // 👈 keep previous
-  };
-  await box.write('journey_status', map);
-}
-
+    required bool checkedIn,
+    required VisitLast last,
+    bool? holdUi,
+    bool? ordered,
+  }) async {
+    final map = _loadStatusMap();
+    map[widget.miscid] = {
+      'checkedIn': checkedIn,
+      'last': last == VisitLast.hold
+          ? 'hold'
+          : (last == VisitLast.noVisit ? 'no_visit' : 'none'),
+      'holdUI': holdUi ?? _holdToggleVisual,
+      'ordered': ordered ?? _statusForShop().ordered, // 👈 keep previous
+    };
+    await box.write('journey_status', map);
+  }
 
   // Future<void> _saveStatus({
   //   required bool checkedIn,
@@ -149,26 +144,32 @@ bool get _allowCheckInAgain =>
   //   return (checkedIn: false, last: VisitLast.none, holdUi: false);
   // }
 
-  ({bool checkedIn, VisitLast last, bool holdUi, bool ordered}) _statusForShop() {
-  final map = _loadStatusMap();
-  final s = map[widget.miscid];
-  if (s is Map) {
+  ({bool checkedIn, VisitLast last, bool holdUi, bool ordered})
+  _statusForShop() {
+    final map = _loadStatusMap();
+    final s = map[widget.miscid];
+    if (s is Map) {
+      return (
+        checkedIn: (s['checkedIn'] == true),
+        last: _parseLast(s['last'] as String?),
+        holdUi: (s['holdUI'] == true),
+        ordered: (s['ordered'] == true), // 👈 new
+      );
+    }
     return (
-      checkedIn: (s['checkedIn'] == true),
-      last: _parseLast(s['last'] as String?),
-      holdUi: (s['holdUI'] == true),
-      ordered: (s['ordered'] == true), // 👈 new
+      checkedIn: false,
+      last: VisitLast.none,
+      holdUi: false,
+      ordered: false,
     );
   }
-  return (checkedIn: false, last: VisitLast.none, holdUi: false, ordered: false);
-}
-
 
   Map<String, String> _loadReasonMap() {
     final raw = box.read('journey_reasons');
     if (raw is Map) {
       return raw.map<String, String>(
-          (k, v) => MapEntry(k.toString(), v.toString()));
+        (k, v) => MapEntry(k.toString(), v.toString()),
+      );
     }
     return {};
   }
@@ -223,7 +224,9 @@ bool get _allowCheckInAgain =>
       final current = await location.getLocation();
       lat = (current.latitude ?? 0).toString();
       lng = (current.longitude ?? 0).toString();
-    } catch (_) {/* ignore */}
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   final GetStorage _local = GetStorage();
@@ -269,11 +272,12 @@ bool get _allowCheckInAgain =>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(message,
-                  style: Theme.of(parentCtx)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: kText)),
+              Text(
+                message,
+                style: Theme.of(
+                  parentCtx,
+                ).textTheme.bodyMedium?.copyWith(color: kText),
+              ),
               const SizedBox(height: 14),
               SizedBox(
                 width: double.infinity,
@@ -282,13 +286,14 @@ bool get _allowCheckInAgain =>
                     backgroundColor: kOrange,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: 0,
                   ),
                   onPressed: () => Navigator.of(dialogCtx).pop(),
                   child: Text(button),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -314,11 +319,12 @@ bool get _allowCheckInAgain =>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(message,
-                  style: Theme.of(parentCtx)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: kText)),
+              Text(
+                message,
+                style: Theme.of(
+                  parentCtx,
+                ).textTheme.bodyMedium?.copyWith(color: kText),
+              ),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -328,7 +334,8 @@ bool get _allowCheckInAgain =>
                         foregroundColor: kMuted,
                         side: BorderSide(color: kMuted.withOpacity(.35)),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () => Navigator.of(dialogCtx).pop(),
                       child: Text(noText),
@@ -341,7 +348,8 @@ bool get _allowCheckInAgain =>
                         backgroundColor: kOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
                       onPressed: () {
@@ -386,12 +394,13 @@ bool get _allowCheckInAgain =>
                     separatorBuilder: (_, __) => const SizedBox(height: 2),
                     itemBuilder: (_, i) => RadioListTile<int>(
                       dense: true,
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 6),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 6),
                       visualDensity: VisualDensity.compact,
                       activeColor: kOrange,
-                      title:
-                          Text(options[i], style: t.bodyMedium?.copyWith(color: kText)),
+                      title: Text(
+                        options[i],
+                        style: t.bodyMedium?.copyWith(color: kText),
+                      ),
                       value: i,
                       groupValue: selectedIndex,
                       onChanged: (v) => setSB(() => selectedIndex = v ?? -1),
@@ -408,7 +417,8 @@ bool get _allowCheckInAgain =>
                             foregroundColor: kMuted,
                             side: BorderSide(color: kMuted.withOpacity(.35)),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: () => Navigator.of(dialogCtx).pop(),
                           child: const Text("Cancel"),
@@ -422,7 +432,8 @@ bool get _allowCheckInAgain =>
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: selectedIndex == -1
                               ? null
@@ -459,215 +470,238 @@ bool get _allowCheckInAgain =>
   void _guardRequireCheckIn(VoidCallback action) {
     if (_isHoldActive) {
       _showThemedInfo(
-          parentCtx: context,
-          title: 'Unhold Required',
-          message: 'Unhold first to continue.');
+        parentCtx: context,
+        title: 'Unhold Required',
+        message: 'Unhold first to continue.',
+      );
       return;
     }
     if (!_isCheckedIn) {
       _showThemedInfo(
-          parentCtx: context,
-          title: 'Check-In Required',
-          message: 'Please check in first.');
+        parentCtx: context,
+        title: 'Check-In Required',
+        message: 'Please check in first.',
+      );
       return;
     }
     action();
   }
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  // // your debug prints
-  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+    // // your debug prints
+    // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+    // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+    // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+    // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
 
-  // // activity log
-  context
-      .read<GlobalBloc>()
-      .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
-
-  // your existing status logic
-  final st = _statusForShop();
-  final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
-  checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
-  _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
-  _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
-
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    // location
-    if (_markLocationOn) await _getLocation();
-
-    // 🔽 Invoices: fire once only if not already loaded
-    final bloc = context.read<GlobalBloc>();
-    final state = bloc.state;
-
-    // Using shop id (miscid) as acode; adjust if your plan object has a dedicated acode
-    final acode = (widget.miscid).trim();
-    final disid = (state.loginModel?.userinfo?.disid?.toString() ?? '').trim();
-
-    final alreadyLoaded =
-        state.invoicesStatus == InvoicesStatus.success &&
-        state.invoices.isNotEmpty;
-
-    if (!alreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
-      debugPrint('➡️ Loading invoices for acode=$acode, disid=$disid');
-      bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
-    } else {
-      debugPrint('✅ Invoices already loaded or missing params. Skipping fetch.');
-    }
-  });
-}
-
-
-//   @override
-//   void initState() {
-//     super.initState();
-// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-// print('CHECK CREDIT LIMIT ${widget.checkCredit}');
-//     context
-//         .read<GlobalBloc>()
-//         .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
-//     final st = _statusForShop();
-//     final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
-//     checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
-//     _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
-//     _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
-
-//     WidgetsBinding.instance.addPostFrameCallback((_) async {
-//       if (_markLocationOn) await _getLocation();
-//     });
-//   }
-
-  Future<void> _pickHold() async {
-  final parentCtx = context;
-
-  // need location first if rights say so
-  if (_markLocationOn && (lat == "0" || lng == "0")) {
-    await _showThemedInfo(
-      parentCtx: parentCtx,
-      title: 'Location',
-      message: "Can't get location. Please open Google Maps blue dot and try again.",
+    // // activity log
+    context.read<GlobalBloc>().add(
+      Activity(activity: 'Visited Shop ${widget.shopname}'),
     );
-    return;
+
+    // your existing status logic
+    final st = _statusForShop();
+    final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
+    checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
+    _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
+    _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // location
+      if (_markLocationOn) await _getLocation();
+
+      // 🔽 Invoices: fire once only if not already loaded
+      final bloc = context.read<GlobalBloc>();
+      final state = bloc.state;
+
+      // Using shop id (miscid) as acode; adjust if your plan object has a dedicated acode
+      final acode = (widget.miscid).trim();
+      final disid = (state.loginModel?.userinfo?.disid?.toString() ?? '')
+          .trim();
+
+      final alreadyLoaded =
+          state.invoicesStatus == InvoicesStatus.success &&
+          state.invoices.isNotEmpty;
+
+      if (!alreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
+        debugPrint('➡️ Loading invoices for acode=$acode, disid=$disid');
+        bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
+      } else {
+        debugPrint(
+          '✅ Invoices already loaded or missing params. Skipping fetch.',
+        );
+      }
+    });
   }
 
-  final shopStatusIsHold = _isHoldActive;
+  //   @override
+  //   void initState() {
+  //     super.initState();
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  // print('CHECK CREDIT LIMIT ${widget.checkCredit}');
+  //     context
+  //         .read<GlobalBloc>()
+  //         .add(Activity(activity: 'Visited Shop ${widget.shopname}'));
+  //     final st = _statusForShop();
+  //     final effectiveCheckedIn = st.last == VisitLast.hold ? true : st.checkedIn;
+  //     checkInText = effectiveCheckedIn ? "Check Out" : "Check In";
+  //     _holdToggleVisual = st.holdUi || st.last == VisitLast.hold;
+  //     _hasReasonSelected = !effectiveCheckedIn || st.last != VisitLast.none;
 
-  // ───────── PLACE ON HOLD ─────────
-  if (!shopStatusIsHold) {
-    // load HOLD reasons from API/login
-    final options = _reasonsOfType("HOLD");
-    if (options.isEmpty) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //       if (_markLocationOn) await _getLocation();
+  //     });
+  //   }
+
+  Future<void> _pickHold() async {
+    final parentCtx = context;
+
+    // need location first if rights say so
+    if (_markLocationOn && (lat == "0" || lng == "0")) {
       await _showThemedInfo(
         parentCtx: parentCtx,
-        title: 'No Options',
-        message: 'No HOLD reasons available.',
+        title: 'Location',
+        message:
+            "Can't get location. Please open Google Maps blue dot and try again.",
       );
       return;
     }
 
-    // user picks a reason
-    final chosen = await _showThemedReasonPicker(
-      parentCtx: parentCtx,
-      dialogTitle: "Select Hold Reason",
-      options: options,
-    );
-    if (chosen == null) return;
+    final shopStatusIsHold = _isHoldActive;
 
-    // confirm hold
+    // ───────── PLACE ON HOLD ─────────
+    if (!shopStatusIsHold) {
+      // load HOLD reasons from API/login
+      final options = _reasonsOfType("HOLD");
+      if (options.isEmpty) {
+        await _showThemedInfo(
+          parentCtx: parentCtx,
+          title: 'No Options',
+          message: 'No HOLD reasons available.',
+        );
+        return;
+      }
+
+      // user picks a reason
+      final chosen = await _showThemedReasonPicker(
+        parentCtx: parentCtx,
+        dialogTitle: "Select Hold Reason",
+        options: options,
+      );
+      if (chosen == null) return;
+
+      // confirm hold
+      await _showThemedConfirm(
+        parentCtx: parentCtx,
+        title: 'Confirm Hold',
+        message: 'Place this shop on HOLD for reason "$chosen"?',
+        onYes: () async {
+          await _getLocation();
+
+          // 1) send HOLD = type:9
+          context.read<GlobalBloc>().add(
+            CheckinCheckoutEvent(
+              type: '9',
+              userId: context
+                  .read<GlobalBloc>()
+                  .state
+                  .loginModel!
+                  .userinfo!
+                  .userId
+                  .toString(),
+              lat: lat,
+              lng: lng,
+              act_type: "ORDER_HOLD",
+              action: chosen,
+              misc: widget.miscid,
+              dist_id: context
+                  .read<GlobalBloc>()
+                  .state
+                  .loginModel!
+                  .userinfo!
+                  .disid
+                  .toString(),
+            ),
+          );
+
+          // 2) save selected reason locally
+          await _saveReason(chosen);
+
+          // 3) store status as "last = hold" and checked-out
+          _holdToggleVisual = false;
+          checkInText = "Check In";
+          _hasReasonSelected = true; // ✅ at this point user DID select a reason
+          await _saveStatus(
+            checkedIn: false,
+            last: VisitLast.hold,
+            holdUi: false,
+          );
+
+          if (mounted) setState(() {});
+          if (mounted) {
+            Navigator.of(
+              parentCtx,
+            ).pop({'miscid': widget.miscid, 'kind': 'hold', 'reason': chosen});
+          }
+        },
+      );
+
+      return;
+    }
+
+    // ───────── UNHOLD ─────────
     await _showThemedConfirm(
       parentCtx: parentCtx,
-      title: 'Confirm Hold',
-      message: 'Place this shop on HOLD for reason "$chosen"?',
+      title: 'Unhold Shop',
+      message: 'Remove HOLD and continue?',
       onYes: () async {
         await _getLocation();
 
-        // 1) send HOLD = type:9
+        // send UNHOLD = type:10
         context.read<GlobalBloc>().add(
           CheckinCheckoutEvent(
-            type: '9',
-            userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
+            type: '10',
+            userId: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .userId
+                .toString(),
             lat: lat,
             lng: lng,
             act_type: "ORDER_HOLD",
-            action: chosen,
+            action: "UNHOLD",
             misc: widget.miscid,
-            dist_id: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
+            dist_id: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .disid
+                .toString(),
           ),
         );
 
-        // 2) save selected reason locally
-        await _saveReason(chosen);
-
-        // 3) store status as "last = hold" and checked-out
+        // 🔴 now user is back inside the shop, so FORCE an action
         _holdToggleVisual = false;
-        checkInText = "Check In";
-        _hasReasonSelected = true; // ✅ at this point user DID select a reason
-        await _saveStatus(
-          checkedIn: false,
-          last: VisitLast.hold,
-          holdUi: false,
-        );
+        checkInText = "Check Out"; // user is considered inside
+        _hasReasonSelected =
+            false; // ✅ so back button will show "Action Required"
+
+        await _saveStatus(checkedIn: true, last: VisitLast.none, holdUi: false);
 
         if (mounted) setState(() {});
-        if (mounted) {
-          Navigator.of(parentCtx).pop({
-            'miscid': widget.miscid,
-            'kind': 'hold',
-            'reason': chosen,
-          });
-        }
       },
     );
-
-    return;
   }
 
-  // ───────── UNHOLD ─────────
-  await _showThemedConfirm(
-    parentCtx: parentCtx,
-    title: 'Unhold Shop',
-    message: 'Remove HOLD and continue?',
-    onYes: () async {
-      await _getLocation();
-
-      // send UNHOLD = type:10
-      context.read<GlobalBloc>().add(
-        CheckinCheckoutEvent(
-          type: '10',
-          userId: context.read<GlobalBloc>().state.loginModel!.userinfo!.userId.toString(),
-          lat: lat,
-          lng: lng,
-          act_type: "ORDER_HOLD",
-          action: "UNHOLD",
-          misc: widget.miscid,
-          dist_id: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
-        ),
-      );
-
-      // 🔴 now user is back inside the shop, so FORCE an action
-      _holdToggleVisual = false;
-      checkInText = "Check Out";   // user is considered inside
-      _hasReasonSelected = false;  // ✅ so back button will show "Action Required"
-
-      await _saveStatus(
-        checkedIn: true,
-        last: VisitLast.none,
-        holdUi: false,
-      );
-
-      if (mounted) setState(() {});
-    },
-  );
-}
-
-
-/*  Future<void> _pickHold() async {
+  /*  Future<void> _pickHold() async {
     final parentCtx = context;
 
     if (_markLocationOn && (lat == "0" || lng == "0")) {
@@ -809,9 +843,10 @@ void initState() {
     final options = _reasonsOfType("NOVISIT");
     if (options.isEmpty) {
       await _showThemedInfo(
-          parentCtx: parentCtx,
-          title: 'No Options',
-          message: 'No NO-VISIT reasons available.');
+        parentCtx: parentCtx,
+        title: 'No Options',
+        message: 'No NO-VISIT reasons available.',
+      );
       return;
     }
     final chosen = await _showThemedReasonPicker(
@@ -829,55 +864,62 @@ void initState() {
         await _getLocation();
 
         // ORDER reason (type 7)
-        context.read<GlobalBloc>().add(CheckinCheckoutEvent(
-              type: '7',
-              userId: context
-                  .read<GlobalBloc>()
-                  .state
-                  .loginModel!
-                  .userinfo!
-                  .userId
-                  .toString(),
-              lat: lat,
-              lng: lng,
-              act_type: "ORDER",
-              action: chosen,
-              misc: widget.miscid,
-              dist_id: context
-                  .read<GlobalBloc>()
-                  .state
-                  .loginModel!
-                  .userinfo!
-                  .disid
-                  .toString(),
-            ));
+        context.read<GlobalBloc>().add(
+          CheckinCheckoutEvent(
+            type: '7',
+            userId: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .userId
+                .toString(),
+            lat: lat,
+            lng: lng,
+            act_type: "ORDER",
+            action: chosen,
+            misc: widget.miscid,
+            dist_id: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .disid
+                .toString(),
+          ),
+        );
         // CHECK OUT (type 6)
-        context.read<GlobalBloc>().add(CheckinCheckoutEvent(
-              type: '6',
-              userId: context
-                  .read<GlobalBloc>()
-                  .state
-                  .loginModel!
-                  .userinfo!
-                  .userId
-                  .toString(),
-              lat: lat,
-              lng: lng,
-              act_type: "SHOP_CHECK",
-              action: "OUT",
-              misc: widget.miscid,
-              dist_id: context
-                  .read<GlobalBloc>()
-                  .state
-                  .loginModel!
-                  .userinfo!
-                  .disid
-                  .toString(),
-            ));
+        context.read<GlobalBloc>().add(
+          CheckinCheckoutEvent(
+            type: '6',
+            userId: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .userId
+                .toString(),
+            lat: lat,
+            lng: lng,
+            act_type: "SHOP_CHECK",
+            action: "OUT",
+            misc: widget.miscid,
+            dist_id: context
+                .read<GlobalBloc>()
+                .state
+                .loginModel!
+                .userinfo!
+                .disid
+                .toString(),
+          ),
+        );
 
         await _saveReason(chosen);
         await _saveStatus(
-            checkedIn: false, last: VisitLast.noVisit, holdUi: false);
+          checkedIn: false,
+          last: VisitLast.noVisit,
+          holdUi: false,
+        );
         checkInText = "Check In";
         _hasReasonSelected = true;
         if (mounted) setState(() {});
@@ -910,38 +952,40 @@ void initState() {
     return BlocListener<GlobalBloc, GlobalState>(
       listenWhen: (prev, curr) =>
           prev.checkinCheckoutStatus != curr.checkinCheckoutStatus,
-          listener: (ctx, state) {
-  switch (state.checkinCheckoutStatus) {
-    case CheckinCheckoutStatus.loading:
-      // _showBlockingLoader(ctx);
-      break;
+      listener: (ctx, state) {
+        switch (state.checkinCheckoutStatus) {
+          case CheckinCheckoutStatus.loading:
+            // _showBlockingLoader(ctx);
+            break;
 
-    case CheckinCheckoutStatus.success:
-      _hideBlockingLoader(ctx);
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(content: Text('Synced ✅')),
-      );
-      break;
+          case CheckinCheckoutStatus.success:
+            _hideBlockingLoader(ctx);
+            ScaffoldMessenger.of(
+              ctx,
+            ).showSnackBar(const SnackBar(content: Text('Synced ✅')));
+            break;
 
-    case CheckinCheckoutStatus.queued: // ← NEW
-      _hideBlockingLoader(ctx);
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(content: Text('Saved offline. Will sync when online 🔄')),
-      );
-      break;
+          case CheckinCheckoutStatus.queued: // ← NEW
+            _hideBlockingLoader(ctx);
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              const SnackBar(
+                content: Text('Saved offline. Will sync when online 🔄'),
+              ),
+            );
+            break;
 
-    case CheckinCheckoutStatus.failure:
-      _hideBlockingLoader(ctx);
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(content: Text('Something went wrong')),
-      );
-      break;
+          case CheckinCheckoutStatus.failure:
+            _hideBlockingLoader(ctx);
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              const SnackBar(content: Text('Something went wrong')),
+            );
+            break;
 
-    case CheckinCheckoutStatus.initial:
-    default:
-      break;
-  }
-},
+          case CheckinCheckoutStatus.initial:
+          default:
+            break;
+        }
+      },
 
       child: WillPopScope(
         onWillPop: _onWillPop,
@@ -979,10 +1023,15 @@ void initState() {
                                     color: Colors.white.withOpacity(.20),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                        color: Colors.white, width: 1.2),
+                                      color: Colors.white,
+                                      width: 1.2,
+                                    ),
                                   ),
-                                  child: const Icon(Icons.store_rounded,
-                                      color: Colors.white, size: 22),
+                                  child: const Icon(
+                                    Icons.store_rounded,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -990,23 +1039,25 @@ void initState() {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(widget.shopname,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: t.titleMedium?.copyWith(
-                                            color:
-                                                Colors.white.withOpacity(.97),
-                                            fontWeight: FontWeight.w700,
-                                          )),
+                                      Text(
+                                        widget.shopname,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: t.titleMedium?.copyWith(
+                                          color: Colors.white.withOpacity(.97),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
                                       Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Icon(Icons.place_rounded,
-                                              size: 16,
-                                              color: Colors.white
-                                                  .withOpacity(.9)),
+                                          Icon(
+                                            Icons.place_rounded,
+                                            size: 16,
+                                            color: Colors.white.withOpacity(.9),
+                                          ),
                                           const SizedBox(width: 4),
                                           Expanded(
                                             child: Text(
@@ -1014,8 +1065,9 @@ void initState() {
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                               style: t.bodySmall?.copyWith(
-                                                color: Colors.white
-                                                    .withOpacity(.95),
+                                                color: Colors.white.withOpacity(
+                                                  .95,
+                                                ),
                                                 height: 1.2,
                                               ),
                                             ),
@@ -1067,22 +1119,23 @@ void initState() {
                       onTap: () async {
                         if (_isHoldActive) {
                           await _showThemedInfo(
-                              parentCtx: context,
-                              title: 'Unhold Required',
-                              message: 'Unhold first to continue.');
+                            parentCtx: context,
+                            title: 'Unhold Required',
+                            message: 'Unhold first to continue.',
+                          );
                           return;
                         }
                         // Lock checkout until a reason is selected
-                           if (checkInText == "Check In" && !_allowCheckInAgain) {
-      await _showThemedInfo(
-        parentCtx: context,
-        title: 'Not Allowed',
-        message: _isOrderPlaced
-            ? 'Re-check in is not allowed (order already placed).'
-            : 'Re-check in is not allowed (No Visit selected earlier).',
-      );
-      return;
-    }
+                        if (checkInText == "Check In" && !_allowCheckInAgain) {
+                          await _showThemedInfo(
+                            parentCtx: context,
+                            title: 'Not Allowed',
+                            message: _isOrderPlaced
+                                ? 'Re-check in is not allowed (order already placed).'
+                                : 'Re-check in is not allowed (No Visit selected earlier).',
+                          );
+                          return;
+                        }
                         // if (checkInText == "Check Out" && _checkoutLocked) {
                         //   await _showThemedInfo(
                         //     parentCtx: context,
@@ -1094,18 +1147,20 @@ void initState() {
                         // }
                         if (checkInText == "Check In" && !_allowCheckInAgain) {
                           await _showThemedInfo(
-                              parentCtx: context,
-                              title: 'Not Allowed',
-                              message:
-                                  'Re-check in is not allowed (No Visit selected earlier).');
+                            parentCtx: context,
+                            title: 'Not Allowed',
+                            message:
+                                'Re-check in is not allowed (No Visit selected earlier).',
+                          );
                           return;
                         }
                         if (_markLocationOn && (lat == "0" || lng == "0")) {
                           await _showThemedInfo(
-                              parentCtx: context,
-                              title: 'Location',
-                              message:
-                                  "Can't get location. Please open Google Maps blue dot.");
+                            parentCtx: context,
+                            title: 'Location',
+                            message:
+                                "Can't get location. Please open Google Maps blue dot.",
+                          );
                           return;
                         }
                         await _getLocation();
@@ -1117,29 +1172,29 @@ void initState() {
                             message: 'Do you want to Check-In?',
                             onYes: () async {
                               context.read<GlobalBloc>().add(
-                                    CheckinCheckoutEvent(
-                                      type: '5',
-                                      userId: context
-                                          .read<GlobalBloc>()
-                                          .state
-                                          .loginModel!
-                                          .userinfo!
-                                          .userId
-                                          .toString(),
-                                      lat: lat,
-                                      lng: lng,
-                                      act_type: "SHOP_CHECK",
-                                      action: "IN",
-                                      misc: widget.miscid,
-                                      dist_id: context
-                                          .read<GlobalBloc>()
-                                          .state
-                                          .loginModel!
-                                          .userinfo!
-                                          .disid
-                                          .toString(),
-                                    ),
-                                  );
+                                CheckinCheckoutEvent(
+                                  type: '5',
+                                  userId: context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .userinfo!
+                                      .userId
+                                      .toString(),
+                                  lat: lat,
+                                  lng: lng,
+                                  act_type: "SHOP_CHECK",
+                                  action: "IN",
+                                  misc: widget.miscid,
+                                  dist_id: context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .userinfo!
+                                      .disid
+                                      .toString(),
+                                ),
+                              );
                               setState(() {
                                 checkInText = "Check Out";
                                 _hasReasonSelected =
@@ -1147,9 +1202,10 @@ void initState() {
                               });
                               final st = _statusForShop();
                               await _saveStatus(
-                                  checkedIn: true,
-                                  last: st.last,
-                                  holdUi: _holdToggleVisual);
+                                checkedIn: true,
+                                last: st.last,
+                                holdUi: _holdToggleVisual,
+                              );
                             },
                           );
                         } else {
@@ -1160,38 +1216,39 @@ void initState() {
                             message: 'Do you want to Check-Out?',
                             onYes: () async {
                               context.read<GlobalBloc>().add(
-                                    CheckinCheckoutEvent(
-                                      type: '6',
-                                      userId: context
-                                          .read<GlobalBloc>()
-                                          .state
-                                          .loginModel!
-                                          .userinfo!
-                                          .userId
-                                          .toString(),
-                                      lat: lat,
-                                      lng: lng,
-                                      act_type: "SHOP_CHECK",
-                                      action: "OUT",
-                                      misc: widget.miscid,
-                                      dist_id: context
-                                          .read<GlobalBloc>()
-                                          .state
-                                          .loginModel!
-                                          .userinfo!
-                                          .disid
-                                          .toString(),
-                                    ),
-                                  );
+                                CheckinCheckoutEvent(
+                                  type: '6',
+                                  userId: context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .userinfo!
+                                      .userId
+                                      .toString(),
+                                  lat: lat,
+                                  lng: lng,
+                                  act_type: "SHOP_CHECK",
+                                  action: "OUT",
+                                  misc: widget.miscid,
+                                  dist_id: context
+                                      .read<GlobalBloc>()
+                                      .state
+                                      .loginModel!
+                                      .userinfo!
+                                      .disid
+                                      .toString(),
+                                ),
+                              );
                               setState(() {
                                 checkInText = "Check In";
                                 _hasReasonSelected = true;
                               });
                               final st = _statusForShop();
                               await _saveStatus(
-                                  checkedIn: false,
-                                  last: st.last,
-                                  holdUi: _holdToggleVisual);
+                                checkedIn: false,
+                                last: st.last,
+                                holdUi: _holdToggleVisual,
+                              );
                               if (mounted) Navigator.pop(context);
                             },
                           );
@@ -1205,79 +1262,78 @@ void initState() {
                       ),
                     ),
 
+                    _TapScale(
+                      onTap: () => _guardRequireCheckIn(() async {
+                        final res = await Navigator.push<Map<String, dynamic>>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => MeezanTeaCatalog(
+                              shopId: widget.miscid,
+                              creditBoolean: widget.checkCredit.toString(),
+                            ),
+                          ),
+                        );
 
+                        if (res is Map &&
+                            res!['miscid'] == widget.miscid &&
+                            (res['reason'] ?? '') == 'ORDER PLACED') {
+                          await _saveReason('ORDER PLACED');
+                          await _saveStatus(
+                            checkedIn: false,
+                            last: VisitLast.none,
+                            holdUi: false,
+                            ordered: true, // 👈 mark shop as ordered
+                          );
+                          setState(() {
+                            checkInText = 'Check In';
+                            _hasReasonSelected = true;
+                          });
+                          if (mounted) Navigator.pop(context, res);
+                        }
 
-_TapScale(
-  onTap: () => _guardRequireCheckIn(() async {
+                        // final res = await Navigator.push<Map<String, dynamic>>(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (_) => MeezanTeaCatalog(shopId: widget.miscid,creditBoolean: widget.checkCredit.toString()),
+                        //   ),
+                        // );
 
-    
-    final res = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => MeezanTeaCatalog(shopId: widget.miscid,creditBoolean: widget.checkCredit.toString()),
-      ),
-    );
+                        // if (res is Map &&
+                        //     res!['miscid'] == widget.miscid &&
+                        //     (res['reason'] ?? '') == 'ORDER PLACED') {
+                        //   // update local UI + storage
+                        //   await _saveReason('ORDER PLACED');
+                        //   await _saveStatus(
+                        //     checkedIn: false,
+                        //     last: VisitLast.none,
+                        //     holdUi: false,
+                        //   );
+                        //   setState(() {
+                        //     checkInText = 'Check In';
+                        //     _hasReasonSelected = true;
+                        //   });
 
-    if (res is Map &&
-    res!['miscid'] == widget.miscid &&
-    (res['reason'] ?? '') == 'ORDER PLACED') {
-  await _saveReason('ORDER PLACED');
-  await _saveStatus(
-    checkedIn: false,
-    last: VisitLast.none,
-    holdUi: false,
-    ordered: true,               // 👈 mark shop as ordered
-  );
-  setState(() {
-    checkInText = 'Check In';
-    _hasReasonSelected = true;
-  });
-  if (mounted) Navigator.pop(context, res);
-}
-
-    // final res = await Navigator.push<Map<String, dynamic>>(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => MeezanTeaCatalog(shopId: widget.miscid,creditBoolean: widget.checkCredit.toString()),
-    //   ),
-    // );
-
-    // if (res is Map &&
-    //     res!['miscid'] == widget.miscid &&
-    //     (res['reason'] ?? '') == 'ORDER PLACED') {
-    //   // update local UI + storage
-    //   await _saveReason('ORDER PLACED');
-    //   await _saveStatus(
-    //     checkedIn: false,
-    //     last: VisitLast.none,
-    //     holdUi: false,
-    //   );
-    //   setState(() {
-    //     checkInText = 'Check In';
-    //     _hasReasonSelected = true;
-    //   });
-
-    //   // ⬅️ that's it – events are sent from the order screen (where we have order_id)
-    //   if (mounted) {
-    //     Navigator.pop(context, res);
-    //   }
-    // }
-  }),
-  child: const _CategoryCard(
-    icon: Icons.playlist_add_check_rounded,
-    title: 'Take Order',
-    subtitle: 'Orders',
-  ),
-),
-
+                        //   // ⬅️ that's it – events are sent from the order screen (where we have order_id)
+                        //   if (mounted) {
+                        //     Navigator.pop(context, res);
+                        //   }
+                        // }
+                      }),
+                      child: const _CategoryCard(
+                        icon: Icons.playlist_add_check_rounded,
+                        title: 'Take Order',
+                        subtitle: 'Orders',
+                      ),
+                    ),
 
                     _TapScale(
                       onTap: () {
                         if (!_isCheckedIn) {
                           _showThemedInfo(
-                              parentCtx: context,
-                              title: 'Check-In Required',
-                              message: 'Please check in first.');
+                            parentCtx: context,
+                            title: 'Check-In Required',
+                            message: 'Please check in first.',
+                          );
                           return;
                         }
                         _pickHold();
@@ -1287,8 +1343,9 @@ _TapScale(
                             ? Icons.play_circle_outline
                             : Icons.pause_rounded,
                         title: _holdToggleVisual ? 'Unhold' : 'Hold',
-                        subtitle:
-                            _holdToggleVisual ? 'Tap to Unhold' : 'Hold Reason',
+                        subtitle: _holdToggleVisual
+                            ? 'Tap to Unhold'
+                            : 'Hold Reason',
                       ),
                     ),
 
@@ -1304,12 +1361,22 @@ _TapScale(
 
                     // Collect Payment
                     _TapScale(
-                      onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context)=> InvoicesScreen
-                        (
-                          acode: widget.miscid,
-                          disid: context.read<GlobalBloc>().state.loginModel!.userinfo!.disid.toString(),
-                        )));
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InvoicesScreen(
+                              acode: widget.miscid,
+                              disid: context
+                                  .read<GlobalBloc>()
+                                  .state
+                                  .loginModel!
+                                  .userinfo!
+                                  .disid
+                                  .toString(),
+                            ),
+                          ),
+                        );
                       },
                       // onTap: () => _guardRequireCheckIn(() async {
                       //   if (!_markInvoicesOn) {
@@ -1331,9 +1398,26 @@ _TapScale(
 
                     // Sale History
                     _TapScale(
-                      onTap: () => _guardRequireCheckIn(() {
-                        _toast('History tapped'); // TODO: Navigate
-                      }),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SalesHistoryScreen(
+                              acode: widget.miscid,
+                              disid: context
+                                  .read<GlobalBloc>()
+                                  .state
+                                  .loginModel!
+                                  .userinfo!
+                                  .disid
+                                  .toString(),
+                            ),
+                          ),
+                        );
+                      },
+                      // onTap: () => _guardRequireCheckIn(() {
+                      //   _toast('History tapped'); // TODO: Navigate
+                      // }),
                       child: const _CategoryCard(
                         icon: Icons.history_rounded,
                         title: 'Sale History',
@@ -1400,7 +1484,7 @@ class _GlassDialog extends StatelessWidget {
             color: kCard,
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
-              BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10))
+              BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10)),
             ],
           ),
           child: Column(
@@ -1413,10 +1497,14 @@ class _GlassDialog extends StatelessWidget {
                   color: kField,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
-                child: Text(title,
-                    textAlign: TextAlign.center,
-                    style: t.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800, color: kText)),
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: t.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: kText,
+                  ),
+                ),
               ),
               child,
             ],
@@ -1456,9 +1544,14 @@ class _Chip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 6),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -1477,9 +1570,10 @@ class _CategoryCard extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-            colors: [kOrange, kOrangeLite],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight),
+          colors: [kOrange, kOrangeLite],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
       child: Container(
@@ -1488,7 +1582,7 @@ class _CategoryCard extends StatelessWidget {
           color: kCard,
           borderRadius: BorderRadius.circular(14.2),
           boxShadow: const [
-            BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10))
+            BoxShadow(color: kShadow, blurRadius: 16, offset: Offset(0, 10)),
           ],
           border: Border.all(color: Color(0xFFEDEFF2)),
         ),
@@ -1497,26 +1591,33 @@ class _CategoryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Material(
-                color: kField,
-                shape: const CircleBorder(),
-                child: SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Icon(icon, color: kOrange))),
+              color: kField,
+              shape: const CircleBorder(),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(icon, color: kOrange),
+              ),
+            ),
             const Spacer(),
-            Text(title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: t.titleSmall?.copyWith(
-                    color: kText,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: .2)),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.titleSmall?.copyWith(
+                color: kText,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .2,
+              ),
+            ),
             if (subtitle != null) ...[
               const SizedBox(height: 2),
-              Text(subtitle!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall?.copyWith(color: kMuted)),
+              Text(
+                subtitle!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: t.bodySmall?.copyWith(color: kMuted),
+              ),
             ],
           ],
         ),
@@ -1548,9 +1649,10 @@ class _TapScaleState extends State<_TapScale>
       onTapUp: _up,
       onTap: widget.onTap,
       child: AnimatedScale(
-          duration: const Duration(milliseconds: 90),
-          scale: _scale,
-          child: widget.child),
+        duration: const Duration(milliseconds: 90),
+        scale: _scale,
+        child: widget.child,
+      ),
     );
   }
 }

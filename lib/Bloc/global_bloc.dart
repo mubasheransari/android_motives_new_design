@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
+import 'package:motives_new_ui_conversion/Models/get_sales_history_model.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/Models/markattendance_model.dart';
 import 'package:motives_new_ui_conversion/Repository/repository.dart';
@@ -35,6 +36,7 @@ class GlobalBloc extends Bloc<GlobalEvent, GlobalState> {
     on<Activity>(activity);
     on<CoveredRoutesLength>(coveredRoutesLength);
     on<LoadShopInvoicesRequested>(_onLoadShopInvoices);
+    on<LoadSalesHistoryRequested>(_onLoadSalesHistory);
   }
 
   final Repository repo = Repository();
@@ -48,6 +50,53 @@ DateTime? _tryParseInvDate(String? s) {
     return DateFormat("dd-MMM-yy").parse(s.toUpperCase());
   } catch (_) {
     return null;
+  }
+}
+
+
+Future<void> _onLoadSalesHistory(
+  LoadSalesHistoryRequested e,
+  Emitter<GlobalState> emit,
+) async {
+  emit(state.copyWith(
+    salesHistoryStatus: SalesHistoryStatus.loading,
+    salesHistoryError: null,
+  ));
+
+  try {
+    final res = await repo.getSalesHistory(acode: e.acode, disid: e.disid);
+
+    if (res.statusCode == 200) {
+      final decoded = jsonDecode(res.body);
+      if (decoded is List) {
+        final list = decoded
+            .whereType<Map<String, dynamic>>()
+            .map((m) => GetSaleHistoryModel.fromJson(m))
+            .toList();
+
+        emit(state.copyWith(
+          salesHistoryStatus: SalesHistoryStatus.success,
+          salesHistory: list,
+          salesHistoryError: null,
+        ));
+      } else {
+        emit(state.copyWith(
+          salesHistoryStatus: SalesHistoryStatus.failure,
+          salesHistoryError: 'Unexpected response format.',
+        ));
+      }
+    } else {
+      emit(state.copyWith(
+        salesHistoryStatus: SalesHistoryStatus.failure,
+        salesHistoryError: 'HTTP ${res.statusCode}',
+      ));
+    }
+  } catch (err, st) {
+    debugPrint('getSalesHistory error: $err\n$st');
+    emit(state.copyWith(
+      salesHistoryStatus: SalesHistoryStatus.failure,
+      salesHistoryError: 'Failed to load sales history',
+    ));
   }
 }
 

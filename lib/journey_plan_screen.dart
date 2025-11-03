@@ -368,6 +368,7 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
 
  // if (!invoicesAlreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
     bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
+     bloc.add(LoadSalesHistoryRequested(acode: acode, disid: disid));
   //}
 
   // 2) Your existing navigation

@@ -103,4 +103,13 @@ class LoadShopInvoicesRequested extends GlobalEvent {
   List<Object?> get props => [acode, disid];
 }
 
+class LoadSalesHistoryRequested extends GlobalEvent {
+  final String acode;
+  final String disid;
+  const LoadSalesHistoryRequested({required this.acode, required this.disid});
+  @override
+  List<Object?> get props => [acode, disid];
+}
+
+
 
