@@ -56,7 +56,7 @@ class _RecordsScreenState extends State<RecordsScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: kText),
-        title: Text('Order Records',
+        title: Text('Orders',
           style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700),
         ),
       ),
@@ -136,10 +136,10 @@ class _RecordsScreenState extends State<RecordsScreen> {
                                           ),
                                         
                                           const SizedBox(height: 4),
-                                          Text(
-                                            'Date: ${r.dateStr}}',
-                                            style: t.bodySmall?.copyWith(color: kMuted),
-                                          ),
+                                          // Text(
+                                          //   'Date: ${r.dateStr}'.toUpperCase(),
+                                          //   style: t.bodySmall?.copyWith(color: kMuted),
+                                          // ),
                                                Text(
                                             'Total Qty: ${_trimQty(totals.totalQty)}',
                                             style: t.bodySmall?.copyWith(color: kMuted),

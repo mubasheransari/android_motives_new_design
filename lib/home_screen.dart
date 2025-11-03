@@ -630,7 +630,7 @@ floatingActionButton: Padding(
                               child: _WideGlassTile(
                                 icon: Icons.person,
                                 title: 'Profile',
-                                caption: 'View profile',
+                                caption: 'View Profile',
                                 onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(

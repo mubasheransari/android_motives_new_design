@@ -1,39 +1,42 @@
+// lib/Offline/outbox_storage.dart
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
+
 import 'outbox_job.dart';
 
-
-import 'dart:convert';
-import 'package:get_storage/get_storage.dart';
-import 'outbox_job.dart';
-
+/// Simple persistence layer for the offline outbox queue.
 class OutboxStorage {
-  static const _k = 'outbox_v1';
-  final _box = GetStorage();
+  static const String _key = 'outbox_v2';
+  static bool _inited = false;
+
+  final GetStorage _box = GetStorage();
+
+  /// Call once in app start or from a background isolate.
+  static Future<void> ensureInitialized() async {
+    if (_inited) return;
+    // If GetStorage was already initialized in main(), this is a no-op.
+    await GetStorage.init();
+    _inited = true;
+  }
 
   List<OutboxJob> load() {
-    final raw = _box.read(_k);
-    if (raw == null) return [];
+    final raw = _box.read(_key);
+    if (raw == null) return <OutboxJob>[];
+
     try {
-      if (raw is String) {
-        final list = (jsonDecode(raw) as List).cast<Map>();
-        return list
-            .map((m) => OutboxJob.fromJson(Map<String, dynamic>.from(m)))
-            .toList();
-      } else if (raw is List) {
-        return raw
-            .cast<Map>()
-            .map((m) => OutboxJob.fromJson(Map<String, dynamic>.from(m)))
-            .toList();
-      }
-      return [];
+      // Support either a stored JSON string or a List<Map>.
+      final List data = raw is String ? (jsonDecode(raw) as List) : (raw as List);
+      return data
+          .map((e) => OutboxJob.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
     } catch (_) {
-      return [];
+      return <OutboxJob>[];
     }
   }
 
   Future<void> save(List<OutboxJob> jobs) async {
-    await _box.write(_k, jsonEncode(jobs.map((j) => j.toJson()).toList()));
+    final encoded = jsonEncode(jobs.map((j) => j.toJson()).toList());
+    await _box.write(_key, encoded);
   }
 
   Future<void> add(OutboxJob job) async {
@@ -48,9 +51,9 @@ class OutboxStorage {
 
   Future<void> update(OutboxJob job) async {
     final list = load();
-    final i = list.indexWhere((j) => j.id == job.id);
-    if (i != -1) {
-      list[i] = job;
+    final idx = list.indexWhere((j) => j.id == job.id);
+    if (idx != -1) {
+      list[idx] = job;
       await save(list);
     }
   }

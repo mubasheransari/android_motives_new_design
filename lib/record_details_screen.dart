@@ -51,7 +51,7 @@ class RecordDetailScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: kText),
-        title: Text('Order ${_shortId(record.id)}',
+        title: Text('Order Details',
           style: t.titleLarge?.copyWith(color: kText, fontWeight: FontWeight.w700),
         ),
       ),
@@ -59,7 +59,7 @@ class RecordDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // Summary card
-          _Card(
+        /*  _Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -103,7 +103,7 @@ class RecordDetailScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 14),*/
 
           // Items list
           Text('Items', style: t.titleLarge?.copyWith(fontWeight: FontWeight.w700, color: kText)),
@@ -121,7 +121,7 @@ class RecordDetailScreen extends StatelessWidget {
           else
             ...lines.map((m) => _LineRow(t: t, line: m)),
 
-          const SizedBox(height: 14),
+        /*  const SizedBox(height: 14),
 
           // Raw response (optional)
           if (record.serverBody
@@ -147,7 +147,7 @@ class RecordDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            ),*/
 
           const SizedBox(height: 20),
         ],
