@@ -329,6 +329,8 @@ class _RouteScreenState extends State<RouteScreen> {
         final covereRouteCount = _coveredRoutesCount;
         final canEndRoute = isRouteStarted && (jpCount == covereRouteCount);
 
+        bool _btnBusy = false;
+
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -436,6 +438,64 @@ class _RouteScreenState extends State<RouteScreen> {
                         ),
                         const SizedBox(height: 18),
                         SizedBox(
+  height: 54,
+  width: double.infinity,
+  child: Builder(
+    builder: (context) {
+      // listen to bloc loading states
+      final state = context.watch<GlobalBloc>().state;
+      final blocLoading =
+          state.startRouteStatus == StartRouteStatus.loading ||
+          state.markAttendanceStatus == MarkAttendanceStatus.loading;
+
+      final isLoading = _btnBusy || blocLoading;
+
+      final canEndRoute = isRouteStarted &&
+          (_dedupJourneyCount(state.loginModel!.journeyPlan) == _coveredRoutesCount);
+
+      return ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: (!isRouteStarted || canEndRoute)
+              ? const Color(0xFFEA7A3B)
+              : const Color(0xFFEA7A3B).withOpacity(.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+        ),
+        onPressed: isLoading
+            ? null
+            : (!isRouteStarted
+                ? () => _startRoute(context,
+                    state.loginModel!.userinfo!.userId.toString(),
+                    state.loginModel!.userinfo!.disid.toString())
+                : (canEndRoute
+                    ? () => _endRoute(context,
+                        state.loginModel!.userinfo!.userId.toString(),
+                        state.loginModel!.userinfo!.disid.toString())
+                    : null)),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.4,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                !isRouteStarted ? 'Start your route' : 'End Route',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: .2,
+                    ),
+              ),
+      );
+    },
+  ),
+),
+
+
+                       /* SizedBox(
                           height: 54,
                           width: double.infinity,
                           child: ElevatedButton(
@@ -467,7 +527,7 @@ class _RouteScreenState extends State<RouteScreen> {
                               ),
                             ),
                           ),
-                        ),
+                        ),*/
                         const SizedBox(height: 12),
                         if (isRouteStarted && !canEndRoute)
                           Text(
