@@ -363,12 +363,12 @@ class _JourneyPlanScreenState extends State<JourneyPlanScreen> {
   print("DIS ID :::: $disid");
   print("DIS ID :::: $disid");
 
-  final invoicesAlreadyLoaded =
-      s.invoicesStatus == InvoicesStatus.success && s.invoices.isNotEmpty;
+  // final invoicesAlreadyLoaded =
+  //     s.invoicesStatus == InvoicesStatus.success && s.invoices.isNotEmpty;
 
-  if (!invoicesAlreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
+ // if (!invoicesAlreadyLoaded && acode.isNotEmpty && disid.isNotEmpty) {
     bloc.add(LoadShopInvoicesRequested(acode: acode, disid: disid));
-  }
+  //}
 
   // 2) Your existing navigation
   print('SHOP ID $miscid');
