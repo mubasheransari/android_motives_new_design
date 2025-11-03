@@ -30,20 +30,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final controller = PageController();
   int index = 0;
 
-  final pages = const [
-    _OnbData(
-      title: 'Mark Your Attendance!',
-      asset: 'assets/time_card_icon.png',
-    ),
-    _OnbData(
-      title: 'Start Your Route & Follow Your Daily Journey Plan!',
-      asset: 'assets/routes.png',
-    ),
-    _OnbData(
-      title: 'End Your Route & Wrap Up Your Day!',
-      asset: 'assets/end_route_icon.png',
-    ),
-  ];
+final pages = [
+  _OnbData(
+    title: 'Mark attendance & start your route',
+    points: [
+      'Mark attendance to clock in.',
+      'Tap Start Route to begin your day.',
+      'Enable location for accurate visit logs.',
+      'Check-in works only after you start your route.',
+      'Today’s journey plan unlocks once you start.',
+      'Shops are grouped by area for faster coverage.',
+      'Weak signal? Actions save offline and auto-sync later.',
+      'Your start time is recorded for the shift.',
+      'Finish your day with End Route.',
+    ],
+  ),
+  _OnbData(
+    title: 'Plan today’s journey by areas',
+    points: [
+      'Check your journey plan for today.',
+      'Use area filters to cover faster.',
+      'Prioritize nearest routes first.',
+    ],
+  ),
+  _OnbData(
+    title: 'Visit shops & auto-sync',
+    points: [
+      'Select a shop to visit and Check-in.',
+      'Place order / collect payment / choose a reason.',
+      'Checkout when done — data auto-syncs, no manual sync needed.',
+      'Complete your journey plan and Sign out.',
+    ],
+  ),
+];
+
 
   @override
   void dispose() {
@@ -122,58 +142,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       physics: const BouncingScrollPhysics(),
                       itemBuilder: (_, i) {
                         final data = pages[i];
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: Column(
-                            children: [
-                              // Glass hero with small badge + title (like HomeUpdated)
-                              _HeroGlassHeader(
-                                titleBottom: data.title,
-                                // right: Image.asset(
-                                //   'assets/logo-bg.png',
-                                //   height: 48,
-                                //   width: 110,
-                                //   color: cPrimary,
-                                //   colorBlendMode: BlendMode.srcIn,
-                                // ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Artwork in a glass panel
-                              Expanded(
-                                child: _GlassPanel(
-                                  child: Center(
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        // soft orange radial aura
-                                        Positioned.fill(
-                                          child: DecoratedBox(
-                                            decoration: BoxDecoration(
-                                              gradient: RadialGradient(
-                                                colors: [cPrimary.withOpacity(.10), Colors.transparent],
-                                                radius: .85,
-                                                center: const Alignment(0, -.2),
-                                              ),
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Glass hero with small badge + title (like HomeUpdated)
+                     _HeroGlassHeader(
+  titleBottom: data.title,
+  points: data.points, // <-- now List<String>
+),
+                            const SizedBox(height: 16),
+                        
+                            // Artwork in a glass panel
+                         /*   Expanded(
+                              child: _GlassPanel(
+                                child: Center(
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // soft orange radial aura
+                                      Positioned.fill(
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: RadialGradient(
+                                              colors: [cPrimary.withOpacity(.10), Colors.transparent],
+                                              radius: .85,
+                                              center: const Alignment(0, -.2),
                                             ),
                                           ),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(24.0),
-                                          child: Image.asset(
-                                            data.asset,
-                                            height: 300,
-                                           // fit: BoxFit.contain,
-                                            width: MediaQuery.of(context).size.width * .58,
-                                          ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(24.0),
+                                        child: Image.asset(
+                                          data.asset,
+                                          height: 300,
+                                         // fit: BoxFit.contain,
+                                          width: MediaQuery.of(context).size.width * .58,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),*/
+                          ],
                         );
                       },
                     ),
@@ -215,19 +228,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
 class _OnbData {
   final String title;
-  final String asset;
-  const _OnbData({required this.title, required this.asset});
+  final List<String> points;
+  const _OnbData({required this.title, required this.points});
 }
-
-/* -------------------- Themed building blocks -------------------- */
-
 class _HeroGlassHeader extends StatelessWidget {
   const _HeroGlassHeader({
     required this.titleBottom,
-   // required this.right,
+    required this.points,
   });
+
   final String titleBottom;
-//  final Widget right;
+  final List<String> points;
 
   @override
   Widget build(BuildContext context) {
@@ -243,41 +254,76 @@ class _HeroGlassHeader extends StatelessWidget {
             borderRadius: BorderRadius.circular(22),
             border: Border.all(color: _OnboardingScreenState.cStroke),
             boxShadow: const [
-              BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 22, offset: Offset(0, 12)),
+              BoxShadow(
+                color: _OnboardingScreenState.cShadow,
+                blurRadius: 22,
+                offset: Offset(0, 12),
+              ),
             ],
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start, // align with title
             children: [
-              Container(
-                // width: 46,
-                // height: 46,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  //shape: BoxShape.circle,
-                  border: Border.all(color: _OnboardingScreenState.cStroke),
-                  boxShadow: const [BoxShadow(color: _OnboardingScreenState.cShadow, blurRadius: 12, offset: Offset(0, 6))],
-                ),
-                child: Image.asset('assets/slide.png',height: 40,width: 40,)//const Icon(Icons.flag_roundfded, color: _OnboardingScreenState.cPrimary),
-              ),
-              const SizedBox(width: 14),
+              // Container(
+              //   decoration: BoxDecoration(
+              //     color: Colors.white,
+              //     border: Border.all(color: _OnboardingScreenState.cStroke),
+              //     boxShadow: const [
+              //       BoxShadow(
+              //         color: _OnboardingScreenState.cShadow,
+              //         blurRadius: 12,
+              //         offset: Offset(0, 6),
+              //       )
+              //     ],
+              //   ),
+              //   child: Image.asset('assets/slide.png', height: 40, width: 40),
+              // ),
+              // const SizedBox(width: 14),
+              // Title + bullets
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(
-                    titleBottom,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: t.titleMedium?.copyWith(
-                      color: _OnboardingScreenState.cText,
-                      fontWeight: FontWeight.w900,
-                      height: 1.06,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start, // <-- left align
+                    children: [
+                      Text(
+                        titleBottom,
+                        style: t.titleMedium?.copyWith(
+                          color: _OnboardingScreenState.cText,
+                          fontWeight: FontWeight.w900,
+                          height: 1.06,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // dynamic bullet list
+                      ...points.map((p) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('• ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: _OnboardingScreenState.cText,
+                                    )),
+                                Expanded(
+                                  child: Text(
+                                    p,
+                                    softWrap: true,
+                                    style: t.titleSmall?.copyWith(
+                                      color: _OnboardingScreenState.cText,
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.15,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
-             
             ],
           ),
         ),
@@ -285,6 +331,7 @@ class _HeroGlassHeader extends StatelessWidget {
     );
   }
 }
+
 
 class _GlassPanel extends StatelessWidget {
   const _GlassPanel({required this.child});
