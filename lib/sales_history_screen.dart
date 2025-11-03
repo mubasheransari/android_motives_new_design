@@ -278,7 +278,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
     }
     if (state.salesHistoryStatus == SalesHistoryStatus.success && data.isEmpty) {
       return SliverList.list(
-          children: const [_InvEmptyView(text: 'No records match your search.')]);
+          children: const [_InvEmptyView(text: 'No records found.')]);
     }
 
     return SliverList.separated(

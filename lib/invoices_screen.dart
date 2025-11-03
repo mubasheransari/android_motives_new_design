@@ -277,7 +277,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     }
     if (state.invoicesStatus == InvoicesStatus.success && data.isEmpty) {
       return SliverList.list(
-          children: const [_InvEmptyView(text: 'No invoices match your search.')]);
+          children: const [_InvEmptyView(text: 'No invoices found.')]);
     }
 
     return SliverList.separated(
