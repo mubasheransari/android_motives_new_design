@@ -261,7 +261,7 @@ class _RouteScreenState extends State<RouteScreen> {
             action: 'OUT',
             lat: currentLocation.latitude.toString(),
             lng: currentLocation.longitude.toString(),
-            type: '0',
+            type: '2',
             userId: userId,
           ),
         );
