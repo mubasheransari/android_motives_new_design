@@ -4,7 +4,10 @@ import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 
 
@@ -953,6 +956,7 @@ class _SmartFaqChatBilingualState extends State<SmartFaqChatBilingual> {
   @override
   void initState() {
     super.initState();
+        context.read<GlobalBloc>().add(Activity(activity:  'Smart FAQs • سمارٹ سوالات'));
     widget.onOpen?.call();
     _lang = _prefs.getLang();
     _t = L10n(_lang);

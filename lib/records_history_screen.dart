@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart' show Item;
 import 'package:motives_new_ui_conversion/record_details_screen.dart';
 import '../../Bloc/global_bloc.dart';
@@ -44,6 +45,8 @@ class _RecordsScreenState extends State<RecordsScreen> {
   @override
   void initState() {
     super.initState();
+            context.read<GlobalBloc>().add(Activity(activity:  'Order Details'));
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
@@ -84,18 +87,18 @@ class _RecordsScreenState extends State<RecordsScreen> {
                   child: _records.isEmpty
                       ? ListView(
                           children: [
-                            const SizedBox(height: 120),
-                            Icon(Icons.history_toggle_off, size: 56, color: kMuted),
-                            const SizedBox(height: 8),
+        SizedBox(height: MediaQuery.of(context).size.height *0.30),                          
+          Icon(Icons.local_grocery_store_outlined, size: 56, color: Color(0xFFEA7A3B)),
+                     SizedBox(height: 4),
                             Center(
-                              child: Text('No successful orders yet',
-                                  style: t.titleMedium?.copyWith(color: kText)),
+                              child: Text('No orders found yet!',
+                                  style: t.titleMedium?.copyWith(color: Colors.black45,fontWeight: FontWeight.w400,fontStyle: FontStyle.italic)),
                             ),
-                            const SizedBox(height: 4),
-                            Center(
-                              child: Text('Submit an order to see it here.',
-                                  style: t.bodySmall?.copyWith(color: kMuted)),
-                            ),
+                            // const SizedBox(height: 4),
+                            // Center(
+                            //   child: Text('Submit an order to see it here.',
+                            //       style: t.bodySmall?.copyWith(color: kMuted)),
+                            // ),
                           ],
                         )
                       : ListView.separated(
