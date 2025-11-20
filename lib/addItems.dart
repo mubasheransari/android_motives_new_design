@@ -111,28 +111,6 @@ class _AddItemsPageState extends State<AddItemsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kSurface,
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   backgroundColor: kHeader,
-      //   foregroundColor: Colors.white,
-      //   title: const Text('Add Items'),
-      //   centerTitle: true,
-      //   shape: const RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //       onPressed: () async {
-      //         final q = await showSearch<String?>(
-      //           context: context,
-      //           delegate: _ProductSearchDelegate(initialQuery: _query),
-      //         );
-      //         if (q != null) setState(() => _query = q);
-      //       },
-      //       icon: const Icon(Icons.search),
-      //     ),
-      //   ],
-      // ),
       body: Column(
         children: [
           SizedBox(height: 30,),
@@ -486,7 +464,7 @@ class _ProductSearchDelegate extends SearchDelegate<String?> {
           ListTile(
             leading: const Icon(Icons.search),
             title: Text('Search "$query"'),
-            onTap: () => close(context, query), // <-- use context, not null
+            onTap: () => close(context, query), 
           ),
         ],
       );

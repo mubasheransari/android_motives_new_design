@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
@@ -11,18 +9,11 @@ import 'package:motives_new_ui_conversion/Models/get_sales_history_model.dart';
 import 'package:motives_new_ui_conversion/Models/login_model.dart';
 import 'package:motives_new_ui_conversion/Models/markattendance_model.dart';
 import 'package:motives_new_ui_conversion/Repository/repository.dart';
-
-import 'dart:convert';
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import '../models/login_model.dart' hide LoginModel, loginModelFromJson;            // your model imports
 import '../offline/sync_service.dart';
 
-import 'dart:convert';
-import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 
 

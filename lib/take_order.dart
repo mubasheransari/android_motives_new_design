@@ -98,119 +98,15 @@ class _TakeOrderPageState extends State<TakeOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final t = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   backgroundColor: kHeader,
-      //   foregroundColor: Colors.white,
-      //   title: const Text('Take Order'),
-      //   centerTitle: true,
-      //   shape: const RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-      //   ),
-      // ),
       body: Column(
         children: [
-        /*  SizedBox(height: 10,),
-             SliverToBoxAdapter(
-                child: Stack(
-                  children: [
-                    // soft gradient backdrop
-                    Container(
-                      height: 160,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.grey, Color(0xFFFFB07A)],
-                          //  colors: [orange, Color(0xFFFFB07A)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                    ),
-                    // decorative pills (angled)
-                    //  const Positioned(top: 8, right: 16, child: _OrangePills()),
-                    // glass panel with greeting
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: _GlassHeader(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // avatar-ish badge
-                                Container(
-                                  width: 54,
-                                  height: 54,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(.20),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: Colors.white, width: 1.2),
-                                  ),
-                                  child: const Icon(Icons.person,
-                                      color: Colors.white, size: 28),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Welcome back,',
-                                          style: t.titleMedium?.copyWith(
-                                            color:
-                                                Colors.white.withOpacity(.95),
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.1,
-                                          )),
-                                      // Text(
-                                      //   userName,
-                                      //   maxLines: 1,
-                                      //   overflow: TextOverflow.ellipsis,
-                                      //   style: t.headlineSmall?.copyWith(
-                                      //     color: Colors.white,
-                                      //     fontWeight: FontWeight.w800,
-                                      //     height: 1.05,
-                                      //   ),
-                                      // ),
-
-                                      // const _StatusPill(
-                                      //   icon: Icons.assignment_turned_in_rounded,
-                                      //   label: 'Last Action Performed : LOGIN',
-                                      // ),
-                                      // const SizedBox(height: 12),
-                                      // const _StatusPill(
-                                      //   icon: Icons.assignment_turned_in_rounded,
-                                      //   label: 'Last Action Performed : LOGIN',
-                                      // ),
-                                    ],
-                                  ),
-                                ),
-                                _OrangePills()
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            const _StatusPill(
-                              icon: Icons.assignment_turned_in_rounded,
-                              label: 'Last Action Performed : LOGIN',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),*/
+ 
 
           const SizedBox(height: 52),
 
-          // Shop card
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -325,7 +221,6 @@ class _TakeOrderPageState extends State<TakeOrderPage> {
   }
 }
 
-/// ---- helpers / shared widgets (private to this file) ----
 
 class _HeaderRow extends StatelessWidget {
   final List<String> columns;

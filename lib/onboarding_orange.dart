@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Orange + White text-only onboarding inspired by your reference image.
-/// - Page 1: Mark attendance & start your route
-/// - Page 2: Check journey plan with area filters
-/// - Page 3: Shop visit flow + auto-sync + sign out
-///
-/// No images, only text. Colors restricted to orange/white.
 class OrangeOnboarding extends StatefulWidget {
   const OrangeOnboarding({super.key});
 

@@ -49,7 +49,6 @@ class OrderMeta {
   });
 }
 
-/// allItems: must provide at least itemId for each line (your TeaItem/item model)
 class SimpleItemRef {
   final String key;
   final String? itemId;

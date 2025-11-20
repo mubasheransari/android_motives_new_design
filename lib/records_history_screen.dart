@@ -6,14 +6,8 @@ import 'package:motives_new_ui_conversion/Models/login_model.dart' show Item;
 import 'package:motives_new_ui_conversion/record_details_screen.dart';
 import '../../Bloc/global_bloc.dart';
 import 'Models/order_storage.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:motives_new_ui_conversion/record_details_screen.dart';
-import '../../Bloc/global_bloc.dart';
-import 'Models/order_storage.dart';
 
-// Reuse the same look & feel as your catalog file
+
 const kOrange = Color(0xFFEA7A3B);
 const kText   = Color(0xFF1E1E1E);
 const kMuted  = Color(0xFF707883);
@@ -110,10 +104,9 @@ class _RecordsScreenState extends State<RecordsScreen> {
                             final totals  = OrderTotals.fromPayload(r.payload);
                             final created = DateFormat('dd MMM yyyy, hh:mm a').format(r.createdAt);
 
-                            // --- NEW: derive shop + products with per-line quantities
                             final shopName    = _shopName(r);
                             final shopAddress = _shopAddress(r);
-                            final lines       = _extractProductLines(r); // <— all products with sku/ctn
+                            final lines       = _extractProductLines(r); 
 
                             return InkWell(
                               onTap: () => Navigator.push(

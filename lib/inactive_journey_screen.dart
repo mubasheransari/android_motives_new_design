@@ -1,10 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import '../Models/login_model.dart'; 
 
-import '../Models/login_model.dart'; // adjust path to your model
-
-// ── same constants as main screen ─────────────────────────────────────────
 const kOrange = Color(0xFFEA7A3B);
 const kOrangeLite = Color(0xFFFFB07A);
 const kText = Color(0xFF1E1E1E);

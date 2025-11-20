@@ -1,30 +1,16 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_bloc.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/Bloc/global_state.dart';
-
-
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:motives_new_ui_conversion/Models/get_sales_history_model.dart';
 
-// import your bloc/state/events
-// import 'global_bloc.dart';
-// import 'global_state.dart';
-// import 'global_event.dart';
+
 
 class SalesHistoryScreen extends StatefulWidget {
-  final String acode; // ONLY widget params
+  final String acode;
   final String disid;
 
   const SalesHistoryScreen({

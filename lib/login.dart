@@ -19,7 +19,6 @@ class NewLoginScreen extends StatefulWidget {
 }
 
 class _NewLoginScreenState extends State<NewLoginScreen> {
-  // HomeUpdated palette
   static const cBg = Color(0xFFEEEEEE);
   static const cSurface = Colors.white;
   static const cText = Color(0xFF1F2937);
