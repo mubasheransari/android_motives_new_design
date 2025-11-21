@@ -11,15 +11,7 @@ import 'package:motives_new_ui_conversion/Bloc/global_event.dart';
 import 'package:motives_new_ui_conversion/widgets/watermark_widget.dart';
 
 
-// smart_faq_chat_bilingual.dart
-// Full, self-contained Smart FAQs (EN/UR) with relational categories + new functional scope
 
-import 'dart:convert';
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:get_storage/get_storage.dart';
-import 'widgets/watermark_widget.dart'; // make sure this exists in your project
 
 // ---------- THEME ----------
 const _kBg = Color(0xFFF7F8FA);

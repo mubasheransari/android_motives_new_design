@@ -384,13 +384,13 @@ class _HomeUpdatedState extends State<HomeUpdated> {
                         child: _HeroGlass(
                           left: const _MiniBadge(),
                           titleBottom: userName,
-                          right: Image.asset(
-                            'assets/logo-bg.png',
-                            height: 54,
-                            width: 120,
-                            color: const Color(0xfffc8020),
-                            colorBlendMode: BlendMode.srcIn,
-                          ),
+                          // right: Image.asset(
+                          //   'assets/logo-bg.png',
+                          //   height: 54,
+                          //   width: 120,
+                          //   color: const Color(0xfffc8020),
+                          //   colorBlendMode: BlendMode.srcIn,
+                          // ),
                         ),
                       ),
                     ),
@@ -676,12 +676,12 @@ class _HeroGlass extends StatelessWidget {
   const _HeroGlass({
     required this.left,
     required this.titleBottom,
-    required this.right,
+   // required this.right,
   });
 
   final Widget left;
   final String titleBottom;
-  final Widget right;
+ // final Widget right;
 
   @override
   Widget build(BuildContext context) {
@@ -730,7 +730,7 @@ class _HeroGlass extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              right,
+            //  right,
             ],
           ),
         ),
